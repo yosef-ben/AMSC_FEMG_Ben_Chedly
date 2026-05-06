@@ -1,0 +1,6 @@
+build/
+*.o
+*.vtk
+*.vtu
+*.pvtu
+convergence.csv
