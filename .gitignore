@@ -35,3 +35,7 @@ data/connectome/anatomy/brain_surface.vtk
 !benchmarks/**/*.pvd
 !benchmarks/**/*.csv
 !benchmarks/**/*.pdf
+
+# Figures staged for the report build; regenerate with
+# scripts/collect-report-figures.sh
+report/images/

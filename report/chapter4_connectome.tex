@@ -1,0 +1,449 @@
+% Citation keys used below are placeholders: fornari2019, corti2023 and
+% weickenmeier2019. The existing text already cites Weickenmeier as [7],
+% so replace them with the keys of the report bibliography.
+%
+% Continuation of Chapter 4, to be inserted after the one-dimensional
+% sensitivity analysis. The existing subsection is typeset as 4.0.1, i.e. as a
+% \subsubsection directly under the chapter; the subsections below will
+% therefore renumber it to 4.1 once it is promoted to \subsection.
+
+\subsection{The brain connectome as a metric graph}
+
+Having verified the nonlinear solver on a controlled one-dimensional problem,
+we now move to the network on which the disease actually spreads. Following
+\cite{fornari2019}, we represent the brain as a weighted undirected graph
+$\mathcal{G}=(\mathcal{V},\mathcal{E})$ whose vertices are anatomical regions
+and whose edges are the axonal bundles connecting them. The graph is extracted
+from the public Budapest Reference Connectome v3.0, which aggregates the
+tractography of $418$ healthy subjects of the Human Connectome Project. We
+retain the connections occurring in at least five subjects and aggregate the
+$1015$ fine parcels into the $83$ regions of the FreeSurfer parcellation,
+removing the connections internal to a parcel.
+
+The reconstruction is verified against the values published in
+\cite{fornari2019} before any simulation is run. Table~\ref{tab:connectome}
+collects the comparison. The topology is recovered exactly, and the weighted
+quantities agree to within a few percent. The residual discrepancy is expected
+and its origin is known: the downloadable file provides the median consensus
+over the subjects, whereas the published statistics are averages over the $418$
+brains, and the original $83\times 83$ averaged matrix is not distributed. We
+also downloaded and aggregated the mean-mode graph with the same threshold; it
+gives a mean adjacency of $2.4398$ and a mean weighted degree of $66.4339$,
+both farther from the published values than the median reconstruction, so the
+median graph is retained.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lrr}
+\hline
+Quantity & This work & \cite{fornari2019} \\
+\hline
+fine graph vertices / edges      & $1015$ / $37477$ & $1015$ / $37477$ \\
+aggregated vertices / edges      & $83$ / $1130$    & $83$ / $1130$ \\
+degree range                     & $6$ -- $48$      & $6$ -- $48$ \\
+mean fibre number                & $40.16$          & $40.2$ \\
+mean fibre length                & $38.40$ mm       & $38.40$ mm \\
+mean adjacency $\bar{A}_{IJ}$    & $1.6669$         & $1.57$ \\
+adjacency range                  & $0.0092$ -- $36.87$ & $0.01$ -- $35.32$ \\
+mean weighted degree $\bar{D}_{II}$ & $45.3884$     & $42.8$ \\
+weighted degree range            & $2.29$ -- $134.84$  & $2.1$ -- $127.6$ \\
+\hline
+\end{tabular}
+\caption{Verification of the reconstructed $83$-region connectome against the
+published values. The topology is exact; the weights are close but not
+identical because the public file is a median consensus while the reference
+statistics are averages over $418$ subjects.}
+\label{tab:connectome}
+\end{table}
+
+Figure~\ref{fig:connectome-regions} shows the resulting domain, with the
+vertices placed at their anatomical coordinates and coloured by the seven
+anatomical groups used later in this chapter, and
+Figure~\ref{fig:connectogram} shows its connectivity structure. The strongly
+connected hubs within each hemisphere and the block structure along the
+diagonal reproduce the small-world organisation described in the reference
+works. One feature of the weighting deserves attention, because it will
+reappear in the regional results: the weight of an edge is the fibre count
+divided by the fibre length, so it penalises long-range bundles. The summed
+connectivity between the frontal and the parietal group reaches $183$ and
+between the parietal and the occipital group $202$, while the frontal to
+temporal entry is only $1$, distributed over $14$ connections none of which
+exceeds $0.19$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/connectome_regions.pdf}
+\caption{The $83$-region connectome. Vertices are drawn at their anatomical
+coordinates and coloured by anatomical group; edge width is proportional to the
+connectivity weight. The MRI and tractography panels of the corresponding
+figure in \cite{corti2023} are not reproduced, since neither dataset is
+available and the graph is taken from a public consensus connectome rather than
+reconstructed from patient images.}
+\label{fig:connectome-regions}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/connectome_connectogram.pdf}
+\caption{Connectivity of the reconstructed graph. Left: the connections above
+$5\%$ of the strongest one, on a circular layout grouped by anatomical group.
+Right: connectivity summed over each pair of groups.}
+\label{fig:connectogram}
+\end{figure}
+
+\subsection{Network model and metric-graph formulation}
+\label{sec:formulation}
+
+On the connectome, \cite{fornari2019} solve a system of ordinary differential
+equations with one unknown per region,
+\begin{equation}
+\frac{\mathrm{d}c_I}{\mathrm{d}t}
+  = -\sum_{J=1}^{N} L_{IJ}\,c_J + \alpha\,c_I\,[1-c_I],
+  \qquad I = 1,\dots,N,
+\label{eq:nodal}
+\end{equation}
+where $L = D - A$ is the connectivity-weighted graph Laplacian. This is a
+nodal model: the brain regions are points and the connections carry no
+internal structure.
+
+The formulation developed in this work replaces the graph by a metric graph.
+Every connection becomes an interval of unit length carrying its own diffusion
+coefficient, the concentration is a continuous piecewise linear function on the
+whole network, and the semi-discrete problem is
+\begin{equation}
+M\,\dot{\mathbf{C}} + K_D\,\mathbf{C} = \mathbf{R}(\mathbf{C}),
+\qquad
+R_i(\mathbf{C}) = \int_{\Gamma} \alpha\,c_h\,[1-c_h]\,\varphi_i \,,
+\label{eq:fem}
+\end{equation}
+with continuity of the concentration and the weighted Kirchhoff flux condition
+imposed naturally by the weak formulation. The reaction vector and its Jacobian
+are integrated with three-point Gauss--Legendre quadrature on every cell, which
+is exact for the degree-four integrands generated by a P1 concentration and a
+P1 reaction coefficient; the reaction is therefore a consistent finite element
+integral and not a nodal Hadamard product.
+
+Two differences between \eqref{eq:nodal} and \eqref{eq:fem} are worth stating
+explicitly, because they account for essentially all the discrepancy observed
+below. First, the mass matrix $M$ is not the identity, so a value prescribed at
+a vertex has a metric support that depends on how many connections meet there.
+Second, one element per connection makes the vertex unknowns of \eqref{eq:fem}
+coincide in number with the unknowns of \eqref{eq:nodal}, but not in meaning,
+and refining the mesh inside the connections adds degrees of freedom that the
+nodal model cannot represent at all.
+
+\subsection{Comparison with the network model}
+
+We reproduce the baseline simulation of \cite{fornari2019}: conversion rate
+$\alpha=0.5$, misfolded protein seeded in the entorhinal cortex at $c_0=0.1$,
+all other regions healthy, and $100$ implicit steps of $\Delta t = 0.4$ years.
+The biomarker abnormality of a region group is the concentration averaged over
+its vertices, expressed as a percentage.
+
+Both solutions remain in the physical interval, up to a transient undershoot of
+order $10^{-4}$ in the finite element solution which we trace below to the
+coarse mesh, and both approach the stable state $c=1$. The biomarker curves
+have the expected sigmoid shape, and the $50$-percent crossing of the network
+average occurs at $11.11$ years for the nodal model and $12.68$ years for the
+finite element model, the difference being the metric support effect described
+above.
+
+The activation sequence, however, is not reproduced. \cite{fornari2019} report
+a separation of roughly five years between the temporal and the occipital
+lobe; our four lobe curves cross the $50$-percent level within
+$2.9\cdot10^{-7}$ years of each other in the nodal model and
+$5.7\cdot10^{-3}$ years in the finite element model. Since our nodal model is
+\eqref{eq:nodal} implemented literally, the discrepancy cannot be a defect of
+the discretization, and we devote the next subsection to explaining it.
+
+\subsubsection{Convergence}
+
+Before doing so we verify that the finite element solution is converged. The
+spatial study keeps $\Delta t = 0.4$ and refines each connection into $1$, $2$,
+$4$ and $8$ elements. The maximum deviation of the biomarker curves from the
+finest run decreases as
+\[
+0.4389\%, \quad 0.1178\%, \quad 0.0229\%, \quad 0,
+\]
+over $83$, $1213$, $3473$ and $7993$ degrees of freedom. The small negative
+transient disappears from two elements per connection onwards, confirming that
+it is a coarse-mesh artefact and not a failure of the nonlinear solver. The
+temporal study uses eight elements per connection and the steps
+$\Delta t = 0.8, 0.4, 0.2, 0.1, 0.05$; successive differences between biomarker
+curves give the observed rates $1.0552$, $1.0263$ and $1.0126$, converging to
+the first order expected of the backward Euler scheme.
+
+We retain $\Delta t = 0.4$ in the comparison above in order to match the
+discretization of the reference, but we note that the study just described
+moves the network crossing time from $11.50$ years at $\Delta t = 0.8$ to
+$13.70$ years at $\Delta t = 0.05$. The absolute crossing times therefore carry
+a time-discretization error of order one year, in our simulation as well as in
+the reference, which uses the same step and a first-order scheme.
+
+\subsection{What controls the regional separation}
+
+Consider \eqref{eq:nodal} with the Laplacian scaled by a positive factor
+$\rho$, so that $\rho=1$ recovers the published model. Linearising around a
+small uniform concentration, the average over the network grows at the reaction
+rate $\alpha$, while any imbalance between regions relaxes at the rate
+$\rho\lambda_2$, where $\lambda_2$ is the Fiedler value of $L$, its smallest
+non-zero eigenvalue. A difference between lobes can therefore survive long
+enough to be visible only if the reaction is faster than the homogenisation of
+the graph, that is if the Damk\"ohler number
+\begin{equation}
+\mathrm{Da} = \frac{\alpha}{\rho\,\lambda_2}
+\label{eq:damkohler}
+\end{equation}
+is large. For the reconstructed connectome we compute $\lambda_2 = 0.7954$ and
+$\lambda_{\max} = 154.04$.
+
+At the parameters of the reference, $\rho = 1$ and $\alpha = 0.5$, we obtain
+$\mathrm{Da} = 0.63$. The connectome homogenises faster than the reaction
+develops, and coincident lobe curves are the correct solution of
+\eqref{eq:nodal}, not a numerical artefact. Figure~\ref{fig:damkohler}
+quantifies this by sweeping $\rho$: the lobe separation grows from
+$2.9\cdot10^{-7}$ years at $\mathrm{Da}=0.63$ to $6.92$ years at
+$\mathrm{Da}=629$, seven decades of variation with the topology, the seed and
+the conversion rate held fixed. Recovering the separation reported in
+\cite{fornari2019} requires $\mathrm{Da}$ of order $10^{2}$, that is $\rho$
+close to $0.005$. We conclude that the published figure cannot be produced by
+the connectivity-weighted Laplacian at unit scale, whatever reconstruction of
+the weights is adopted.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/diffusion_scaling.pdf}
+\caption{Regional separation as a function of the Damk\"ohler number
+\eqref{eq:damkohler}. Top: lobe biomarkers at three scalings. Bottom: the
+separation between the earliest and latest lobe, against $\mathrm{Da}$, with
+the two settings used in this chapter marked and the shaded region indicating
+where the consistent-mass P1 discretization loses boundedness.}
+\label{fig:damkohler}
+\end{figure}
+
+This also reconciles two results of this chapter that would otherwise look
+contradictory. The deterministic model of Section~\ref{sec:corti} normalises
+the diffusivity as $D_e = w_e/\max_e w_e$, that is $\rho = 0.0271$, and uses
+regional reaction rates whose average over the $83$ vertices is $0.1252$; its
+Damk\"ohler number is $5.79$, on the other side of the crossover, which is why
+its regional curves separate clearly while those of the present section do not.
+
+\subsubsection{A validity boundary for the discretization}
+
+The same sweep bounds the finite element formulation. Above $\mathrm{Da}$ of
+about $13$, that is $\rho \le 0.02$ at $\alpha=0.5$, the discrete concentration
+leaves $[0,1]$ and then diverges: at $\rho = 0.005$ the nodal reference stays
+within $[0.99987, 1]$ while the finite element solution reaches
+$[-922, 308]$. The failure occurs identically with backward Euler and with the
+semi-implicit Crank--Nicolson scheme, so it is not a failure of the Newton
+solver, and it persists at $1$, $2$, $4$ and $8$ elements per connection, so it
+is not a matter of resolving the front.
+
+The cause is the consistent mass matrix. Its off-diagonal entries are positive,
+so the semi-discrete system does not satisfy a discrete maximum principle;
+while diffusion dominates, the diffusion matrix compensates, and once the
+reaction dominates nothing does. It is worth observing that the nodal model
+\eqref{eq:nodal} and the Hadamard product used by \cite{corti2023} are exactly
+the mass-lumped counterparts of \eqref{eq:fem}, which is why they remain
+bounded at every scaling tested. Introducing an optional lumped mass matrix is
+the natural way to extend the present formulation into the reaction-dominated
+regime, and we leave it as the immediate continuation of this work. Both
+simulations reported in this chapter satisfy $\mathrm{Da}\le 6$ and are
+therefore well inside the region where the discretization is reliable.
+
+\subsection{Sensitivity to the conversion rate}
+
+We repeat the conversion-rate experiment of \cite{fornari2019} with
+$\alpha = 0, 0.1, \dots, 0.5$ over $80$ years. The qualitative conclusion of
+the reference is recovered: lowering $\alpha$ delays the transition but does
+not create an intermediate stable state, and every positive conversion rate
+drives the network to $c=1$. The $50$-percent crossing of the network average
+moves from $11.11$ years at $\alpha = 0.5$ to $59.33$ years at $\alpha = 0.1$
+in the nodal model, and from $12.68$ to $67.81$ years in the finite element
+model. For $\alpha = 0$ the reaction vanishes and the two conserved quantities
+are preserved to round-off: the nodal average drifts by $3.9\cdot10^{-16}$ and
+the normalised finite element metric integral $\mathbf{1}^{\!\top} M
+\mathbf{C}/\mathbf{1}^{\!\top} M \mathbf{1}$ by $9.7\cdot10^{-17}$.
+
+The nodal and finite element curves start from different global averages, for
+the reason given in Section~\ref{sec:formulation}. No amplitude rescaling is
+applied to hide this difference, since it is a property of the two models and
+not an error of either.
+
+\subsection{Regional vulnerability}
+
+The network enters the model only through $L$, so it is natural to ask which
+regions are the most dangerous places for the disease to start. Following the
+infection-time experiment of \cite{fornari2019} we seed each of the $83$
+regions in turn and record the time at which the network biomarker reaches
+$95\%$. The reference performs this study with the Heterodimer model, so the
+absolute times are not comparable and we compare only the ranking, which
+depends on the network rather than on the kinetics.
+
+At $\rho = 1$ the infection times span $0.02$ years, which is the same
+homogenisation effect quantified above; at $\rho=0.02$ they span four years and
+the ordering becomes meaningful. Three observations of the reference survive at
+both scalings, as shown in Figure~\ref{fig:vulnerability}.
+
+The fastest seeds are subcortical hubs: we obtain the two caudate nuclei
+followed by the two thalami, where the reference reports the putamen and the
+insula. Both identify the same feature of the network, and the reference itself
+notes that the caudate carries the largest number of connections in the graph.
+The slowest seeds are the frontal and temporal poles; the frontal pole has the
+smallest weighted degree of the entire graph, $2.29$. Finally, and most
+interestingly, the entorhinal cortex, the region where the pathology is first
+observed clinically and the seed used throughout this chapter, ranks $76$th and
+$80$th of $83$ at $\rho=1$ and $78$th and $81$st at $\rho=0.02$: it is one of
+the least efficient possible starting points. The reference draws from the same
+observation the argument that this is part of why the early stages of the
+disease are so hard to detect, and it is recovered here from an independent
+reconstruction of the graph.
+
+The third panel of the figure gives the mechanism. The infection time decreases
+monotonically with the weighted degree of the seeded vertex. A poorly connected
+seed keeps its concentration local, and the quadratic term of the reaction then
+slows the growth of the network average.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/seeding_vulnerability.pdf}
+\caption{Regional vulnerability. Each of the $83$ regions is seeded in turn.
+Left: the resulting network biomarker curves, coloured by infection time.
+Centre: the same quantity on the anatomy. Right: infection time against the
+weighted degree of the seeded region. Top row at $\rho=1$, bottom row at
+$\rho=0.02$.}
+\label{fig:vulnerability}
+\end{figure}
+
+\subsection{Deterministic model with regional reaction rates}
+\label{sec:corti}
+
+The last application follows \cite{corti2023}, who solve a patient-specific
+stochastic Fisher--Kolmogorov model on a $246$-node graph and calibrate the
+reaction coefficient region by region against two PET acquisitions. Neither the
+patient graph nor the PET images are available to us, so we reproduce the
+mathematical model, the time discretization and the estimated mean parameters,
+and we state clearly that we do not reproduce the clinical trajectory of their
+patient.
+
+The reaction coefficient is piecewise constant over seven anatomical groups and
+takes the mean values estimated in the reference, from $0.1801$ in the frontal
+lobe to $0.0545$ in the occipital lobe; the nodal values are interpolated
+linearly along each connection. The diffusivity is the normalised connectivity
+$D_e = w_e/\max_e w_e$. The time discretization is the semi-implicit
+Crank--Nicolson scheme of the reference: diffusion and the first concentration
+factor are centred in time, and only the saturation factor is extrapolated,
+\begin{equation}
+\mathbf{C}^\star = \tfrac{3}{2}\mathbf{C}^{n} - \tfrac{1}{2}\mathbf{C}^{n-1},
+\qquad
+G(\mathbf{C}^\star)_{ij}
+  = \int_\Gamma \alpha\,[1-c^\star]\,\varphi_i\varphi_j ,
+\end{equation}
+\begin{equation}
+\Big(M + \tfrac{\Delta t}{2} K_D - \tfrac{\Delta t}{2} G(\mathbf{C}^\star)\Big)
+  \mathbf{C}^{n+1}
+= \Big(M - \tfrac{\Delta t}{2} K_D + \tfrac{\Delta t}{2} G(\mathbf{C}^\star)\Big)
+  \mathbf{C}^{n}.
+\end{equation}
+Since $G$ changes at every step, the sparse time-step matrix is rebuilt and
+factorised at every step, a point we return to in the performance analysis. We
+use $\Delta t = 0.2$ years, four elements per connection, $3473$ degrees of
+freedom and a horizon of $20$ years, and we replace the unavailable PET
+projection by a documented synthetic datum: entorhinal and hippocampal regions
+start at $c = 0.10$ and all others at $c = 0.01$.
+
+The solution stays in $[0.0250, 0.6536]$ throughout, every regional average
+grows monotonically, and the mean concentration sampled at the $83$ anatomical
+vertices rises from $0.0143$ to $0.1578$. The absolute levels are far below
+those of the reference, as they must be given the different initial datum, but
+the ordering of the regions can be compared, and Table~\ref{tab:corti} does so.
+Twenty of the twenty-one pairwise orderings agree, a rank correlation of
+$0.96$. The single inversion is frontal against limbic and is explained by the
+synthetic seed, which places $c=0.10$ on entorhinal and hippocampal vertices,
+all of which belong to the limbic group. Everything below the leading pair is
+reproduced in the published order using nothing but the seven reaction
+coefficients and the connectome topology.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{lrrrr}
+\hline
+Group & \cite{corti2023} at $t=20$ & rank & this work & rank \\
+\hline
+frontal      & $0.9289$ & $1$ & $0.2021$ & $2$ \\
+limbic       & $0.8905$ & $2$ & $0.2101$ & $1$ \\
+temporal     & $0.8699$ & $3$ & $0.1670$ & $3$ \\
+insular      & $0.8558$ & $4$ & $0.1292$ & $4$ \\
+subcortical  & $0.8413$ & $5$ & $0.1270$ & $5$ \\
+parietal     & $0.7738$ & $6$ & $0.0967$ & $6$ \\
+occipital    & $0.7336$ & $7$ & $0.0735$ & $7$ \\
+\hline
+\end{tabular}
+\caption{Regional concentrations at the final time. The absolute values are not
+comparable, since the reference starts from a patient PET projection and we
+start from a synthetic datum, but the ordering is: twenty of the twenty-one
+pairwise orderings agree.}
+\label{tab:corti}
+\end{table}
+
+Figure~\ref{fig:progression} shows the spreading on the anatomy. Its first two
+rows reproduce the delayed-conversion effect: lowering $\alpha$ from $0.5$ to
+$0.3$ postpones the same concentration by roughly six years without altering
+the spatial pattern. Its third row is included deliberately: at the
+connectivity scaling of \cite{fornari2019} the concentration is spatially
+uniform at every instant, and a visible front requires the reduced scaling. We
+show both, because presenting only the structured row would suggest that the
+model of the reference produces an anatomical front on this graph, which it
+does not. It should also be said that our substrate is a graph with $83$
+vertices; the whole-brain sectioned images of \cite{weickenmeier2019} come from
+a continuum model with about $80\,000$ unknowns on a tetrahedral mesh and
+cannot be produced from our discretization.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/anatomical_progression.pdf}
+\caption{Anatomical progression of the concentration. Rows are simulation
+settings, columns are four instants of the same run, and the colour range is
+fixed to $[0,1]$ in every panel. The first two rows show the effect of lowering
+the conversion rate; the third shows that a spatial front appears only once the
+connectivity scaling is reduced.}
+\label{fig:progression}
+\end{figure}
+
+\subsection{Sequential performance}
+
+The deterministic model above is also the reference problem for the performance
+analysis that closes this work. Timings are taken in a separate release build
+with visualisation and diagnostic output disabled, thread counts pinned to one,
+and reported as the median of five runs after one warm-up.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{rrrrr}
+\hline
+Elements per connection & Unknowns & Matrix nonzeros & $100$ steps [s] & Per step [s] \\
+\hline
+$1$ & $83$   & $2343$  & $0.0914$ & $0.00091$ \\
+$2$ & $1213$ & $5733$  & $1.7390$ & $0.01739$ \\
+$4$ & $3473$ & $12513$ & $1.7381$ & $0.01738$ \\
+$8$ & $7993$ & $26073$ & $2.4048$ & $0.02405$ \\
+\hline
+\end{tabular}
+\caption{Sequential baseline for the deterministic model. Assembly accounts for
+less than one percent of the total in every refined case.}
+\label{tab:performance}
+\end{table}
+
+Two facts emerge from Table~\ref{tab:performance} and they set the agenda for
+the remainder of the work. First, more than $99\%$ of the time is spent in the
+time loop and almost none in assembly or input, so the target for optimisation
+is the repeated sparse factorisation forced by the semi-implicit scheme, not
+the finite element assembly. Second, the cost per step is not a function of the
+number of unknowns alone: the two-element mesh, with $1213$ unknowns, costs
+exactly as much as the four-element mesh with $3473$. The one-element mesh has
+a hub-dominated sparsity pattern inherited from the connectome, and sparse
+factorisation depends on the elimination ordering and the resulting fill-in at
+least as much as on the matrix dimension. This is precisely the observation
+that motivates the reordering study of the next chapter, where bandwidth,
+profile, factor fill and factorisation time are measured for different
+orderings before any parallel scaling result is interpreted.

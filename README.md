@@ -369,6 +369,40 @@ and the time scheme (`be`, `cn` or `nodal`):
 ./build/test_fisher_kolmogorov_fornari83 1 0.4 output/run 0.5 40 1.0 be
 ```
 
+The connectome domain, the regional seeding vulnerability and the anatomical
+progression of the spreading are documented in:
+
+```text
+benchmarks/24_connectome_topology/
+benchmarks/25_connectome_seeding_vulnerability/
+benchmarks/26_connectome_progression/
+```
+
+```bash
+python3 scripts/plot-connectome-regions.py \
+  --output-dir benchmarks/24_connectome_topology/results
+python3 scripts/study-fisher-seeding-vulnerability.py \
+  --output-dir output/fisher_kolmogorov/seeding
+python3 scripts/plot-connectome-progression.py \
+  --output benchmarks/26_connectome_progression/results/anatomical_progression.png
+```
+
+The figures of these three benchmarks share `scripts/connectome_style.py`,
+which reads the anatomical group of every vertex from the CSV written by
+`test_fisher_kolmogorov_corti83` so that the figures and the solver cannot
+disagree about the classification.
+
+## Report figures
+
+To stage every report-ready figure of the connectome chapter:
+
+```bash
+scripts/collect-report-figures.sh
+```
+
+This copies the PDFs into `report/images/`, which is not tracked because the
+figures are already stored with their benchmarks.
+
 ## Plotting scripts
 
 The plotting scripts need `matplotlib` and `numpy`. The Python shipped with the
