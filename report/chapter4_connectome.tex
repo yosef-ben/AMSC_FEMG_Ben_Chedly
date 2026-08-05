@@ -73,12 +73,14 @@ exceeds $0.19$.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/connectome_regions.pdf}
-\caption{The $83$-region connectome. Vertices are drawn at their anatomical
-coordinates and coloured by anatomical group; edge width is proportional to the
-connectivity weight. The MRI and tractography panels of the corresponding
-figure in \cite{corti2023} are not reproduced, since neither dataset is
-available and the graph is taken from a public consensus connectome rather than
-reconstructed from patient images.}
+\caption{The $83$-region connectome, seen through the pial surface in the
+sagittal, coronal and axial projections. Top: vertices coloured by anatomical
+group. Bottom: connections coloured by connectivity weight. The surface is the
+same file used for the ParaView output and shares the coordinate frame of the
+vertices; nothing is rescaled to make the two agree. The MRI and tractography
+panels of the corresponding figure in \cite{corti2023} are not reproduced,
+since neither dataset is available and the graph is taken from a public
+consensus connectome rather than reconstructed from patient images.}
 \label{fig:connectome-regions}
 \end{figure}
 
@@ -181,6 +183,7 @@ a time-discretization error of order one year, in our simulation as well as in
 the reference, which uses the same step and a first-order scheme.
 
 \subsection{What controls the regional separation}
+\label{sec:damkohler}
 
 Consider \eqref{eq:nodal} with the Laplacian scaled by a positive factor
 $\rho$, so that $\rho=1$ recovers the published model. Linearising around a
@@ -308,10 +311,12 @@ slows the growth of the network average.
 \centering
 \includegraphics[width=\textwidth]{images/seeding_vulnerability.pdf}
 \caption{Regional vulnerability. Each of the $83$ regions is seeded in turn.
-Left: the resulting network biomarker curves, coloured by infection time.
-Centre: the same quantity on the anatomy. Right: infection time against the
-weighted degree of the seeded region. Top row at $\rho=1$, bottom row at
-$\rho=0.02$.}
+(a) the resulting network biomarker curves and (b) the same quantity on the
+anatomy, both at $\rho=0.02$; (c) infection time against the weighted degree of
+the seeded region; (d) the delay of every seed behind the fastest one, at both
+scalings, on a logarithmic axis. The anatomy is not shown at $\rho=1$: there the
+$83$ infection times differ by $0.02$ years, and colouring the regions by that
+quantity would paint them all the same.}
 \label{fig:vulnerability}
 \end{figure}
 
@@ -386,29 +391,48 @@ pairwise orderings agree.}
 \label{tab:corti}
 \end{table}
 
-Figure~\ref{fig:progression} shows the spreading on the anatomy. Its first two
-rows reproduce the delayed-conversion effect: lowering $\alpha$ from $0.5$ to
-$0.3$ postpones the same concentration by roughly six years without altering
-the spatial pattern. Its third row is included deliberately: at the
-connectivity scaling of \cite{fornari2019} the concentration is spatially
-uniform at every instant, and a visible front requires the reduced scaling. We
-show both, because presenting only the structured row would suggest that the
-model of the reference produces an anatomical front on this graph, which it
-does not. It should also be said that our substrate is a graph with $83$
-vertices; the whole-brain sectioned images of \cite{weickenmeier2019} come from
-a continuum model with about $80\,000$ unknowns on a tetrahedral mesh and
-cannot be produced from our discretization.
+Figure~\ref{fig:progression} shows the spreading itself, as a mid-sagittal
+section in the construction of \cite{weickenmeier2019}: the pial surface is
+clipped to one half-space and the graph to the other, so the network sits
+inside an opaque brain rather than floating over a translucent one, and the
+zero of the colour ramp is the neutral grey of the discretisation, so the
+lesion emerges from a pale wireframe instead of the whole object being dark.
+Nothing is thresholded away; the white marks are the exact $c=0.5$ level set of
+the P1 interpolant. The three stages are the stored times at which the network
+mean concentration reaches $0.2$, $0.4$ and $0.6$, which is the same biomarker
+the reference plots, so the staging is a property of the solution rather than a
+choice of ours.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/anatomical_progression.pdf}
-\caption{Anatomical progression of the concentration. Rows are simulation
-settings, columns are four instants of the same run, and the colour range is
-fixed to $[0,1]$ in every panel. The first two rows show the effect of lowering
-the conversion rate; the third shows that a spatial front appears only once the
-connectivity scaling is reduced.}
-\label{fig:progression}
-\end{figure}
+What is drawn deserves emphasis: not the $83$ regions, but every degree of
+freedom the metric-graph formulation carries, the region vertices together with
+the nodes along each connection. This is precisely what the nodal model
+\eqref{eq:nodal} does not have.
+
+Figure~\ref{fig:activation} condenses the whole history into one image by
+colouring each degree of freedom with the year its concentration reaches $0.5$,
+and it corrects an interpretation the progression invites. The obvious reading
+of an anterior-to-posterior gradient is a front travelling outward from the
+seed. That reading is wrong here. Over the $83$ region vertices the activation
+time correlates with the local reaction coefficient at $r=-0.841$ and with the
+graph distance from the seed at $r=+0.072$, and the graph eccentricity from the
+seed is $2$: every region lies within two connections of the entorhinal and
+hippocampal seed. The order in which the network is recruited is set by the
+regional conversion rates, $0.1801$ in the frontal group against $0.0545$ in
+the occipital one, and not by propagation. This is the conclusion of
+Section~\ref{sec:damkohler} reached independently, and it is why no directional
+arrows are drawn: an arrow would assert a direction of travel the solution does
+not contain. The scattered level-set marks in Figure~\ref{fig:progression} are
+the visual counterpart of the same fact.
+
+One limitation is structural and we state it rather than work around it. The
+reference fills its brain silhouette because its unknown lives on a tetrahedral
+volume mesh; ours lives on $1130$ one-dimensional connections, so the coloured
+structure occupies a lens-shaped core with bare tissue around it. That rim is
+an absence of degrees of freedom, not an absence of disease. Filling it, by
+interpolating the graph field into the volume or by assigning cortical
+triangles to their nearest region, is the one operation that would make our
+figure resemble theirs, and it would manufacture spatial detail the model does
+not carry.
 
 \subsection{Sequential performance}
 

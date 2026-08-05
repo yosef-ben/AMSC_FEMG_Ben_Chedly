@@ -1,116 +1,196 @@
 #!/usr/bin/env python3
 
-"""Anatomical progression of the misfolded-protein concentration.
+"""Sagittal section of the spreading on the metric-graph discretisation.
 
-Companion to the delayed-conversion figure of Fornari et al. and to the
-whole-brain progression figures of Weickenmeier et al. Those works render a
-continuum field on a three-dimensional brain mesh; here the substrate is the
-metric graph itself, so the concentration is shown on the vertices and edges of
-the connectome projected onto an anatomical plane. No volumetric interpolation
-is performed and none is implied.
+Counterpart of the whole-brain progression figures of Weickenmeier et al. Their
+images are sections of a continuum field on a tetrahedral mesh of about 80000
+unknowns; the substrate here is a metric graph, so what is drawn is exactly the
+degrees of freedom the simulation carried.
 
-The first two rows vary the conversion rate at the connectivity scaling of the
-paper and reproduce its delayed-conversion effect. The third row lowers the
-scaling, which is the only way a spatial front becomes visible at all: at unit
-scaling the connectome homogenises long before the reaction develops, so every
-vertex carries the same concentration at every instant.
+The construction follows the reference in three respects. The brain is an
+opaque object cut at the mid-sagittal plane, not a translucent volume: the pial
+surface is clipped to the far half-space and the graph to the near one, so a
+single depth buffer occludes correctly and the network sits inside the anatomy.
+The discretisation stays visible as a pale neutral network where the
+concentration is low, because the zero of the colour ramp is that same neutral
+grey. And the stages run left to right on one fixed colour scale.
+
+Everything is read from the `solution_*.vtp` files written by
+`test_fisher_kolmogorov_corti83`. Nothing is resampled, smoothed, thresholded
+away or interpolated into the brain volume.
 """
 
 import argparse
 import csv
+import glob
+import re
+import tempfile
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import vtk
+from scipy.spatial import cKDTree
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from connectome_style import (load_edges, load_nodes, projection,
-                              style_anatomical_axis)
+from connectome_style import minimal_colourbar
+from render_connectome import (common_box, common_scale, field_colourmap,
+                               lookup_table, render_section, show_render)
 
-COLOURMAP = plt.cm.inferno
-ALPHA_ROOT = Path("output/fisher_kolmogorov/fornari83_alpha")
-SCALING_ROOT = Path("output/fisher_kolmogorov/diffusion_scaling/runs")
-
-CASES = (
-    (ALPHA_ROOT / "alpha_0p5", r"$\alpha=0.5$" "\n" r"$\rho=1$"),
-    (ALPHA_ROOT / "alpha_0p3", r"$\alpha=0.3$" "\n" r"$\rho=1$"),
-    (SCALING_ROOT / "rho_0.02", r"$\alpha=0.5$" "\n" r"$\rho=0.02$"),
-)
+NODES = Path("data/connectome/fornari83/nodes.csv")
+LEVEL = 0.5
 
 
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--solution-dir", type=Path,
+        default=Path("output/fisher_kolmogorov/corti83_refined"))
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--times", type=float, nargs="+",
-                        default=[6.0, 10.0, 14.0, 18.0])
-    parser.add_argument("--view", default="sagittal")
+    parser.add_argument("--time-step", type=float, default=0.2)
+    parser.add_argument("--stages", type=float, nargs="+",
+                        default=[0.2, 0.4, 0.6],
+                        help="network mean concentrations selecting the stages")
     return parser.parse_args()
 
 
-def read_profiles(path, n_nodes):
-    times, states = [], []
-    with open(path, newline="") as stream:
-        for row in csv.DictReader(stream):
-            times.append(float(row["time"]))
-            states.append([float(row[f"node_{i}"]) for i in range(n_nodes)])
-    return np.array(times), np.array(states)
+def series(directory):
+    found = {}
+    for path in sorted(glob.glob(str(directory / "solution_*.vtp"))):
+        step = int(re.search(r"solution_(\d+)\.vtp$", path).group(1))
+        found[step] = Path(path)
+    if not found:
+        raise SystemExit(f"no solution_*.vtp under {directory}")
+    return found
+
+
+def read_field(path, scalar="c"):
+    reader = vtk.vtkXMLPolyDataReader()
+    reader.SetFileName(str(path))
+    reader.Update()
+    output = reader.GetOutput()
+    array = output.GetPointData().GetArray(scalar)
+    values = np.array([array.GetValue(i)
+                       for i in range(array.GetNumberOfTuples())])
+    points = np.array([output.GetPoint(i)
+                       for i in range(output.GetNumberOfPoints())])
+    return points, values
+
+
+def supra_threshold_length(path, level=LEVEL, scalar="c"):
+    """Fraction of the network length carrying c above `level`.
+
+    Exact for a P1 field: on a segment with endpoint values a and b the
+    supra-threshold fraction is 0, 1, or (max-level)/(max-min).
+    """
+    reader = vtk.vtkXMLPolyDataReader()
+    reader.SetFileName(str(path))
+    reader.Update()
+    output = reader.GetOutput()
+    values = output.GetPointData().GetArray(scalar)
+    lines = output.GetLines()
+    lines.InitTraversal()
+    ids = vtk.vtkIdList()
+    above = total = 0.0
+    while lines.GetNextCell(ids):
+        for k in range(ids.GetNumberOfIds() - 1):
+            first, second = ids.GetId(k), ids.GetId(k + 1)
+            length = np.linalg.norm(np.array(output.GetPoint(first))
+                                    - np.array(output.GetPoint(second)))
+            a, b = values.GetValue(first), values.GetValue(second)
+            low, high = min(a, b), max(a, b)
+            if high <= level:
+                fraction = 0.0
+            elif low >= level:
+                fraction = 1.0
+            else:
+                fraction = (high - level) / (high - low)
+            above += fraction * length
+            total += length
+    return above / total
 
 
 def main():
     args = arguments()
-    nodes = load_nodes()
-    edges = load_edges()
-    coords = np.array([node["coords"] for node in nodes])
-    horizontal, vertical, _, _ = projection(coords, args.view)
-    maximum_weight = max(weight for _, _, weight in edges)
+    snapshots = series(args.solution_dir)
+    steps = sorted(snapshots)
+
+    means = {}
+    for step in steps:
+        _, values = read_field(snapshots[step])
+        means[step] = values.mean()
+    chosen = [min(steps, key=lambda step: abs(means[step] - target))
+              for target in args.stages]
+
+    # Region vertices, taken as a lookup and not as an interpolation: the
+    # nearest degree of freedom to each anatomical coordinate is that vertex.
+    with open(NODES, newline="") as stream:
+        nodes = list(csv.DictReader(stream))
+    coords = np.array([[float(row["x"]), float(row["y"]), float(row["z"])]
+                       for row in nodes])
+    reference, _ = read_field(snapshots[steps[0]])
+    tree = cKDTree(reference)
+    gap, index = tree.query(coords)
+    if gap.max() > 1e-3:
+        raise SystemExit(f"region vertices are not degrees of freedom "
+                         f"(largest gap {gap.max():.3g} mm)")
+    inside = coords[:, 0] <= 0.0
+
+    colourmap = field_colourmap()
+    table = lookup_table(colourmap, 0.0, 1.0)
+    scale = common_scale()
 
     plt.rcParams.update({"font.size": 9.5})
-    figure, axes = plt.subplots(len(CASES), len(args.times),
-                                figsize=(2.95 * len(args.times),
-                                         2.15 * len(CASES)))
-    axes = np.atleast_2d(axes)
+    with tempfile.TemporaryDirectory() as scratch:
+        panels, marks, fractions = [], [], []
+        for step in chosen:
+            _, values = read_field(snapshots[step])
+            path, count = render_section(
+                Path(scratch) / f"stage_{step}.png", snapshots[step], table,
+                node_coords=coords[inside], node_values=values[index][inside],
+                level=LEVEL, scale=scale)
+            panels.append(path)
+            marks.append(count)
+            fractions.append(supra_threshold_length(snapshots[step]))
 
-    for row, (directory, label) in enumerate(CASES):
-        # The nodal reference is used throughout: it is the model for which
-        # this figure exists in the reference works, and unlike the P1 FEM it
-        # stays bounded at every connectivity scaling shown here.
-        times, states = read_profiles(directory / "nodal_profiles.csv",
-                                      len(nodes))
-        for column, instant in enumerate(args.times):
-            axis = axes[row, column]
-            index = int(np.argmin(np.abs(times - instant)))
-            state = states[index]
-            # An edge takes the mean of its endpoints, which is what the P1
-            # field with one element per connection actually is.
-            for source, target, weight in edges:
-                axis.plot([horizontal[source], horizontal[target]],
-                          [vertical[source], vertical[target]],
-                          color=COLOURMAP(0.5 * (state[source]
-                                                 + state[target])),
-                          linewidth=0.25 + 1.4 * weight / maximum_weight,
-                          alpha=0.75, solid_capstyle="round", zorder=1)
-            axis.scatter(horizontal, vertical, c=state, cmap=COLOURMAP,
-                         vmin=0.0, vmax=1.0, s=26, linewidths=0.4,
-                         edgecolors="0.35", zorder=3)
-            style_anatomical_axis(axis)
-            if row == 0:
-                axis.set_title(f"$t = {times[index]:g}$ years", fontsize=10)
-            if column == 0:
-                axis.text(-0.02, 0.5, label, transform=axis.transAxes,
-                          va="center", ha="right", fontsize=10)
+        box = common_box(panels)
+        figure, axes = plt.subplots(1, len(chosen), figsize=(4.1 * len(chosen),
+                                                             3.6))
+        axes = np.atleast_1d(axes)
+        for column, (axis, step, fraction) in enumerate(
+                zip(axes, chosen, fractions)):
+            show_render(axis, panels[column], box)
+            axis.set_title(f"$t = {step * args.time_step:g}$ years",
+                           fontsize=11, pad=16)
+            axis.text(0.5, 1.005,
+                      rf"$\bar c = {means[step]:.2f}$,   "
+                      rf"{100 * fraction:.0f}% of the network length above "
+                      rf"$c = {LEVEL:g}$",
+                      transform=axis.transAxes, fontsize=8.5, color="0.35",
+                      ha="center", va="bottom")
 
     mappable = plt.cm.ScalarMappable(
-        cmap=COLOURMAP, norm=matplotlib.colors.Normalize(0.0, 1.0))
-    bar = figure.colorbar(mappable, ax=axes, orientation="horizontal",
-                          fraction=0.05, pad=0.035, aspect=50)
-    bar.set_label("misfolded protein concentration $c$")
+        cmap=colourmap, norm=matplotlib.colors.Normalize(0.0, 1.0))
+    bar = minimal_colourbar(figure, mappable, axes.tolist(),
+                            "misfolded protein concentration $c$",
+                            low="0", high="1", fraction=0.05, pad=0.03,
+                            aspect=45, shrink=0.55)
+    bar.set_ticks([0.0, 0.25, 0.5, 0.75, 1.0])
+    bar.set_ticklabels(["0", "0.25", "0.5", "0.75", "1"])
+    figure.subplots_adjust(wspace=0.02)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    figure.savefig(args.output, dpi=220, bbox_inches="tight")
-    figure.savefig(args.output.with_suffix(".pdf"), bbox_inches="tight")
+    figure.savefig(args.output, dpi=260, bbox_inches="tight",
+                   facecolor="white")
+    figure.savefig(args.output.with_suffix(".pdf"), bbox_inches="tight",
+                   facecolor="white")
     print(f"Saved {args.output}")
+    for step, fraction, count in zip(chosen, fractions, marks):
+        print(f"  t = {step * args.time_step:5g} y   mean c = "
+              f"{means[step]:.4f}   length above {LEVEL:g}: "
+              f"{100 * fraction:5.1f}%   level-set marks in section: {count}")
 
 
 if __name__ == "__main__":

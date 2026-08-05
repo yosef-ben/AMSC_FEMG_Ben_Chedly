@@ -8,10 +8,20 @@ independently of any simulation.
 
 ## Content
 
-`results/connectome_regions` shows the 83 vertices at their anatomical
-coordinates, coloured by the seven anatomical groups of Corti et al., first
-without and then with the 1130 connections, in a sagittal and an axial view.
-Line width is proportional to the connectivity weight.
+`results/connectome_regions` shows the graph inside the pial surface in the
+sagittal, coronal and axial projections. The top row colours the 83 vertices by
+the seven anatomical groups of Corti et al.; the bottom row colours the 1130
+connections by their connectivity weight, as in the brain network figure of
+Fornari et al.
+
+The panels are rendered with VTK, the engine ParaView is built on, so the
+figures and an interactive ParaView session show the same picture. The surface
+is the same `brain_surface.vtk` opened in ParaView, in the same coordinate
+frame as the vertices: nothing is rescaled or repositioned to make the two
+agree, and all 83 vertices fall inside it. Regions are drawn as shaded spheres
+and connections as shaded tubes, with depth peeling for the translucent
+surface. Every panel uses one camera scale, so the three projections are
+directly comparable.
 
 `results/connectome_connectogram` shows the connections above 5% of the
 strongest one on a circular layout grouped by region, which is the threshold

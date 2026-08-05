@@ -1,3 +1,14 @@
-# Requires the profiles written by benchmarks 20 and 23.
+cmake --build build-release --target test_fisher_kolmogorov_corti83
+
+# Deterministic Corti model, eight elements per connection, extended horizon.
+./build-release/test_fisher_kolmogorov_corti83 \
+  data/connectome/fornari83/graph_fem_8.txt -- \
+  output/fisher_kolmogorov/corti83_refined 60
+
 python3 scripts/plot-connectome-progression.py \
+  --solution-dir output/fisher_kolmogorov/corti83_refined \
   --output benchmarks/26_connectome_progression/results/anatomical_progression.png
+
+python3 scripts/plot-connectome-activation.py \
+  --solution-dir output/fisher_kolmogorov/corti83_refined \
+  --output benchmarks/26_connectome_progression/results/activation_time.png

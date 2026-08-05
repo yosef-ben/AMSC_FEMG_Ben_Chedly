@@ -1,8 +1,10 @@
-"""Shared loading and styling for the connectome figures.
+"""Shared loading and rendering for the connectome figures.
 
 The anatomical region of every vertex is read from the CSV written by
 ``test_fisher_kolmogorov_corti83``, so the figures and the solver always agree
 on the classification instead of duplicating it in Python.
+
+The anatomical panels themselves are produced by ``render_connectome``.
 """
 
 from pathlib import Path
@@ -29,13 +31,6 @@ REGION_COLOUR = {
 }
 REGION_ORDER = tuple(REGION_COLOUR)
 
-# Lobes of Fornari et al. figure 7, with their published hue assignment.
-LOBE_COLOUR = {
-    "temporal": "#2CA02C",
-    "frontal": "#D62728",
-    "parietal": "#FF7F0E",
-    "occipital": "#1F77B4",
-}
 
 
 def load_nodes():
@@ -56,10 +51,9 @@ def load_nodes():
 def load_edges():
     """Return the 1130 region-to-region connections and their weights."""
     with open(DATA / "edges.csv", newline="") as stream:
-        edges = [(int(row["source"]), int(row["target"]),
-                  float(row["connectivity_weight"]))
-                 for row in csv.DictReader(stream)]
-    return edges
+        return [(int(row["source"]), int(row["target"]),
+                 float(row["connectivity_weight"]))
+                for row in csv.DictReader(stream)]
 
 
 def short_name(name):
@@ -71,39 +65,14 @@ def short_name(name):
     return text
 
 
-def projection(coords, view):
-    """Anatomical projection of Nx3 coordinates onto a viewing plane."""
-    if view == "sagittal":          # anterior to the right, superior upwards
-        return coords[:, 1], coords[:, 2], "y (anterior)", "z (superior)"
-    if view == "axial":             # looking down on the brain
-        return coords[:, 0], coords[:, 1], "x (right)", "y (anterior)"
-    if view == "coronal":
-        return coords[:, 0], coords[:, 2], "x (right)", "z (superior)"
-    raise ValueError(f"unknown view {view}")
-
-
-def draw_edges(axis, nodes, edges, view, weight_scale=1.0, colour="0.55",
-               threshold=0.0, zorder=1):
-    """Draw the connections, line width proportional to connectivity."""
-    coords = np.array([node["coords"] for node in nodes])
-    horizontal, vertical, _, _ = projection(coords, view)
-    maximum = max(weight for _, _, weight in edges)
-    for source, target, weight in edges:
-        if weight < threshold * maximum:
-            continue
-        axis.plot([horizontal[source], horizontal[target]],
-                  [vertical[source], vertical[target]],
-                  color=colour, linewidth=weight_scale * weight / maximum,
-                  solid_capstyle="round", zorder=zorder)
-
-
-def style_anatomical_axis(axis, xlabel=None, ylabel=None):
-    axis.set_aspect("equal")
-    axis.set_xticks([])
-    axis.set_yticks([])
-    for spine in axis.spines.values():
-        spine.set_visible(False)
-    if xlabel:
-        axis.set_xlabel(xlabel, fontsize=8, color="0.4")
-    if ylabel:
-        axis.set_ylabel(ylabel, fontsize=8, color="0.4")
+def minimal_colourbar(figure, mappable, axis, label, low="min", high="max",
+                      fontsize=8.5, **kwargs):
+    """Horizontal bar labelled only at its ends, as in the reference figures."""
+    bar = figure.colorbar(mappable, ax=axis, orientation="horizontal",
+                          **kwargs)
+    bar.set_ticks([mappable.norm.vmin, mappable.norm.vmax])
+    bar.set_ticklabels([low, high])
+    bar.ax.tick_params(labelsize=fontsize, length=0)
+    bar.set_label(label, fontsize=fontsize)
+    bar.outline.set_visible(False)
+    return bar

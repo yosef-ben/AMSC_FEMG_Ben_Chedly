@@ -202,7 +202,9 @@ bool is_seed_region(const std::string &parent_name) {
 
 int main(int argc, char *argv[]) {
 	try {
-		const double final_time = 20.0;
+		// Twenty years is the horizon of Corti et al.; a longer one is
+		// accepted so that the spreading can be followed to saturation.
+		double final_time = 20.0;
 		const double time_step = 0.2;
 		const double background_concentration = 0.01;
 		const double seed_concentration = 0.10;
@@ -213,9 +215,13 @@ int main(int argc, char *argv[]) {
 		const bool performance_mode =
 			argc >= 3 && std::string(argv[2]) == "--performance";
 		char *graph_argv[] = {argv[0], graph_file.data()};
+		// An explicit output directory keeps refined runs from overwriting the
+		// four-element run that benchmark 21 reports.
 		const std::string output_directory = performance_mode
 			? "output/fisher_kolmogorov/corti83/performance_tmp"
-			: "output/fisher_kolmogorov/corti83";
+			: (argc >= 4 ? std::string(argv[3])
+			             : std::string("output/fisher_kolmogorov/corti83"));
+		if (argc >= 5) final_time = std::stod(argv[4]);
 		using clock = std::chrono::steady_clock;
 		const auto total_start = clock::now();
 

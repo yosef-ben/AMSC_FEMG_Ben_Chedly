@@ -19,5 +19,6 @@ copy 24_connectome_topology/results/connectome_regions.pdf
 copy 24_connectome_topology/results/connectome_connectogram.pdf
 copy 25_connectome_seeding_vulnerability/results/seeding_vulnerability.pdf
 copy 26_connectome_progression/results/anatomical_progression.pdf
+copy 26_connectome_progression/results/activation_time.pdf
 
 echo "Copied $(ls report/images | wc -l) figures into report/images"
