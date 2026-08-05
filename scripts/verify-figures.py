@@ -96,6 +96,70 @@ def check_18(report):
                      expected)
 
 
+def check_19_topology(report):
+    """Ranges and structure the connectome topology figure displays."""
+    name = "19 connectome_topology"
+    import numpy as np
+    edges = read_csv(Path("data/connectome/fornari83/edges.csv"))
+    size = 83
+    adjacency = np.zeros((size, size))
+    for row in edges:
+        i, j = int(row["source"]), int(row["target"])
+        adjacency[i, j] = adjacency[j, i] = float(row["connectivity_weight"])
+    degree = (adjacency > 0).sum(axis=1)
+    weighted = adjacency.sum(axis=1)
+    nonzero = adjacency[adjacency > 0]
+
+    # The three ranges printed at the ends of the two colour bars, which are
+    # also the values Fornari et al. publish.
+    report.check(name, "smallest degree", float(degree.min()), 6.0)
+    report.check(name, "largest degree", float(degree.max()), 48.0)
+    report.check(name, "smallest weighted degree", float(weighted.min()),
+                 2.288503)
+    report.check(name, "largest weighted degree", float(weighted.max()),
+                 134.842522)
+    report.check(name, "smallest adjacency", float(nonzero.min()), 0.009191)
+    report.check(name, "largest adjacency", float(nonzero.max()), 36.867069)
+
+    report.check(name, "symmetric", 1.0 if np.allclose(adjacency,
+                                                       adjacency.T) else 0.0,
+                 1.0)
+    report.check(name, "no self-loops",
+                 1.0 if np.all(np.diag(adjacency) == 0) else 0.0, 1.0)
+    report.check(name, "non-zero cells", float(len(nonzero)), 2260.0)
+
+    # The colour scale is logarithmic; this is the measurement that justifies
+    # it, and it is quoted in the caption.
+    report.check(name, "decades spanned",
+                 float(np.log10(nonzero.max() / nonzero.min())), 3.603)
+    report.check(name, "fraction below 5% of the maximum",
+                 float((nonzero < 0.05 * nonzero.max()).mean()), 0.771)
+
+
+def check_18_timestep(report):
+    """Two-point slopes annotated on the time-step figure."""
+    name = "18 time_step_study"
+    rows = read_csv(BENCH / "18_fisher_kolmogorov_1d_sensitivity/results"
+                           "/time_step_study.csv")
+    table = {float(row["dt"]): row for row in rows}
+    reference = float(table[0.025]["front_position"])
+    for label, key, divisor, expected in (
+            ("L2", "l2_error", 1.15408, 1.438),
+            ("Linf", "max_error", 1.0, 1.048)):
+        coarse = float(table[0.1][key]) / divisor
+        fine = float(table[0.05][key]) / divisor
+        report.check(name, f"two-point slope, {label}",
+                     math.log(coarse / fine) / math.log(2.0), expected)
+    coarse = abs(float(table[0.1]["front_position"]) - reference) / reference
+    fine = abs(float(table[0.05]["front_position"]) - reference) / reference
+    report.check(name, "two-point slope, front position",
+                 math.log(coarse / fine) / math.log(2.0), 1.728)
+    # The sentinel that must not be read as a measured front position.
+    for step in (0.2, 0.3, 0.4):
+        report.check(name, f"front sentinel at dt={step:g}",
+                     float(table[step]["front_position"]), 1.0)
+
+
 def check_19(report):
     """Lobe separation and refinement rates of the Fornari comparison."""
     name = "19 biomarker_comparison"
@@ -285,8 +349,8 @@ def check_26(report):
 
 def main():
     report = Report()
-    for check in (check_18, check_19, check_20, check_21, check_22, check_23,
-                  check_25, check_26):
+    for check in (check_18, check_18_timestep, check_19, check_19_topology,
+                  check_20, check_21, check_22, check_23, check_25, check_26):
         try:
             check(report)
         except FileNotFoundError as error:

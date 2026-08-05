@@ -162,11 +162,34 @@ Run every command in `commands.txt` from the project root.
 
 ## Connectivity diagnostics
 
-The report-ready figure `results/connectome_topology.pdf` reproduces the
-three diagnostics used by Fornari et al.: non-weighted degree,
-connectivity-weighted degree, and the weighted adjacency matrix. In the first
-two panels both marker area and color encode the displayed degree; enlarged
-nodes therefore identify network hubs rather than anatomical volume.
+The report-ready figure `results/connectome_topology.pdf` reproduces the three
+diagnostics used by Fornari et al. and follows the construction of their figure
+6: the non-weighted and connectivity-weighted degrees on two stacked glass
+brains, and the weighted adjacency matrix, square and as tall as both brains,
+with anatomical-group strips along all four of its edges.
+
+Sphere radius and sphere colour encode the same number, that panel's degree,
+linearly between that panel's own minimum and maximum. Enlarged nodes therefore
+identify network hubs and not anatomical volume. The two panels are normalised
+separately, which is the reference's own convention, so a colour in (a) and the
+same colour in (b) do not mean the same thing; this is why the degree bar
+carries two rows of end numbers rather than one. The connections drawn in the
+brains encode nothing: weight appears only in panel (c).
+
+The adjacency uses a base-10 logarithmic colour scale over the full non-zero
+range, with nothing clipped at either end. The reason is measurable: the 2260
+non-zero entries span 3.603 decades and 77.1% of them fall below 5% of the
+maximum, so on a linear ramp three quarters of the connectome would render as
+one indistinguishable colour. The consequence is that the top of the range is
+compressed, which is why the bar carries decade ticks. Absent connections are
+not on the scale at all; the 4629 zero entries, the 83 diagonal ones among
+them, are drawn in one flat grey keyed on the bar as "no connection".
+
+Rows and columns keep the solver's own node order, with no permutation,
+clustering or thresholding, so that the panel can be laid beside the published
+one and compared cell for cell. That is also why the group strips break into 23
+runs rather than seven blocks: right hemisphere occupies indices 0 to 40, left
+41 to 81, and the brainstem 82.
 
 For the public reconstruction used by the solver:
 

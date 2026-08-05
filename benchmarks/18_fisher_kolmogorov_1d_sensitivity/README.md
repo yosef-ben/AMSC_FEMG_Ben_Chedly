@@ -100,6 +100,60 @@ results/time_step_study.csv
 results/time_step_study.pdf
 ```
 
+### How to read the figure
+
+Panel (a) draws all six runs and all 201 nodal values of each; nothing is
+omitted. Colour encodes the time step, and the cool-to-warm break falls exactly
+at the step above which the solution has no front left, which is the same cut
+as the shaded band in panel (b). The `dt = 0.4` profile is dashed because it
+coincides with `dt = 0.3` to `4e-5`. On the plateau `|x| <= 0.5` all six runs
+agree to `3.3e-4`, so the disagreement really is confined to the front.
+
+Panel (b) is a convergence panel. Each measure is divided by its own reference
+value so the three can share one dimensionless axis:
+
+```text
+L2 norm of the reference profile   1.15408
+maximum of the reference profile   1.00000   (so the L-infinity division is a no-op)
+reference front position           0.68886
+```
+
+The errors are defined against the `dt = 0.025` run, which therefore has error
+identically zero and is the one point that cannot appear on a logarithmic axis.
+The dotted ceilings are the value each measure takes for the trivial filled
+state `c = 1`.
+
+### The two-point slopes, and why they are not convergence orders
+
+```text
+measure            dt = 0.05 -> 0.1     dt = 0.1 -> 0.2
+L2 error                     1.438                0.89
+L-infinity error             1.048                0.15
+front position               1.728                 --
+```
+
+Only two of the six steps still produce a solution with a front, so these are
+two-point slopes and not fitted orders. They should not be quoted as a recovery
+of the first order of Backward Euler, for three reasons: the second column is
+saturation rather than a rate; at `dt = 0.1` the L-infinity error already sits
+at `0.899` of its own ceiling of `1`; and the errors are measured against the
+finest run rather than an exact solution, which biases the estimate. A genuine
+order would need at least two more steps below `0.1` with a finer reference,
+and a longer domain so that the front never reaches `x = 1` within `T = 19.2`.
+
+### Conventions in the stored CSV
+
+`l2_error` is `sqrt(int_{-1}^{1} (c - c_ref)^2)` by the trapezoid rule on the
+201 nodes, and `max_error` is `max_x |c - c_ref|`, both against `dt = 0.025`.
+`mean_concentration` is the trapezoidal average over `[-1,1]` divided by two,
+not the plain sample mean; the sample mean gives `0.6822` where the stored
+value is `0.6856`. It is not plotted, because it equals the front position to
+within `0.0044` at every tested step. `front_position = 1` for
+`dt = 0.2, 0.3, 0.4` is a sentinel written when no `c = 0.5` crossing exists:
+the true minima there are `0.93200`, `0.99996` and `0.99999994`, so the front
+has left the interval entirely and those three points are lower bounds rather
+than measured positions.
+
 ## Report figure
 
 The numerical solution is sampled every `0.5` time units for visualization.
