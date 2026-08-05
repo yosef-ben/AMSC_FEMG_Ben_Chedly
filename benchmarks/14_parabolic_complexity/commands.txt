@@ -1,0 +1,13 @@
+cmake --build build --target test_spectral_graphene_complexity
+./build/test_spectral_graphene_complexity
+cp output/timing/graphene_spectral_complexity.csv benchmarks/14_parabolic_complexity/results/graphene_spectral_complexity.csv
+cmake --build build --target test_linear_solver_complexity
+./build/test_linear_solver_complexity
+cp output/timing/graphene_linear_solver_complexity.csv benchmarks/14_parabolic_complexity/results/graphene_linear_solver_complexity.csv
+cmake --build build --target test_heat_graphene_complexity
+./build/test_heat_graphene_complexity
+cp output/timing/graphene_parabolic_complexity.csv benchmarks/14_parabolic_complexity/results/graphene_parabolic_complexity.csv
+python scripts/plot-computational-complexity.py --spectral benchmarks/14_parabolic_complexity/results/graphene_spectral_complexity.csv --parabolic benchmarks/14_parabolic_complexity/results/graphene_parabolic_complexity.csv --output benchmarks/14_parabolic_complexity/results/computational_complexity.png
+# Optional, requires matplotlib:
+# python3 scripts/plot-linear-solver-complexity.py --input benchmarks/14_parabolic_complexity/results/graphene_linear_solver_complexity.csv --output benchmarks/14_parabolic_complexity/results/linear_solver_complexity.png
+python3 scripts/plot-linear-solver-complexity-svg.py --input benchmarks/14_parabolic_complexity/results/graphene_linear_solver_complexity.csv --output benchmarks/14_parabolic_complexity/results/linear_solver_complexity.svg

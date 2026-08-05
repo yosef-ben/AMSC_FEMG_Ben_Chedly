@@ -1,0 +1,18 @@
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_fisher_kolmogorov_fornari83
+
+python3 scripts/study-fisher-diffusion-scaling.py \
+  --executable build-release/test_fisher_kolmogorov_fornari83 \
+  --output-dir output/fisher_kolmogorov/diffusion_scaling
+
+python3 scripts/plot-fisher-diffusion-scaling.py \
+  output/fisher_kolmogorov/diffusion_scaling \
+  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.png
+
+cp output/fisher_kolmogorov/diffusion_scaling/diffusion_scaling.csv \
+   output/fisher_kolmogorov/diffusion_scaling/diffusion_scaling_summary.json \
+   benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/
+
+# Single runs behind the FEM validity statement.
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/scratch 0.5 40 0.005 cn
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/scratch 0.5 40 0.005 be

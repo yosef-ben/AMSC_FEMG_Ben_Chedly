@@ -1,0 +1,12 @@
+{
+  "fiedler_value": 0.7954453513696466,
+  "largest_eigenvalue": 154.04340895153229,
+  "mean_weighted_degree": 45.388397036144575,
+  "maximum_adjacency": 36.867069,
+  "benchmark_19_scaling": 1.0,
+  "benchmark_21_scaling": 0.027124477945344665,
+  "alpha": 0.5,
+  "dt": 0.4,
+  "final_time": 120.0,
+  "smallest_bounded_fem_scaling": 0.05
+}

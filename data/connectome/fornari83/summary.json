@@ -1,0 +1,57 @@
+{
+  "source": "data/connectome/source/budapest_all_20k.graphml",
+  "minimum_occurrences": 5,
+  "fine_graph": {
+    "vertices": 1015,
+    "retained_edges": 37477
+  },
+  "aggregation": {
+    "atlas": "FreeSurfer 83-region parcellation",
+    "vertices": 83,
+    "intra_region_edges_removed": 7895,
+    "edges": 1130,
+    "degree": {
+      "minimum": 6,
+      "maximum": 48,
+      "mean": 27.228915662650603
+    },
+    "weighted_degree": {
+      "minimum": 2.2885030000000004,
+      "maximum": 134.842522,
+      "mean": 45.38839703614458
+    },
+    "mean_fibre_number": {
+      "minimum": 1.0,
+      "maximum": 595.5,
+      "mean": 40.16194690265487
+    },
+    "mean_fibre_length_mm": {
+      "minimum": 11.2866684,
+      "maximum": 121.02349910526316,
+      "mean": 38.400938150155575
+    },
+    "connectivity_weight": {
+      "minimum": 0.009191,
+      "maximum": 36.86706900000004,
+      "mean": 1.6669190061946904
+    }
+  },
+  "paper_reference": {
+    "fine_vertices": 1015,
+    "fine_edges": 37477,
+    "coarse_vertices": 83,
+    "coarse_edges": 1130,
+    "mean_fibre_number": 40.2,
+    "mean_fibre_length_mm": 38.4,
+    "connectivity_weight": {
+      "minimum": 0.01,
+      "maximum": 35.32,
+      "mean": 1.57
+    },
+    "weighted_degree": {
+      "minimum": 2.1,
+      "maximum": 127.6,
+      "mean": 42.8
+    }
+  }
+}

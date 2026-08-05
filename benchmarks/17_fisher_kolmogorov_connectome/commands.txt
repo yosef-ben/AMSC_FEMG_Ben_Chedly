@@ -1,0 +1,16 @@
+python3 scripts/prepare-budapest-connectome.py
+python3 scripts/prepare-budapest-anatomy.py --download
+cmake -S . -B build
+cmake --build build --target test_fisher_kolmogorov_logistic
+cmake --build build --target test_fisher_kolmogorov_connectome
+./build/test_fisher_kolmogorov_logistic
+./build/test_fisher_kolmogorov_connectome
+
+mkdir -p benchmarks/17_fisher_kolmogorov_connectome/results
+cp output/fisher_kolmogorov/connectome/solution.pvd benchmarks/17_fisher_kolmogorov_connectome/results/
+cp output/fisher_kolmogorov/connectome/solution_*.vtp benchmarks/17_fisher_kolmogorov_connectome/results/
+cp output/fisher_kolmogorov/connectome/regional_averages.csv benchmarks/17_fisher_kolmogorov_connectome/results/
+
+python.exe scripts/plot-fisher-kolmogorov-regions.py \
+  benchmarks/17_fisher_kolmogorov_connectome/results/regional_averages.csv \
+  --output benchmarks/17_fisher_kolmogorov_connectome/results/regional_averages.png

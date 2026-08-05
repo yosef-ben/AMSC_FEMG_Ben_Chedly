@@ -1,0 +1,7 @@
+cmake --build build --target test_spectral_comparison
+./build/test_spectral_comparison
+rm -rf benchmarks/13_spectral_comparison/results
+mkdir -p benchmarks/13_spectral_comparison/results
+cp -r output/spectral/comparison/* benchmarks/13_spectral_comparison/results/
+rm -rf benchmarks/13_spectral_comparison/results/tree
+python3 scripts/make-spectral-comparison-tables.py

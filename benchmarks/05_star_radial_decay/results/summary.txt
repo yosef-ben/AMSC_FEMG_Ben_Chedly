@@ -1,0 +1,33 @@
+Benchmark: Four-pointed star, radial decay with reaction
+
+Problem:
+u_t - Delta u + r u = 0
+
+Boundary conditions:
+homogeneous Dirichlet conditions at the four external vertices
+Kirchhoff condition at the central vertex
+
+Exact solution:
+u(t,s) = exp(-(pi^2/4 + r)t) cos(pi s / 2)
+
+Numerical parameters:
+diffusion = 1
+reaction  = 1
+T         = 1
+deltat    = 0.05
+theta     = 0.5
+n_cells   = 100 per edge
+
+Result:
+Final L2 error against radial decay solution: 0.000386387
+
+Temporal convergence:
+dt,L2_BE,rate_BE,L2_CN,rate_CN
+0.2,0.0574135,,0.00614347,
+0.1,0.0279361,1.03926,0.00153402,2.00174
+0.05,0.013664,1.03175,0.000383558,1.9998
+0.025,0.00673801,1.01998,9.61081e-05,1.99671
+
+Interpretation:
+Backward Euler converges with order about 1 in time.
+Crank-Nicolson converges with order about 2 in time.

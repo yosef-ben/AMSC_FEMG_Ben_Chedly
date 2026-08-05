@@ -1,0 +1,11 @@
+method,region,threshold_percent,time_years
+Nodal reference,temporal,50.0,11.105473434
+Nodal reference,frontal,50.0,11.1054736614
+Nodal reference,parietal,50.0,11.1054737287
+Nodal reference,occipital,50.0,11.1054736983
+Nodal reference,global,50.0,11.1054737623
+Metric-graph FEM,temporal,50.0,12.6754132669
+Metric-graph FEM,frontal,50.0,12.681144947
+Metric-graph FEM,parietal,50.0,12.6786552223
+Metric-graph FEM,occipital,50.0,12.6771147332
+Metric-graph FEM,global,50.0,12.6784089241

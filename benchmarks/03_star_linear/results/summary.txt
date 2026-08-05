@@ -1,0 +1,26 @@
+Benchmark: Four-pointed star, linear solution
+
+Problem:
+u_t - Delta u = 0
+
+Initial condition:
+u_0(x,y) = x + y
+
+Dirichlet boundary values:
+u( 1,  0) =  1
+u( 0,  1) =  1
+u(-1,  0) = -1
+u( 0, -1) = -1
+
+Exact solution:
+u(t,x,y) = x + y
+
+Numerical parameters:
+diffusion = 1
+T         = 1
+deltat    = 0.05
+theta     = 1
+n_cells   = 100 per edge
+
+Result:
+Final L2 error against u = x + y: 4.348e-14

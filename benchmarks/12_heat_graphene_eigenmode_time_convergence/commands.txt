@@ -1,0 +1,3 @@
+cmake --build build --target test_heat_graphene_eigenmode_time_convergence
+./build/test_heat_graphene_eigenmode_time_convergence
+python scripts/plot-time-convergence.py benchmarks/12_heat_graphene_eigenmode_time_convergence/results/time_convergence.csv --title "Temporal convergence on the graphene-like graph" --output benchmarks/12_heat_graphene_eigenmode_time_convergence/results/time_convergence.png

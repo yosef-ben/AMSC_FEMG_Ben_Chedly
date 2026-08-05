@@ -1,0 +1,4 @@
+cmake --build build --target test_spectral_graphene
+./build/test_spectral_graphene data/graphene_13.txt
+python scripts/plot-eigenmodes.py benchmarks/08_spectral_graphene/results --modes 6 --start-mode 0 --cols 2 --scale 0.35 --output benchmarks/08_spectral_graphene/results/graphene_eigenmodes_00_05.png --diagnostics benchmarks/08_spectral_graphene/results/eigenmode_diagnostics_00_05.csv
+python scripts/plot-eigenmodes.py benchmarks/08_spectral_graphene/results --modes 4 --start-mode 6 --cols 2 --scale 0.35 --output benchmarks/08_spectral_graphene/results/graphene_eigenmodes_06_09.png --diagnostics benchmarks/08_spectral_graphene/results/eigenmode_diagnostics_06_09.csv

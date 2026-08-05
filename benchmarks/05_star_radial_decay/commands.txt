@@ -1,0 +1,14 @@
+cmake --build build
+./build/test_heat_star_radial_decay
+./build/test_heat_star_radial_decay_time_convergence
+python scripts/plot-time-convergence.py output/convergence/star_radial_decay_time_convergence.csv benchmarks/05_star_radial_decay/results/time_convergence.pdf
+
+Reproducible runner:
+scripts/run-benchmark.sh 05_star_radial_decay
+
+ParaView:
+open benchmarks/05_star_radial_decay/results/solution.pvd
+
+Temporal convergence:
+benchmarks/05_star_radial_decay/results/time_convergence.csv
+benchmarks/05_star_radial_decay/results/time_convergence.pdf

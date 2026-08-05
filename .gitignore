@@ -1,6 +1,37 @@
 build/
+build-*/
+output/
 *.o
+__pycache__/
+
+# Windows alternate-data-stream leftovers from copying the tree across a mount.
+*:Zone.Identifier
+
+# Reference papers and scratch material, not project sources.
+QuantumGraphs/
+_codex_diag/
+_tmp_report_text/
+
+# Raw connectome downloads, ~34 MB. The reproducible download endpoints are
+# documented in data/connectome/source/README.md and the compressed original
+# is kept alongside them.
+data/connectome/source/*.graphml
+
 *.vtk
 *.vtu
 *.pvtu
+*.vtp
+*.pvd
 convergence.csv
+time_convergence.csv
+convergence.pdf
+convergence.svg
+time_convergence.pdf
+data/connectome/anatomy/nodes.json
+data/connectome/anatomy/lh.pial
+data/connectome/anatomy/rh.pial
+data/connectome/anatomy/brain_surface.vtk
+!benchmarks/**/*.vtp
+!benchmarks/**/*.pvd
+!benchmarks/**/*.csv
+!benchmarks/**/*.pdf

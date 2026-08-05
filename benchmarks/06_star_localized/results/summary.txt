@@ -1,0 +1,25 @@
+Benchmark: Eigenmode relaxation on the four-pointed star
+
+Problem:
+u_t - mu Delta u = 0
+
+Vertex conditions:
+Kirchhoff condition at the central vertex
+natural Neumann conditions at the four external vertices
+
+Exact solution:
+u_i(t,s) = C + A a_i exp(-mu*pi^2*t/4) sin(pi*s/2)
+C = 4
+A = 2
+(a_1, a_2, a_3, a_4) = (3, -1, -1, -1)
+
+Numerical parameters:
+diffusion = 5
+reaction  = 0
+T         = 1
+deltat    = 0.05
+theta     = 0.5
+n_cells   = 100 per edge
+
+Result:
+Final L2 error against eigenmode relaxation: 7.30537e-06

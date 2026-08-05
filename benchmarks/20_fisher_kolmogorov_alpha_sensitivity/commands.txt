@@ -1,0 +1,10 @@
+cmake --build build --target test_fisher_kolmogorov_fornari83
+
+./build/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83_alpha/alpha_0p0 0.0 80
+./build/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83_alpha/alpha_0p1 0.1 80
+./build/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83_alpha/alpha_0p2 0.2 80
+./build/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83_alpha/alpha_0p3 0.3 80
+./build/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83_alpha/alpha_0p4 0.4 80
+./build/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83_alpha/alpha_0p5 0.5 80
+
+python3 scripts/plot-fisher-alpha-sensitivity.py

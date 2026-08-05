@@ -1,0 +1,1 @@
+python3 scripts/plot-connectome-regions.py --output-dir benchmarks/24_connectome_topology/results

@@ -15,11 +15,13 @@ set(BOOST_ROOT "/u/sw/toolchains/gcc-glibc/11.2.0/pkgs/boost/1.76.0")
 set(Boost_NO_SYSTEM_PATHS ON)
 find_package(Boost 1.76.0 REQUIRED COMPONENTS graph)
 
-# ── Libreria FEMG ─────────────────────────────────────────────────────────────
+# FEMG library
 add_library(femg
   FEMG/src/quantum_graph_problem.cpp
   FEMG/src/elliptic_problem.cpp
   FEMG/src/parabolic_problem.cpp
+  FEMG/src/fisher_kolmogorov_problem.cpp
+  FEMG/src/spectral_problem.cpp
 )
 
 target_include_directories(femg PUBLIC
@@ -31,16 +33,154 @@ target_link_libraries(femg PUBLIC
   Boost::graph
 )
 
-# ── Test parabolico ───────────────────────────────────────────────────────────
+# Parabolic examples and validation tests
 add_executable(test_heat
   test_problem/parabolic/test_heat.cpp
 )
-
 target_link_libraries(test_heat PRIVATE femg)
 
-# ── Test ellittico ────────────────────────────────────────────────────────────
+add_executable(test_heat_star_constant
+  test_problem/parabolic/test_heat_star_constant.cpp
+)
+target_link_libraries(test_heat_star_constant PRIVATE femg)
+
+add_executable(test_heat_star_linear
+  test_problem/parabolic/test_heat_star_linear.cpp
+)
+target_link_libraries(test_heat_star_linear PRIVATE femg)
+
+add_executable(test_heat_star_sine
+  test_problem/parabolic/test_heat_star_sine.cpp
+)
+target_link_libraries(test_heat_star_sine PRIVATE femg)
+
+add_executable(test_heat_star_sine_convergence
+  test_problem/parabolic/test_heat_star_sine_convergence.cpp
+)
+target_link_libraries(test_heat_star_sine_convergence PRIVATE femg)
+
+add_executable(test_heat_star_radial_decay
+  test_problem/parabolic/test_heat_star_radial_decay.cpp
+)
+target_link_libraries(test_heat_star_radial_decay PRIVATE femg)
+
+add_executable(test_heat_star_radial_decay_time_convergence
+  test_problem/parabolic/test_heat_star_radial_decay_time_convergence.cpp
+)
+target_link_libraries(test_heat_star_radial_decay_time_convergence PRIVATE femg)
+
+add_executable(test_heat_star_localized
+  test_problem/parabolic/test_heat_star_localized.cpp
+)
+target_link_libraries(test_heat_star_localized PRIVATE femg)
+
+add_executable(test_heat_graphene_eigenmode
+  test_problem/parabolic/test_heat_graphene_eigenmode.cpp
+)
+target_link_libraries(test_heat_graphene_eigenmode PRIVATE femg)
+
+add_executable(test_heat_tree_eigenmode
+  test_problem/parabolic/test_heat_tree_eigenmode.cpp
+)
+target_link_libraries(test_heat_tree_eigenmode PRIVATE femg)
+
+add_executable(test_heat_graphene_eigenmode_time_convergence
+  test_problem/parabolic/test_heat_graphene_eigenmode_time_convergence.cpp
+)
+target_link_libraries(test_heat_graphene_eigenmode_time_convergence PRIVATE femg)
+
+add_executable(test_heat_graphene_energy_decay
+  test_problem/parabolic/test_heat_graphene_energy_decay.cpp
+)
+target_link_libraries(test_heat_graphene_energy_decay PRIVATE femg)
+
+add_executable(test_fisher_kolmogorov_logistic
+  test_problem/fisher_kolmogorov/test_fisher_kolmogorov_logistic.cpp
+)
+target_link_libraries(test_fisher_kolmogorov_logistic PRIVATE femg)
+
+add_executable(test_fisher_kolmogorov_connectome
+  test_problem/fisher_kolmogorov/test_fisher_kolmogorov_connectome.cpp
+)
+target_link_libraries(test_fisher_kolmogorov_connectome PRIVATE femg)
+
+add_executable(test_fisher_kolmogorov_1d_sensitivity
+  test_problem/fisher_kolmogorov/test_fisher_kolmogorov_1d_sensitivity.cpp
+)
+target_link_libraries(test_fisher_kolmogorov_1d_sensitivity PRIVATE femg)
+
+add_executable(test_fisher_kolmogorov_fornari83
+  test_problem/fisher_kolmogorov/test_fisher_kolmogorov_fornari83.cpp
+)
+target_link_libraries(test_fisher_kolmogorov_fornari83 PRIVATE femg)
+
+add_executable(test_fisher_kolmogorov_corti83
+  test_problem/fisher_kolmogorov/test_fisher_kolmogorov_corti83.cpp
+)
+target_link_libraries(test_fisher_kolmogorov_corti83 PRIVATE femg)
+
+add_executable(test_heat_graphene_complexity
+  test_problem/parabolic/test_heat_graphene_complexity.cpp
+)
+target_link_libraries(test_heat_graphene_complexity PRIVATE femg)
+
+add_executable(test_graph_setup
+  test_problem/parabolic/test_graph_setup.cpp
+)
+target_link_libraries(test_graph_setup PRIVATE femg)
+
+add_executable(test_spectral_star
+  test_problem/spectral/test_spectral_star.cpp
+)
+target_link_libraries(test_spectral_star PRIVATE femg)
+
+add_executable(test_spectral_graphene
+  test_problem/spectral/test_spectral_graphene.cpp
+)
+target_link_libraries(test_spectral_graphene PRIVATE femg)
+
+add_executable(test_spectral_tree
+  test_problem/spectral/test_spectral_tree.cpp
+)
+target_link_libraries(test_spectral_tree PRIVATE femg)
+
+add_executable(test_spectral_comparison
+  test_problem/spectral/test_spectral_comparison.cpp
+)
+target_link_libraries(test_spectral_comparison PRIVATE femg)
+
+add_executable(test_spectral_graphene_complexity
+  test_problem/spectral/test_spectral_graphene_complexity.cpp
+)
+target_link_libraries(test_spectral_graphene_complexity PRIVATE femg)
+
+add_executable(test_spectral_mesh_comparison
+  test_problem/spectral/test_spectral_mesh_comparison.cpp
+)
+target_link_libraries(test_spectral_mesh_comparison PRIVATE femg)
+
+add_executable(test_heat_convergence
+  test_problem/parabolic/test_heat_convergence.cpp
+)
+target_link_libraries(test_heat_convergence PRIVATE femg)
+
+add_executable(test_heat_time_convergence
+  test_problem/parabolic/test_heat_time_convergence.cpp
+)
+target_link_libraries(test_heat_time_convergence PRIVATE femg)
+
+# Elliptic placeholder
 add_executable(test_elliptic
   test_problem/elliptic/test_elliptic.cpp
 )
-
 target_link_libraries(test_elliptic PRIVATE femg)
+
+add_executable(test_linear_solver_complexity
+  test_problem/elliptic/test_linear_solver_complexity.cpp
+)
+target_link_libraries(test_linear_solver_complexity PRIVATE femg)
+
+add_executable(test_fisher_kolmogorov_1d_time_step_study
+  test_problem/fisher_kolmogorov/test_fisher_kolmogorov_1d_time_step_study.cpp
+)
+target_link_libraries(test_fisher_kolmogorov_1d_time_step_study PRIVATE femg)

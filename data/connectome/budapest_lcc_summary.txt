@@ -1,0 +1,27 @@
+Budapest connectome preprocessing summary
+
+Source graph
+  vertices:             1015
+  edges:                1000
+  connected components: 540
+  isolated vertices:    535
+  self-loops:           11
+
+Processed graph
+  selection:            largest connected component
+  vertices:             467
+  edges before cleanup: 991
+  removed self-loops:   11
+  retained edges:       980
+  degree min/mean/max:  1 / 4.197 / 94
+  weight min/Q1/med/Q3/max: 1 / 2 / 3 / 5 / 156
+
+FEM conversion
+  metric length per edge: 1
+  cells per edge:          1
+  coordinates:            circular layout (not anatomical)
+  connectivity weights:    preserved in budapest_lcc_edges.csv
+
+Validation
+  GraphML/CSV topology: matching
+  GraphML/CSV weights:  matching

@@ -1,0 +1,8 @@
+cmake --build build
+./build/test_heat_star_constant
+
+Reproducible runner:
+scripts/run-benchmark.sh 02_star_constant
+
+ParaView:
+open benchmarks/02_star_constant/results/solution.pvd

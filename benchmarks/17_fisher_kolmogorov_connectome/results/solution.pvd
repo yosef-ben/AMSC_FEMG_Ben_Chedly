@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<VTKFile type="Collection" version="0.1" byte_order="LittleEndian">
+  <Collection>
+    <DataSet timestep="0" group="" part="0" file="solution_0000.vtp"/>
+    <DataSet timestep="1" group="" part="0" file="solution_0005.vtp"/>
+    <DataSet timestep="2" group="" part="0" file="solution_0010.vtp"/>
+    <DataSet timestep="3" group="" part="0" file="solution_0015.vtp"/>
+    <DataSet timestep="4" group="" part="0" file="solution_0020.vtp"/>
+    <DataSet timestep="5" group="" part="0" file="solution_0025.vtp"/>
+    <DataSet timestep="6" group="" part="0" file="solution_0030.vtp"/>
+    <DataSet timestep="7" group="" part="0" file="solution_0035.vtp"/>
+    <DataSet timestep="8" group="" part="0" file="solution_0040.vtp"/>
+    <DataSet timestep="9" group="" part="0" file="solution_0045.vtp"/>
+    <DataSet timestep="10" group="" part="0" file="solution_0050.vtp"/>
+    <DataSet timestep="11" group="" part="0" file="solution_0055.vtp"/>
+    <DataSet timestep="12" group="" part="0" file="solution_0060.vtp"/>
+    <DataSet timestep="13" group="" part="0" file="solution_0065.vtp"/>
+    <DataSet timestep="14" group="" part="0" file="solution_0070.vtp"/>
+    <DataSet timestep="15" group="" part="0" file="solution_0075.vtp"/>
+    <DataSet timestep="16" group="" part="0" file="solution_0080.vtp"/>
+    <DataSet timestep="17" group="" part="0" file="solution_0085.vtp"/>
+    <DataSet timestep="18" group="" part="0" file="solution_0090.vtp"/>
+    <DataSet timestep="19" group="" part="0" file="solution_0095.vtp"/>
+    <DataSet timestep="20" group="" part="0" file="solution_0100.vtp"/>
+  </Collection>
+</VTKFile>

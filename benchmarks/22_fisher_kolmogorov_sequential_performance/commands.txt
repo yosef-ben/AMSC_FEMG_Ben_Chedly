@@ -1,0 +1,4 @@
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_fisher_kolmogorov_corti83
+python3 scripts/run-fisher-sequential-performance.py --executable build-release/test_fisher_kolmogorov_corti83 --output-dir output/fisher_kolmogorov/corti83/performance
+python3 scripts/plot-fisher-sequential-performance.py output/fisher_kolmogorov/corti83/performance/sequential_performance.csv --output output/fisher_kolmogorov/corti83/performance/sequential_performance.png

@@ -1,0 +1,20 @@
+Benchmark: Four-pointed star, constant solution
+
+Problem:
+u_t - Delta u = 0
+
+Initial condition:
+u_0 = 5
+
+Exact solution:
+u(t, x, y) = 5
+
+Numerical parameters:
+diffusion = 1
+T         = 1
+deltat    = 0.05
+theta     = 1
+n_cells   = 100 per edge
+
+Result:
+Final L2 error against u = 5: 4.25689e-12

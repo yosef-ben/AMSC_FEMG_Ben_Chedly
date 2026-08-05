@@ -1,0 +1,29 @@
+python3 scripts/prepare-fornari-connectome.py
+python3 scripts/audit-fornari-connectome.py
+cmake -S . -B build
+cmake --build build --target test_fisher_kolmogorov_fornari83
+./build/test_fisher_kolmogorov_fornari83
+python3 scripts/plot-fisher-fornari83.py --nodal output/fisher_kolmogorov/fornari83/nodal_biomarkers.csv --fem output/fisher_kolmogorov/fornari83/fem_biomarkers.csv --output-dir output/fisher_kolmogorov/fornari83
+python3 scripts/write-connectome-vtk.py --nodes data/connectome/fornari83/nodes.csv --edges data/connectome/fornari83/edges.csv --profiles output/fisher_kolmogorov/fornari83/nodal_profiles.csv --output-dir output/fisher_kolmogorov/fornari83/anatomical --prefix nodal --stride 5
+python3 scripts/write-connectome-vtk.py --nodes data/connectome/fornari83/nodes.csv --edges data/connectome/fornari83/edges.csv --profiles output/fisher_kolmogorov/fornari83/fem_profiles.csv --output-dir output/fisher_kolmogorov/fornari83/anatomical --prefix fem --stride 5
+
+# Spatial refinement at the literature time step.
+./build/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83/refinement/cells_1_dt_0p4
+./build/test_fisher_kolmogorov_fornari83 2 0.4 output/fisher_kolmogorov/fornari83/refinement/cells_2_dt_0p4
+./build/test_fisher_kolmogorov_fornari83 4 0.4 output/fisher_kolmogorov/fornari83/refinement/cells_4_dt_0p4
+./build/test_fisher_kolmogorov_fornari83 8 0.4 output/fisher_kolmogorov/fornari83/refinement/cells_8_dt_0p4
+
+# Temporal refinement on the 8-element-per-edge graph.
+./build/test_fisher_kolmogorov_fornari83 8 0.8 output/fisher_kolmogorov/fornari83/refinement/cells_8_dt_0p8
+./build/test_fisher_kolmogorov_fornari83 8 0.2 output/fisher_kolmogorov/fornari83/refinement/cells_8_dt_0p2
+./build/test_fisher_kolmogorov_fornari83 8 0.1 output/fisher_kolmogorov/fornari83/refinement/cells_8_dt_0p1
+./build/test_fisher_kolmogorov_fornari83 8 0.05 output/fisher_kolmogorov/fornari83/refinement/cells_8_dt_0p05
+
+python3 scripts/analyze-fisher-refinement.py --root output/fisher_kolmogorov/fornari83/refinement --output-dir output/fisher_kolmogorov/fornari83/refinement
+
+python3 scripts/write-connectome-vtk.py --nodes data/connectome/fornari83/nodes.csv --edges data/connectome/fornari83/edges.csv --profiles output/fisher_kolmogorov/fornari83/refinement/cells_8_dt_0p05/fem_profiles.csv --output-dir output/fisher_kolmogorov/fornari83/anatomical_refined --prefix fem_refined --stride 10
+
+python3 scripts/plot-fornari-connectome-topology.py \
+  --nodes data/connectome/fornari83/nodes.csv \
+  --edges data/connectome/fornari83/edges.csv \
+  --output-dir benchmarks/19_fisher_kolmogorov_fornari83/results

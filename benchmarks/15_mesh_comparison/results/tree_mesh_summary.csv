@@ -1,0 +1,4 @@
+mesh,graph_file,dofs
+N-type,output/mesh_comparison/graphs/tree_nonuniform_n_type.txt,901
+h-type,output/mesh_comparison/graphs/tree_nonuniform_h_type.txt,900
+h-min,output/mesh_comparison/graphs/tree_nonuniform_h_min.txt,1681

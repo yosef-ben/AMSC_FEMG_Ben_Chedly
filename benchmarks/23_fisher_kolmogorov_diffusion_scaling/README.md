@@ -1,0 +1,145 @@
+# Benchmark 23: Diffusion Scaling of the 83-Region Connectome
+
+## Goal
+
+Resolve the open validation limitation of benchmark 19. That benchmark
+reproduces the topology, the parameters and the time discretization of Fornari
+et al. exactly, yet its four lobe biomarker curves activate within `1e-7`
+years of each other, whereas figure 7 of the paper shows a separation of
+roughly five years between the temporal and the occipital lobe.
+
+This benchmark shows that the discrepancy is neither a defect of the
+implementation nor a property of the reconstructed connectome. It is entirely
+controlled by one modelling quantity, the scale of the connectivity weights,
+and it is governed by a single dimensionless number.
+
+## The dimensionless number
+
+The nodal model of Fornari et al. is
+
+```text
+dc/dt = -rho L c + alpha c (1-c),
+```
+
+where `L` is the connectivity-weighted graph Laplacian and `rho` is a uniform
+scaling of the weights. Writing `rho = 1` recovers equation (3.2) of the paper
+literally.
+
+Linearising around a small uniform concentration, the mean over the graph grows
+at the reaction rate `alpha`, while any lobe-to-lobe imbalance relaxes at the
+rate `rho * lambda_2`, with `lambda_2` the Fiedler value of `L`. Regional
+separation therefore survives only when the reaction is faster than graph
+homogenisation, that is when the Damkohler number
+
+```text
+Da = alpha / (rho * lambda_2)
+```
+
+is large. For the reconstructed Budapest-83 graph:
+
+```text
+lambda_2      = 0.795445
+lambda_max    = 154.0434
+mean weighted degree = 45.3884
+max adjacency w      = 36.8671
+```
+
+## Measured behaviour
+
+The nodal reference of `test_fisher_kolmogorov_fornari83` was run for
+`alpha = 0.5`, `dt = 0.4` years and `T = 120` years, sweeping `rho`. The lobe
+spread is the difference between the latest and the earliest 50-percent
+crossing time among the temporal, frontal, parietal and occipital lobes.
+
+| rho | Da | lobe spread [yr] | metric-graph FEM |
+|---:|---:|---:|:---|
+| 1.0 | 0.63 | 2.95e-07 | bounded |
+| 0.5 | 1.26 | 1.84e-05 | bounded |
+| 0.2 | 3.14 | 0.0053 | bounded |
+| 0.1 | 6.29 | 0.1050 | bounded |
+| 0.05 | 12.57 | 0.5819 | bounded |
+| 0.02 | 31.43 | 1.8646 | leaves [0,1] |
+| 0.01 | 62.86 | 3.0691 | leaves [0,1] |
+| 0.005 | 125.72 | 4.3002 | leaves [0,1] |
+| 0.002 | 314.29 | 5.8301 | leaves [0,1] |
+| 0.001 | 628.58 | 6.9235 | leaves [0,1] |
+
+The spread varies over seven decades while the topology, the seed and the
+reaction rate are unchanged. This is the quantitative statement that benchmark
+19 was missing.
+
+## Consequences for the earlier benchmarks
+
+- **Benchmark 19** uses the literal `rho = 1`, giving `Da = 0.63`. The
+  connectome homogenises faster than the reaction grows, so the four lobe
+  curves must coincide. Its near-zero lobe separation is the correct solution
+  of the published equation, not a validation failure. Reproducing figure 7 of
+  the paper requires `Da` of order `10^2`, that is `rho` near `0.005`, so the
+  published figure cannot come from the connectivity-weighted Laplacian used
+  at unit scale.
+- **Benchmark 21** normalises the diffusivity as `D_e = w_e/max(w)`, that is
+  `rho = 1/36.8671 = 0.027124`, and uses the seven Corti reaction means whose
+  average over the 83 vertices is `0.1252`. Its Damkohler number is therefore
+  `5.79`, in the regime where regional curves separate. The clearly ordered
+  regional averages of benchmark 21 and the coincident lobe curves of
+  benchmark 19 are consistent with each other: the two benchmarks sit on
+  opposite sides of the same crossover.
+
+## Validity boundary of the metric-graph FEM
+
+The sweep also runs the P1 metric-graph FEM at one element per edge, with both
+available time schemes. Beyond `Da` of about 13, that is `rho <= 0.02` at
+`alpha = 0.5`, the discrete concentration leaves `[0,1]` and then diverges:
+
+```text
+rho = 0.005, one element per edge, Corti scheme:
+  nodal reference  [0.999869, 0.999997]
+  metric-graph FEM [-922.128,  308.005]
+```
+
+The nodal reference stays bounded at every scaling tested. The failure occurs
+identically with Backward Euler and Newton and with the semi-implicit
+Crank-Nicolson scheme, so it is not a nonlinear-solver failure. It also
+persists at 2, 4 and 8 elements per edge, so it is not a matter of resolving
+the front.
+
+The cause is the consistent P1 mass matrix. Its off-diagonal entries are
+positive, so the semi-discrete system does not satisfy a discrete maximum
+principle; while diffusion dominates, the diffusion matrix compensates, but
+once the reaction dominates nothing does. The standard remedy is mass lumping,
+which is exactly what the nodal model of Fornari et al. and the Hadamard
+product in equation (4) of Corti et al. amount to. Adding an optional lumped
+mass matrix to `fisher_kolmogorov_problem` is the natural follow-up and would
+extend the FEM into the reaction-dominated regime.
+
+Benchmarks 19 and 21 are unaffected: both sit at `Da <= 6`, well inside the
+bounded region.
+
+## Reproduce
+
+Run the commands in `commands.txt` from the project root.
+
+## Stored output
+
+```text
+results/diffusion_scaling.csv           sweep table, including FEM status
+results/diffusion_scaling_summary.json  spectral quantities and reference scalings
+results/diffusion_scaling.png/.pdf      report-ready figure
+```
+
+The figure shows the lobe biomarkers at three representative scalings on top,
+and the measured spread against the Damkohler number below, with the two
+earlier benchmarks and the separation reported by Fornari et al. marked. The
+lobe colours follow figure 7 of the paper; every pair of them separates by at
+least `10.8` in OKLab under protan, deutan and tritan simulation, and the line
+styles repeat the identity so it never rests on colour alone.
+
+## What this benchmark does not claim
+
+The activation order at large `Da` is temporal, then occipital, then parietal,
+then frontal, whereas Fornari et al. report temporal, frontal, parietal,
+occipital. The frontal lobe is last here because the frontal pole is the most
+weakly connected node of the graph, which the paper itself reports in its
+figure 9 discussion of infection times. Matching the published order would
+require a different lobe assignment or a different weighting, and is not
+attempted.

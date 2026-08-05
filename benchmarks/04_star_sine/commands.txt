@@ -1,0 +1,12 @@
+cmake --build build
+./build/test_heat_star_sine
+./build/test_heat_star_sine_convergence
+
+Reproducible runner:
+scripts/run-benchmark.sh 04_star_sine
+
+ParaView:
+open benchmarks/04_star_sine/results/solution.pvd
+
+Convergence data:
+benchmarks/04_star_sine/results/space_convergence.csv

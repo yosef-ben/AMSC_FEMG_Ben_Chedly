@@ -1,0 +1,8 @@
+cmake --build build
+./build/test_heat_star_linear
+
+Reproducible runner:
+scripts/run-benchmark.sh 03_star_linear
+
+ParaView:
+open benchmarks/03_star_linear/results/solution.pvd

@@ -1,0 +1,17 @@
+cmake --build build --target test_fisher_kolmogorov_1d_sensitivity
+./build/test_fisher_kolmogorov_1d_sensitivity \
+  data/interval_weickenmeier_200.txt \
+  benchmarks/18_fisher_kolmogorov_1d_sensitivity/results/profiles.csv
+python3 scripts/plot-fisher-kolmogorov-1d-sensitivity.py \
+  benchmarks/18_fisher_kolmogorov_1d_sensitivity/results/profiles.csv \
+  -o benchmarks/18_fisher_kolmogorov_1d_sensitivity/results/sensitivity.pdf \
+  --diagnostics benchmarks/18_fisher_kolmogorov_1d_sensitivity/results/front_speeds.csv
+
+cmake --build build --target test_fisher_kolmogorov_1d_time_step_study
+./build/test_fisher_kolmogorov_1d_time_step_study \
+  data/interval_weickenmeier_200.txt \
+  benchmarks/18_fisher_kolmogorov_1d_sensitivity/results
+python3 scripts/plot-fisher-kolmogorov-time-step-study.py \
+  benchmarks/18_fisher_kolmogorov_1d_sensitivity/results/time_step_profiles.csv \
+  benchmarks/18_fisher_kolmogorov_1d_sensitivity/results/time_step_study.csv \
+  -o benchmarks/18_fisher_kolmogorov_1d_sensitivity/results/time_step_study.pdf

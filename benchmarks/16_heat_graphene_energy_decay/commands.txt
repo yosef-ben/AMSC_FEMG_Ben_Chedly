@@ -1,0 +1,21 @@
+cmake -S . -B build
+cmake --build build --target test_heat_graphene_energy_decay
+./build/test_heat_graphene_energy_decay
+
+mkdir -p benchmarks/16_heat_graphene_energy_decay/results
+cp output/visualization/graphene_energy_decay/solution.pvd benchmarks/16_heat_graphene_energy_decay/results/solution.pvd
+cp output/visualization/graphene_energy_decay/solution_*.vtp benchmarks/16_heat_graphene_energy_decay/results/
+cp output/energy/graphene_energy_decay.csv benchmarks/16_heat_graphene_energy_decay/results/energy_decay.csv
+
+python.exe scripts/plot-energy-decay.py \
+  benchmarks/16_heat_graphene_energy_decay/results/energy_decay.csv \
+  --output benchmarks/16_heat_graphene_energy_decay/results/energy_decay.png \
+  --title "Energy decay on the graphene-like graph"
+
+python.exe scripts/plot-parabolic-snapshots.py \
+  benchmarks/16_heat_graphene_energy_decay/results \
+  --times 0 0.05 0.2 1.0 \
+  --cols 2 \
+  --scale 0.35 \
+  --output benchmarks/16_heat_graphene_energy_decay/results/time_snapshots.png \
+  --title "Diffusion of a high-frequency initial datum"

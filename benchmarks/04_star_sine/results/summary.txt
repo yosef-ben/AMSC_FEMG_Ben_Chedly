@@ -1,0 +1,36 @@
+Benchmark: Four-pointed star, sine solution
+
+Problem:
+u_t - Delta u = f
+
+Exact stationary solution:
+u(t,x,y) = sin(2*pi*x)
+
+Forcing term:
+f(x,y) = 4*pi^2*sin(2*pi*x)
+
+Boundary conditions:
+homogeneous Dirichlet conditions at all original vertices
+
+Visualization parameters:
+diffusion = 1
+T         = 0.1
+deltat    = 0.005
+theta     = 1
+n_cells   = 100 per edge
+
+Visualization result:
+Final L2 error against u = sin(2*pi*x): 0.000328946
+
+Spatial convergence parameters:
+n_cells = 10, 20, 40, 80 per edge
+deltat  = 0.025*h^2
+T       = 0.01
+theta   = 1
+
+Spatial convergence result:
+h,L2,rate
+0.1,0.0325637,
+0.05,0.00820369,1.98892
+0.025,0.00205486,1.99724
+0.0125,0.00051396,1.99931
