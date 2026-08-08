@@ -137,7 +137,12 @@ def check_19_topology(report):
 
 
 def check_18_timestep(report):
-    """Two-point slopes annotated on the time-step figure."""
+    """Numbers the time-step study reports.
+
+    The front positions and the sentinel are shown on the figure; the two-point
+    slopes are recorded in the benchmark README only, deliberately not drawn,
+    and are checked here so that the README cannot drift from the data.
+    """
     name = "18 time_step_study"
     rows = read_csv(BENCH / "18_fisher_kolmogorov_1d_sensitivity/results"
                            "/time_step_study.csv")
@@ -158,6 +163,42 @@ def check_18_timestep(report):
     for step in (0.2, 0.3, 0.4):
         report.check(name, f"front sentinel at dt={step:g}",
                      float(table[step]["front_position"]), 1.0)
+
+    # The quantities the figure actually draws, recomputed from the profiles.
+    import numpy as np
+    profiles = {}
+    for row in read_csv(BENCH / "18_fisher_kolmogorov_1d_sensitivity/results"
+                                "/time_step_profiles.csv"):
+        profiles.setdefault(float(row["dt"]), []).append(
+            (float(row["x"]), float(row["c"])))
+    profiles = {step: np.array(sorted(points))
+                for step, points in profiles.items()}
+    reference_profile = profiles[0.025]
+
+    def crossings(profile, level=0.5):
+        x, c = profile[:, 0], profile[:, 1]
+        return [x[k - 1] + (level - c[k - 1]) / (c[k] - c[k - 1])
+                * (x[k] - x[k - 1])
+                for k in range(1, len(c))
+                if (c[k - 1] - level) * (c[k] - level) < 0]
+
+    with_front = [step for step in profiles if crossings(profiles[step])]
+    report.check(name, "runs that cross c = 0.5", float(len(with_front)), 3.0)
+    for step in (0.2, 0.3, 0.4):
+        report.check(name, f"no crossing at dt={step:g}",
+                     float(len(crossings(profiles[step]))), 0.0)
+    report.check(name, "minimum concentration at dt=0.2",
+                 float(profiles[0.2][:, 1].min()), 0.9320)
+
+    for step, expected in ((0.05, 0.106268), (0.1, 0.288002),
+                           (0.4, 0.542938)):
+        difference = profiles[step][:, 1] - reference_profile[:, 1]
+        rms = float(np.sqrt(np.trapezoid(difference ** 2,
+                                         profiles[step][:, 0]) / 2.0))
+        report.check(name, f"e_2 at dt={step:g}", rms, expected)
+        # e_2 must be exactly the stored L2 column divided by sqrt(2).
+        report.check(name, f"e_2 equals stored L2 / sqrt(2) at dt={step:g}",
+                     rms, float(table[step]["l2_error"]) / math.sqrt(2.0))
 
 
 def check_19(report):

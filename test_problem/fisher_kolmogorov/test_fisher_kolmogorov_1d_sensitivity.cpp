@@ -3,6 +3,7 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
@@ -18,7 +19,9 @@ int main(int argc, char *argv[]) {
 			? argv[2]
 			: "output/fisher_kolmogorov/one_dimensional_sensitivity/profiles.csv";
 		const double final_time = 20.0;
-		const double time_step = 0.1;
+		// 0.1 is the step used by Weickenmeier et al.; it is accepted as an
+		// argument so that the front speed can be measured under refinement.
+		const double time_step = argc >= 4 ? std::stod(argv[3]) : 0.1;
 		const double baseline_diffusion = 1.0e-4;
 		const double initial_peak = 0.1;
 		const int n_cells = 200;
@@ -87,8 +90,14 @@ int main(int argc, char *argv[]) {
 				const double maximum = problem.solution().maxCoeff();
 				if (!std::isfinite(minimum) || !std::isfinite(maximum)
 					|| minimum < -1.0e-8 || maximum > 1.0 + 1.0e-8) {
-					throw std::runtime_error(
-						"The numerical concentration left the physical range.");
+					std::ostringstream message;
+					message << "The numerical concentration left the physical "
+						<< "range at d = "
+						<< baseline_diffusion * diffusion_multiplier
+						<< ", alpha = " << alpha
+						<< ", dt = " << time_step << ": ["
+						<< minimum << ", " << maximum << "].";
+					throw std::runtime_error(message.str());
 				}
 				std::cout << "d = "
 					<< baseline_diffusion * diffusion_multiplier

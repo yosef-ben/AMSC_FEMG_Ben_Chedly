@@ -64,10 +64,53 @@ results/sensitivity.pdf
 results/front_speeds.csv
 ```
 
-For `alpha=1`, the measured front speeds differ from the Fisher--KPP
-asymptotic value `2*sqrt(d*alpha)` by approximately `1.9%`, `4.0%`, and
-`5.2%` for increasing diffusion. This provides an independent check of the
-coupled diffusion-reaction dynamics.
+### Front speed: a diagnostic, not a verification
+
+For `alpha=1` the measured front speeds exceed the Fisher-KPP asymptotic value
+`2*sqrt(d*alpha)` by `1.9%`, `4.0%` and `5.2%` for increasing diffusion. The
+figure `results/front_speeds.pdf` is kept here as a diagnostic, but it is
+deliberately **not** used in the report, for three reasons established by
+measurement.
+
+The excess depends on the window over which the speed is fitted, by more than
+a percentage point:
+
+```text
+d          whole run   t >= 10   t >= 14   t >= 16
+1e-4            2.4%      1.9%      2.4%      2.7%
+2e-4            5.0%      4.0%      4.5%      4.8%
+4e-4            6.4%      5.2%      5.6%      5.8%
+```
+
+The three values quoted above are the smallest of each row, which is an
+artefact of the window the diagnostic script happens to use.
+
+The excess does not decrease when the fit is restricted to later times. A
+finite-time correction to the asymptotic speed would approach it from below and
+shrink; this one sits above and is flat, so it is not the transient one would
+want to fit away.
+
+The excess cannot be shown to converge, because the time step cannot be
+refined. With the sharp single-node initial datum the consistent mass matrix
+undershoots, and the undershoot **grows** under time refinement:
+
+```text
+dt        minimum concentration at d = 1e-4, alpha = 2
+0.1       -1.5e-13
+0.05      -5.4e-06
+0.025     -9.1e-04
+```
+
+so the driver's physical-range guard fires at `dt = 0.05` and below. This is
+the same loss of the discrete maximum principle that benchmark 23 establishes
+on the connectome, and it is useful to have found it here as well: it is a
+property of the consistent-mass P1 discretization, not of the graph. The
+executable accepts the time step as a third argument so that this can be
+reproduced.
+
+What the report says instead is the qualitative statement the reference itself
+makes: the fronts are symmetric and their speed grows with both `d` and
+`alpha`, consistently with `2*sqrt(d*alpha)`.
 
 ## Nonlinear time-step sensitivity
 
@@ -100,30 +143,71 @@ results/time_step_study.csv
 results/time_step_study.pdf
 ```
 
+### What this study is, and what it is not
+
+It is a **time-step sensitivity study**, not a convergence study. Weickenmeier
+et al. describe the experiment in words only, in section 2.4 on page 268: they
+report that `dt = 0.1` was regarded as sufficiently converged and that larger
+steps produce a spurious increase in spreading. No data and no figure are
+given, so their criterion cannot be reconstructed, and nothing here claims
+their statement is wrong.
+
+The diagnostic used here is the position `x_f` of the right front, the point
+where the profile crosses `c = 0.5`. The finest run, `dt = 0.025`, is a
+**numerical reference and not an exact solution**, so the quantities in panel
+(b) measure sensitivity to the step and not error. The formal temporal orders
+are established elsewhere, against the exact logistic solution: `1.00` for
+Backward Euler and `2.00` for the semi-implicit Crank-Nicolson scheme.
+
 ### How to read the figure
 
 Panel (a) draws all six runs and all 201 nodal values of each; nothing is
 omitted. Colour encodes the time step, and the cool-to-warm break falls exactly
-at the step above which the solution has no front left, which is the same cut
-as the shaded band in panel (b). The `dt = 0.4` profile is dashed because it
-coincides with `dt = 0.3` to `4e-5`. On the plateau `|x| <= 0.5` all six runs
-agree to `3.3e-4`, so the disagreement really is confined to the front.
+at the step above which no front survives, which is the same cut as the shaded
+band in panel (b). The `dt = 0.4` profile is dashed because it coincides with
+`dt = 0.3` to `4e-5`. On the plateau `|x| <= 0.5` all six runs agree to
+`3.3e-4`, so the disagreement really is confined to the front.
 
-Panel (b) is a convergence panel. Each measure is divided by its own reference
-value so the three can share one dimensionless axis:
+Panel (b) plots three dimensionless differences from the finest run, all
+evaluated on the profiles at the common final time `T = 19.2`, with
+`Omega = (-1,1)` and `c_ref` the profile at `dt = 0.025`:
 
 ```text
-L2 norm of the reference profile   1.15408
-maximum of the reference profile   1.00000   (so the L-infinity division is a no-op)
-reference front position           0.68886
+e_inf(dt) = max_x |c_dt - c_ref|
+e_2(dt)   = ( (1/|Omega|) * integral_Omega (c_dt - c_ref)^2 dx )^(1/2)
+e_f(dt)   = |x_f(dt) - x_f(ref)|
 ```
 
-The errors are defined against the `dt = 0.025` run, which therefore has error
-identically zero and is the one point that cannot appear on a logarithmic axis.
-The dotted ceilings are the value each measure takes for the trivial filled
-state `c = 1`.
+`e_2` is a root mean square, that is the stored `l2_error` column divided by
+`sqrt(|Omega|) = sqrt(2)`, so that it is dimensionless and comparable with
+`e_inf`; `e_f` is a displacement in a domain of half-width one, hence also
+dimensionless. The values drawn are
 
-### The two-point slopes, and why they are not convergence orders
+```text
+dt        e_inf      e_2        e_f
+0.025     0          0          0        (reference, absent from the log axis)
+0.05      0.434688   0.106268   0.037930
+0.1       0.898898   0.288002   0.125671
+0.2       0.998928   0.534894   does not exist
+0.3       0.999992   0.542931   does not exist
+0.4       1.000000   0.542938   does not exist
+```
+
+`e_f` is defined only where the profile still crosses `c = 0.5`, so its curve
+stops at `dt = 0.1`; the shaded region records that the quantity does not exist
+beyond it, and no censored marker is drawn. The two norms of `c` remain well
+defined for every step and saturate against the uniformly filled state.
+
+No slopes are drawn on the figure. They were removed deliberately: on a figure
+whose reference is another numerical run, an annotated slope invites the reader
+to take it for a convergence order. The numbers are recorded below instead.
+
+The figure follows the visual conventions of the reference's line figures: full
+frame, no grid, sparse inward ticks, bold labels with the axis name after the
+last tick, direct coloured series labels and no legend box. It is drawn at
+`7.2` by `3.05` inches so that it stays legible when set at text width.
+
+### The two-point slopes, recorded here and not shown
 
 ```text
 measure            dt = 0.05 -> 0.1     dt = 0.1 -> 0.2
@@ -133,8 +217,10 @@ front position               1.728                 --
 ```
 
 Only two of the six steps still produce a solution with a front, so these are
-two-point slopes and not fitted orders. They should not be quoted as a recovery
-of the first order of Backward Euler, for three reasons: the second column is
+two-point slopes and not fitted orders. They are kept in this record because
+they are part of what the experiment produced, but they are not drawn on the
+figure and should not be quoted as a recovery of the first order of Backward
+Euler, for three reasons: the second column is
 saturation rather than a rate; at `dt = 0.1` the L-infinity error already sits
 at `0.899` of its own ceiling of `1`; and the errors are measured against the
 finest run rather than an exact solution, which biases the estimate. A genuine

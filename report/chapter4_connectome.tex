@@ -167,93 +167,167 @@ use the same time scale $t \in [0,20]$.}
 \end{figure}
 
 % ---------------------------------------------------------------------
-%  ANALOGA di Figura~\ref{fig:frontspeed}
-%    NESSUNA. Questa verifica non compare in [W]: il paper non confronta
-%    mai la velocita' del fronte con l'asintotico di Fisher-KPP.
-%    E' una verifica indipendente che abbiamo aggiunto noi, ed e' bene
-%    dirlo esplicitamente nel testo, come facciamo qui sotto.
-%    Il riferimento teorico e' la teoria classica di Fisher-KPP, non i
-%    tre paper; [F] par. 2.1, p. 3 cita Fisher (1937) e Kolmogorov (1937)
-%    se serve una citazione d'appoggio.
+%  NOTA sulla velocita' del fronte: figura RIMOSSA, e il motivo e' tecnico.
+%  Avevamo una figura a due pannelli che confrontava la velocita' misurata
+%  con l'asintotico di Fisher-KPP. E' stata tolta perche' non e' una
+%  verifica: l'eccesso rispetto a 2 sqrt(d alpha) vale il 2-6%, cresce con
+%  d, dipende dalla finestra di fit per oltre un punto percentuale e NON
+%  diminuisce restringendo il fit ai tempi tardi. Non si puo' nemmeno
+%  mostrare che converga, perche' raffinando Delta t la discretizzazione
+%  peggiora prima che la verifica converga (vedi Sezione 4.5.1).
+%  Il dato quantitativo resta in benchmarks/18.../README.md come
+%  diagnostica. Qui restiamo sul confronto qualitativo con [W], che e'
+%  esattamente il livello a cui il paper stesso si ferma.
+%  DA LEGGERE: [W] par. 2.4, p. 268, ultime righe, dove le tre proprieta'
+%  qualitative del fronte sono elencate.
 % ---------------------------------------------------------------------
 
-The behaviour of the front is consistent with the Fisher--KPP asymptotic
-relation $v_{\mathrm{front}} = 2\sqrt{d\alpha}$, and it is worth making that
-statement quantitative, since the reference does not. Figure~\ref{fig:frontspeed}
-tracks the position of the $c=0.5$ level over time for the three diffusivities
-at $\alpha=1$ and compares the measured speed with the asymptotic value. The
-front becomes linear in time well before it reaches the domain boundary, and the
-measured speeds exceed $2\sqrt{d\alpha}$ by $1.9\%$, $4.0\%$ and $5.2\%$ for
-increasing diffusion. This is an independent check of the coupled
-diffusion--reaction dynamics, and it is the reason we consider the nonlinear
-solver validated before applying it to a network.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/front_speeds.pdf}
-\caption{Front-speed verification at $\alpha=1$. Left: the position of the
-$c=0.5$ level against time for the three diffusivities, with the asymptotic
-slope $2\sqrt{d\alpha}$ superimposed as a dashed reference over the fitting
-window. Right: measured against asymptotic speed, with the relative excess
-annotated.}
-\label{fig:frontspeed}
-\end{figure}
+The fronts remain symmetric about $x=0$ and their speed increases with both
+$d$ and $\alpha$, consistently with the Fisher--KPP relation
+$v_{\mathrm{front}} = 2\sqrt{d\alpha}$ and with the qualitative description
+in~\cite{weickenmeier2019}. We also measured the front speed and found it to
+exceed the asymptotic value by between two and six percent, growing with the
+diffusivity, but we do not present that measurement as a verification: the
+deviation does not decrease when the fit is restricted to later times, and the
+time step cannot be refined far enough to settle the question, for the reason
+given in Section~\ref{sec:boundary}. The quantitative diagnostic is retained in
+the benchmark record rather than reported here.
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima del paragrafo sul passo temporale
-%    [W] par. 2.4, p. 268, la frase gia' citata sopra. E' l'unica fonte:
-%        il paper riporta lo studio a parole e non lo mostra.
+%  DA LEGGERE prima di questo paragrafo
+%    [W] par. 2.4, p. 268, la frase: "In a preliminary convergence study, we
+%        had systematically varied the time step size between [dt/4, dt/2, dt,
+%        2 dt, 3 dt, 4 dt] with dt = 0.1, for a growth of alpha = 2 and a
+%        spreading of d = 0.0002, and confirmed that the solution had converged
+%        for dt = 0.1, while we observed a spurious increase in spreading for
+%        larger time step sizes."
+%        E' l'unica fonte. Il paper NON mostra ne' dati ne' figura, quindi non
+%        possiamo ricostruire con quale criterio o quale norma abbiano deciso
+%        che dt = 0.1 fosse convergente. Il testo qui sotto lo dice
+%        esplicitamente, e per questo non afferma mai che la loro conclusione
+%        sia sbagliata.
+%
+%  ATTENZIONE, distinzione da tenere ferma in tutta la sottosezione:
+%    questo e' uno studio di SENSIBILITA' al passo temporale, non uno studio di
+%    convergenza. La run piu' fine e' un riferimento numerico, non una
+%    soluzione esatta. Gli ordini temporali formali sono verificati subito
+%    dopo, contro la soluzione logistica esatta: primo ordine per Eulero
+%    implicito, secondo per il semi-implicito di Crank-Nicolson.
+%
 %  ANALOGA di Figura~\ref{fig:timestep}
-%    NESSUNA figura in [W]. Il contenuto del pannello (a) corrisponde
-%    all'affermazione verbale "spurious increase in spreading for larger
-%    time step sizes"; il pannello (b) e' interamente nostro.
-%    Se serve un modello di stile per un pannello di convergenza,
-%    [W] Fig. 13, p. 277 e' l'unica figura di curve del paper.
+%    NESSUNA figura in [W]. Il pannello (a) e' la controparte grafica
+%    dell'affermazione verbale sullo "spurious increase in spreading"; il
+%    pannello (b) e' interamente nostro e non ha corrispondente.
 % ---------------------------------------------------------------------
 
-\subsubsection{Sensitivity to the time step}
+\subsubsection{Time-step sensitivity}
+\label{sec:timestep}
 
-The reference reports, without showing it, a preliminary study in which the
-time step was varied between $\Delta t/4$ and $4\Delta t$ around
-$\Delta t = 0.1$, at $\alpha = 2$ and $d = 2\cdot10^{-4}$, concluding that the
-solution had converged at $\Delta t = 0.1$ and that larger steps produce a
-spurious increase in spreading. We reproduce that study and make it
-quantitative. All six runs are compared at the common time $T = 19.2$, the
-largest time that is a whole multiple of every step tested, including
-$\Delta t = 0.3$.
+The reference reports a preliminary study in which the time step was varied
+between $\Delta t/4$ and $4\Delta t$ around $\Delta t = 0.1$, at $\alpha = 2$
+and $d = 2\cdot10^{-4}$, concluding that $\Delta t = 0.1$ was regarded as
+sufficiently converged and that larger steps produce a spurious increase in
+spreading. That study is described in words only: neither the data nor a figure
+is given, so the criterion and the norm behind the statement cannot be
+reconstructed, and nothing in what follows should be read as a claim that the
+statement is incorrect. What we can do is repeat the experiment with a stated
+diagnostic and report what it shows.
 
-Figure~\ref{fig:timestep} shows the outcome. The measured front positions are
-$0.6889$, $0.7268$ and $0.8145$ for $\Delta t = 0.025$, $0.05$ and $0.1$, so
-the step the reference calls converged already overshoots the finest front by
-$18.2\%$; for $\Delta t \ge 0.2$ the solution has filled the interval entirely
-and no front exists. The warning in the reference is therefore not only
-confirmed but sharpened: on this problem the qualitative behaviour, and not
-merely the accuracy, depends on the time step.
+We adopt as diagnostic the position $x_{\mathrm{f}}$ of the right front,
+defined as the point where the profile crosses $c = 0.5$. All six runs are
+compared at the common time $T = 19.2$, the largest time that is a whole
+multiple of every step tested, including $\Delta t = 0.3$.
 
-The right panel is a convergence panel, and it must be read with care. Only two
-of the six steps still produce a solution with a front, so the slopes shown,
-$1.44$ in $L^2$, $1.05$ in $L^\infty$ and $1.73$ on the front position, are
-two-point slopes over $\Delta t = 0.05 \to 0.1$ and not fitted convergence
-orders. Over the next interval the same formula returns $0.89$ and $0.15$,
-which is saturation rather than a rate; at $\Delta t = 0.1$ the $L^\infty$
-error already sits at $0.899$ of its own ceiling; and the errors are measured
-against the finest run rather than an exact solution, which biases the
-estimate. We therefore do not read $1.05$ as a recovery of the first order of
-Backward Euler. The temporal order of the scheme is established separately, on
-problems with an exact solution, in Section~\ref{sec:convergence} and in the
-logistic verification below.
+Figure~\ref{fig:timestep} shows the outcome, and it separates into two
+statements of very different strength.
+
+The qualitative observation of the reference is confirmed without reservation,
+and it is the main conclusion of this subsection. Increasing the time step
+moves the front outward, and beyond a point the front disappears altogether:
+for $\Delta t \ge 0.2$ the interval is essentially full, with a minimum
+concentration of $0.9320$ at $\Delta t = 0.2$ and of $1$ to four decimals at
+$\Delta t = 0.3$ and $0.4$, so no $c = 0.5$ crossing exists at all. Large time
+steps do produce a spurious increase in numerical propagation, exactly as
+described.
+
+The quantitative reading is more delicate. With the front position as
+diagnostic, the three steps that still admit a front give
+\[
+x_{\mathrm{f}} = 0.6889, \quad 0.7268, \quad 0.8145
+\qquad\text{for}\qquad
+\Delta t = 0.025,\ 0.05,\ 0.1,
+\]
+so the front at $\Delta t = 0.1$ sits about $18.2\%$ farther out than at
+$\Delta t = 0.025$. Under this diagnostic the solution at $\Delta t = 0.1$ is
+therefore not yet insensitive to further temporal refinement.
+
+This is not a contradiction of the reference, and it is worth being precise
+about why. The reference does not state the criterion behind its sentence, but
+it does state the quantities it reports for its simulations: the concentration
+map $c(x,t)$, the activation time, which it defines through the threshold
+$c_{\mathrm{crit}} = 0.95$, and the concentration integrated over the domain,
+$C(t)=\int_{\mathcal{B}} c \,\mathrm{d}V$. The front position is not among
+them. Our diagnostic is therefore our own choice and not theirs, the two
+statements are about different quantities, and they cannot be compared directly.
+We adopt the front position because the claim being reproduced concerns
+spreading, and the location of the $c=0.5$ level measures directly how far the
+solution has spread; what is reported here is the behaviour of that quantity and
+nothing beyond it.
+
+Panel (b) quantifies the same experiment with three dimensionless differences
+from the finest run, all evaluated on the profiles at the common final time:
+\begin{equation}
+e_\infty(\Delta t) = \max_{x\in\Omega} \bigl| c_{\Delta t} - c_{\mathrm{ref}} \bigr|,
+\qquad
+e_2(\Delta t) = \left( \frac{1}{|\Omega|}
+  \int_\Omega \bigl( c_{\Delta t} - c_{\mathrm{ref}} \bigr)^2 \,\mathrm{d}x
+  \right)^{1/2},
+\qquad
+e_{\mathrm{f}}(\Delta t) = \bigl| x_{\mathrm{f}}(\Delta t)
+  - x_{\mathrm{f}}(\mathrm{ref}) \bigr|,
+\label{eq:timestepdiff}
+\end{equation}
+with $\Omega=(-1,1)$ and $c_{\mathrm{ref}}$ the profile of the run at
+$\Delta t = 0.025$. The second is a root mean square rather than a plain $L^2$
+norm, so that it is dimensionless and directly comparable with the first; the
+third is a displacement in a domain of half-width one, hence also
+dimensionless. The front difference $e_{\mathrm{f}}$ is defined only where a
+crossing exists, so its curve stops at $\Delta t = 0.1$ and the shaded region
+marks the steps for which the quantity does not exist at all. The two norms of
+$c$ remain well defined for every step, and they saturate at the values they
+take against the uniformly filled state.
+
+Two things this experiment does not establish should be stated plainly. It is
+not a study of the temporal order of convergence: the run at
+$\Delta t = 0.025$ is a numerical reference and not an exact solution, so the
+quantities in \eqref{eq:timestepdiff} are differences between two numerical
+solutions and not errors. And the range of admissible steps is too narrow for
+an order to be extracted from it, since only three of the six runs possess a
+front and the remaining differences have saturated. The formal temporal orders
+are verified separately in the paragraph below, against a problem with an exact
+solution.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/time_step_study.pdf}
-\caption{Time-step sensitivity at $\alpha=2$, $d=2\cdot10^{-4}$, all runs
-compared at $T=19.2$. (a) The six final profiles; colour encodes the time step
-and the cool-to-warm break falls at the step above which no front survives. (b)
-Relative error against the $\Delta t = 0.025$ run, each measure divided by its
-own reference value so the three share one dimensionless axis; dotted lines are
-the value each measure takes for the filled state $c \equiv 1$, and the shaded
-band marks the steps for which the interval is full. The slopes are two-point
-slopes over the only two steps that still have a front, not convergence orders.}
+\caption{Time-step sensitivity at $\alpha=2$, $d=2\cdot10^{-4}$, with all six
+runs compared at the common time $T=19.2$. (a) the six final profiles, with the
+$c=0.5$ level marked by the dashed line and the resulting front positions by
+the circles. Only three runs cross that level:
+$x_{\mathrm{f}} = 0.6889$, $0.7268$ and $0.8145$ for
+$\Delta t = 0.025$, $0.05$ and $0.1$. For $\Delta t \geq 0.2$ the interval is
+full and no crossing exists, the minimum concentration being $0.9320$,
+$0.99996$ and $0.9999999$ respectively; the profile at $\Delta t = 0.4$ is
+dashed because it coincides with the one at $\Delta t = 0.3$ to $4\cdot10^{-5}$.
+On the plateau $|x|\leq 0.5$ all six runs agree to $3.3\cdot10^{-4}$, so the
+disagreement is confined to the front. (b) the three differences from the
+finest run defined in \eqref{eq:timestepdiff}; the run at $\Delta t = 0.025$ is
+the reference and has difference identically zero, so it carries no marker on
+the logarithmic axis. The front difference $e_{\mathrm{f}}$ stops at
+$\Delta t = 0.1$ because no front exists beyond it, as the shaded region
+records; the two norms of $c$ are defined throughout. The finest run is a
+numerical reference and not an exact solution, so no quantity shown is an error
+and no convergence order is implied.}
 \label{fig:timestep}
 \end{figure}
 
@@ -686,6 +760,7 @@ its regional curves separate clearly while those of
 Section~\ref{sec:comparison} do not.
 
 \subsubsection{A validity boundary for the discretization}
+\label{sec:boundary}
 
 The same sweep bounds the finite element formulation. Above $\mathrm{Da}$ of
 about $13$, that is $\rho \le 0.02$ at $\alpha=0.5$, the discrete concentration
@@ -703,9 +778,16 @@ reaction dominates nothing does. As observed in Section~\ref{sec:formulation},
 the nodal model \eqref{eq:nodal} and the Hadamard product used
 in~\cite{corti2023} are exactly the mass-lumped counterparts of
 \eqref{eq:fem}, which is why they remain bounded at every scaling tested.
-Introducing an optional lumped mass matrix is the natural way to extend the
-present formulation into the reaction-dominated regime, and we leave it as the
-immediate continuation of this work. Both simulations reported in this chapter
+The same defect is visible on the one-dimensional problem of
+Section~\ref{sec:onedim}, which is worth recording because it shows that the
+boundary is a property of the discretization and not of the connectome: with
+the sharp single-node initial datum, refining the time step at $\alpha=2$ and
+$d=10^{-4}$ makes the undershoot grow rather than shrink, from
+$-1.5\cdot10^{-13}$ at $\Delta t = 0.1$ to $-5.4\cdot10^{-6}$ at $0.05$ and
+$-9.1\cdot10^{-4}$ at $0.025$. Introducing an optional lumped mass matrix is
+therefore the natural way to extend the present formulation into the
+reaction-dominated regime, and we leave it as the immediate continuation of
+this work. Both simulations reported in this chapter
 satisfy $\mathrm{Da}\le 6$ and are therefore well inside the region where the
 discretization is reliable.
 

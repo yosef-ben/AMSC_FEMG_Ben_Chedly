@@ -16,7 +16,7 @@ disagree. Run it from the project root:
 | Figure | Drawn by | From | Produced by |
 |---|---|---|---|
 | `18/sensitivity` | `plot-fisher-kolmogorov-1d-sensitivity.py` | `profiles.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
-| `18/front_speeds` | `plot-fisher-kolmogorov-front-speed.py` | `profiles.csv`, `front_speeds.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
+| `18/front_speeds` (diagnostic, not in the report) | `plot-fisher-kolmogorov-front-speed.py` | `profiles.csv`, `front_speeds.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/time_step_study` | `plot-fisher-kolmogorov-time-step-study.py` | `time_step_profiles.csv`, `time_step_study.csv` | `test_fisher_kolmogorov_1d_time_step_study` |
 | `19/biomarker_comparison` | `plot-fisher-fornari83.py` | `nodal_biomarkers.csv`, `fem_biomarkers.csv` | `test_fisher_kolmogorov_fornari83` |
 | `19/connectome_topology` | `plot-fornari-connectome-topology.py` | `data/connectome/fornari83/{nodes,edges}.csv` | `prepare-fornari-connectome.py` |

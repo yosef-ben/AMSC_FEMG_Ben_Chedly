@@ -8,7 +8,6 @@ copy() { cp "benchmarks/$1" "report/images/$(basename "$1")"; }
 
 copy 18_fisher_kolmogorov_1d_sensitivity/results/sensitivity.pdf
 copy 18_fisher_kolmogorov_1d_sensitivity/results/time_step_study.pdf
-copy 18_fisher_kolmogorov_1d_sensitivity/results/front_speeds.pdf
 copy 19_fisher_kolmogorov_fornari83/results/biomarker_comparison.pdf
 copy 19_fisher_kolmogorov_fornari83/results/connectome_topology.pdf
 copy 20_fisher_kolmogorov_alpha_sensitivity/results/alpha_sensitivity.pdf
