@@ -60,8 +60,8 @@ h-min   1681
 From the project root:
 
 ```bash
-cmake --build build --target test_spectral_mesh_comparison
-./build/test_spectral_mesh_comparison
+cmake --build build-release --target test_spectral_mesh_comparison
+./build-release/test_spectral_mesh_comparison
 ```
 
 The stored outputs are:

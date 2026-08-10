@@ -1,5 +1,5 @@
-cmake --build build
-./build/test_heat_star_localized
+cmake --build build-release
+./build-release/test_heat_star_localized
 
 Reproducible runner:
 scripts/run-benchmark.sh 06_star_localized

@@ -1,5 +1,5 @@
-cmake --build build
-./build/test_heat_star_linear
+cmake --build build-release
+./build-release/test_heat_star_linear
 
 Reproducible runner:
 scripts/run-benchmark.sh 03_star_linear

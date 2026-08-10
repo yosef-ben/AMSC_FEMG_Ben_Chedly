@@ -87,9 +87,9 @@ E(t)         = sum_k lambda_k c_k^2 exp(-2 lambda_k t).
 From the project root:
 
 ```bash
-cmake -S . -B build
-cmake --build build --target test_heat_graphene_energy_decay
-./build/test_heat_graphene_energy_decay
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_heat_graphene_energy_decay
+./build-release/test_heat_graphene_energy_decay
 ```
 
 The temporary output is written to:

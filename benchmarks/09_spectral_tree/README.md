@@ -47,8 +47,8 @@ H phi = lambda M phi.
 From the project root:
 
 ```bash
-cmake --build build --target test_spectral_tree
-./build/test_spectral_tree data/tree_15.txt
+cmake --build build-release --target test_spectral_tree
+./build-release/test_spectral_tree data/tree_15.txt
 ```
 
 The temporary output is written to:

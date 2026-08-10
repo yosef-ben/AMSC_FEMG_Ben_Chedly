@@ -49,8 +49,8 @@ theta = 0.5  Crank--Nicolson
 From the project root:
 
 ```bash
-cmake --build build --target test_heat_graphene_eigenmode_time_convergence
-./build/test_heat_graphene_eigenmode_time_convergence
+cmake --build build-release --target test_heat_graphene_eigenmode_time_convergence
+./build-release/test_heat_graphene_eigenmode_time_convergence
 ```
 
 The stored output is:

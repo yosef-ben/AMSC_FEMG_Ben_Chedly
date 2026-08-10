@@ -43,8 +43,8 @@ data/tree_15.txt
 From the project root:
 
 ```bash
-cmake --build build --target test_spectral_comparison
-./build/test_spectral_comparison
+cmake --build build-release --target test_spectral_comparison
+./build-release/test_spectral_comparison
 ```
 
 The stored outputs are:

@@ -1,4 +1,4 @@
-cmake --build build --target test_heat_graphene_eigenmode
-./build/test_heat_graphene_eigenmode
+cmake --build build-release --target test_heat_graphene_eigenmode
+./build-release/test_heat_graphene_eigenmode
 python scripts/plot-parabolic-snapshots.py benchmarks/10_heat_graphene_eigenmode/results --times 0 0.25 0.5 1.0 --cols 2 --scale 0.35 --title 'Heat equation on graphene, sixth eigenmode, $\lambda$ = 3.5808' --output benchmarks/10_heat_graphene_eigenmode/results/graphene_eigenmode_time_snapshots.png
 python scripts/plot-heat-decay.py benchmarks/10_heat_graphene_eigenmode/results/decay.csv --title 'L2 decay, graphene, sixth eigenmode, $\lambda$ = 3.5808' --output benchmarks/10_heat_graphene_eigenmode/results/graphene_eigenmode_l2_decay.png

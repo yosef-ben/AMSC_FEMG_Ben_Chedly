@@ -71,8 +71,8 @@ The theta method is Crank--Nicolson.
 From the project root:
 
 ```bash
-cmake --build build --target test_heat_tree_eigenmode
-./build/test_heat_tree_eigenmode
+cmake --build build-release --target test_heat_tree_eigenmode
+./build-release/test_heat_tree_eigenmode
 ```
 
 The stored benchmark output is in:

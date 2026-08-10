@@ -72,8 +72,8 @@ The temporal method is Backward Euler.
 From the project root:
 
 ```bash
-cmake --build build
-./build/test_heat_star_linear
+cmake --build build-release
+./build-release/test_heat_star_linear
 ```
 
 The run writes temporary visualization output to:

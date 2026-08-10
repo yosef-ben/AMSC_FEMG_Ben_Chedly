@@ -92,9 +92,9 @@ The small time step makes the spatial error dominant.
 From the project root:
 
 ```bash
-cmake --build build
-./build/test_heat_star_sine
-./build/test_heat_star_sine_convergence
+cmake --build build-release
+./build-release/test_heat_star_sine
+./build-release/test_heat_star_sine_convergence
 ```
 
 The visualization run writes temporary output to:

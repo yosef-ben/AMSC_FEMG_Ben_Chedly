@@ -1,4 +1,4 @@
-cmake --build build --target test_spectral_tree
-./build/test_spectral_tree data/tree_15.txt
+cmake --build build-release --target test_spectral_tree
+./build-release/test_spectral_tree data/tree_15.txt
 python scripts/plot-eigenmodes.py benchmarks/09_spectral_tree/results --modes 8 --start-mode 0 --cols 2 --scale 0.55 --output benchmarks/09_spectral_tree/results/tree_eigenmodes_00_07.png --diagnostics benchmarks/09_spectral_tree/results/eigenmode_diagnostics_00_07.csv
 python scripts/plot-eigenmodes.py benchmarks/09_spectral_tree/results --modes 8 --start-mode 8 --cols 2 --scale 0.55 --output benchmarks/09_spectral_tree/results/tree_eigenmodes_08_15.png --diagnostics benchmarks/09_spectral_tree/results/eigenmode_diagnostics_08_15.csv

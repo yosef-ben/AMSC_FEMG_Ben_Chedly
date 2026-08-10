@@ -1,3 +1,3 @@
-cmake --build build --target test_spectral_star
-./build/test_spectral_star data/star_4.txt
+cmake --build build-release --target test_spectral_star
+./build-release/test_spectral_star data/star_4.txt
 python scripts/plot-eigenmodes.py benchmarks/07_spectral_star/results --modes 6 --start-mode 0 --cols 2 --scale 1.0 --output benchmarks/07_spectral_star/results/star_eigenmodes_00_05.png --diagnostics benchmarks/07_spectral_star/results/eigenmode_diagnostics_00_05.csv

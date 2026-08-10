@@ -58,9 +58,9 @@ The temporal method is Crank-Nicolson.
 From the project root:
 
 ```bash
-cmake --build build
-./build/test_heat_star_radial_decay
-./build/test_heat_star_radial_decay_time_convergence
+cmake --build build-release
+./build-release/test_heat_star_radial_decay
+./build-release/test_heat_star_radial_decay_time_convergence
 python scripts/plot-time-convergence.py \
   output/convergence/star_radial_decay_time_convergence.csv \
   benchmarks/05_star_radial_decay/results/time_convergence.pdf

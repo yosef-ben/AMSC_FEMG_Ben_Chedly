@@ -58,8 +58,8 @@ Crank--Nicolson.
 From the project root:
 
 ```bash
-cmake --build build --target test_heat_graphene_complexity
-./build/test_heat_graphene_complexity
+cmake --build build-release --target test_heat_graphene_complexity
+./build-release/test_heat_graphene_complexity
 ```
 
 The stored output is:

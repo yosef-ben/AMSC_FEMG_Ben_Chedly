@@ -1,6 +1,6 @@
-cmake --build build
-./build/test_heat_star_sine
-./build/test_heat_star_sine_convergence
+cmake --build build-release
+./build-release/test_heat_star_sine
+./build-release/test_heat_star_sine_convergence
 
 Reproducible runner:
 scripts/run-benchmark.sh 04_star_sine

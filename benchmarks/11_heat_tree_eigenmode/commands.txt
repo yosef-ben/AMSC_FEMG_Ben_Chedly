@@ -1,4 +1,4 @@
-cmake --build build --target test_heat_tree_eigenmode
-./build/test_heat_tree_eigenmode
+cmake --build build-release --target test_heat_tree_eigenmode
+./build-release/test_heat_tree_eigenmode
 python scripts/plot-parabolic-snapshots.py benchmarks/11_heat_tree_eigenmode/results --times 0 0.25 0.5 1.0 --cols 2 --scale 0.55 --title 'Heat equation on tree, fifth eigenmode, $\lambda$ = 2.4675' --output benchmarks/11_heat_tree_eigenmode/results/tree_eigenmode_time_snapshots.png
 python scripts/plot-heat-decay.py benchmarks/11_heat_tree_eigenmode/results/decay.csv --title 'L2 decay, tree, fifth eigenmode, $\lambda$ = 2.4675' --output benchmarks/11_heat_tree_eigenmode/results/tree_eigenmode_l2_decay.png

@@ -47,8 +47,8 @@ H phi = lambda M phi.
 From the project root:
 
 ```bash
-cmake --build build --target test_spectral_graphene
-./build/test_spectral_graphene data/graphene_13.txt
+cmake --build build-release --target test_spectral_graphene
+./build-release/test_spectral_graphene data/graphene_13.txt
 ```
 
 The temporary output is written to:

@@ -160,11 +160,11 @@ From the project root:
 ```bash
 python3 scripts/prepare-budapest-connectome.py
 python3 scripts/prepare-budapest-anatomy.py --download
-cmake -S . -B build
-cmake --build build --target test_fisher_kolmogorov_logistic
-cmake --build build --target test_fisher_kolmogorov_connectome
-./build/test_fisher_kolmogorov_logistic
-./build/test_fisher_kolmogorov_connectome
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_fisher_kolmogorov_logistic
+cmake --build build-release --target test_fisher_kolmogorov_connectome
+./build-release/test_fisher_kolmogorov_logistic
+./build-release/test_fisher_kolmogorov_connectome
 ```
 
 ## Anatomical visualization in ParaView

@@ -64,8 +64,8 @@ The temporal method is Crank-Nicolson.
 From the project root:
 
 ```bash
-cmake --build build
-./build/test_heat_star_localized
+cmake --build build-release
+./build-release/test_heat_star_localized
 ```
 
 The run writes temporary visualization output to:

@@ -49,8 +49,8 @@ where `H` is the stiffness matrix and `M` is the mass matrix.
 From the project root:
 
 ```bash
-cmake --build build --target test_spectral_star
-./build/test_spectral_star data/star_4.txt
+cmake --build build-release --target test_spectral_star
+./build-release/test_spectral_star data/star_4.txt
 ```
 
 The temporary output is written to:
