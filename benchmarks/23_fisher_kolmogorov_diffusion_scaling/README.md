@@ -38,10 +38,10 @@ Da = alpha / (rho * lambda_2)
 is large. For the reconstructed Budapest-83 graph:
 
 ```text
-lambda_2      = 0.795445
-lambda_max    = 154.0434
-mean weighted degree = 45.3884
-max adjacency w      = 36.8671
+lambda_2      = 0.772254
+lambda_max    = 145.4535
+mean weighted degree = 42.7547
+max adjacency w      = 35.3221
 ```
 
 ## Measured behaviour
@@ -53,16 +53,16 @@ crossing time among the temporal, frontal, parietal and occipital lobes.
 
 | rho | Da | lobe spread [yr] | metric-graph FEM |
 |---:|---:|---:|:---|
-| 1.0 | 0.63 | 2.95e-07 | bounded |
-| 0.5 | 1.26 | 1.84e-05 | bounded |
-| 0.2 | 3.14 | 0.0053 | bounded |
-| 0.1 | 6.29 | 0.1050 | bounded |
-| 0.05 | 12.57 | 0.5819 | bounded |
-| 0.02 | 31.43 | 1.8646 | leaves [0,1] |
-| 0.01 | 62.86 | 3.0691 | leaves [0,1] |
-| 0.005 | 125.72 | 4.3002 | leaves [0,1] |
-| 0.002 | 314.29 | 5.8301 | leaves [0,1] |
-| 0.001 | 628.58 | 6.9235 | leaves [0,1] |
+| 1.0 | 0.65 | 3.87e-07 | bounded |
+| 0.5 | 1.29 | 2.84e-05 | bounded |
+| 0.2 | 3.24 | 0.0080 | bounded |
+| 0.1 | 6.47 | 0.1317 | bounded |
+| 0.05 | 12.95 | 0.6529 | bounded |
+| 0.02 | 32.37 | 1.9586 | leaves [0,1] |
+| 0.01 | 64.75 | 3.1600 | leaves [0,1] |
+| 0.005 | 129.49 | 4.3801 | leaves [0,1] |
+| 0.002 | 323.73 | 5.8966 | leaves [0,1] |
+| 0.001 | 647.46 | 6.9863 | leaves [0,1] |
 
 The spread varies over seven decades while the topology, the seed and the
 reaction rate are unchanged. This is the quantitative statement that benchmark
@@ -70,7 +70,7 @@ reaction rate are unchanged. This is the quantitative statement that benchmark
 
 ## Consequences for the earlier benchmarks
 
-- **Benchmark 19** uses the literal `rho = 1`, giving `Da = 0.63`. The
+- **Benchmark 19** uses the literal `rho = 1`, giving `Da = 0.65`. The
   connectome homogenises faster than the reaction grows, so the four lobe
   curves must coincide. Its near-zero lobe separation is the correct solution
   of the published equation, not a validation failure. Reproducing figure 7 of
@@ -78,9 +78,9 @@ reaction rate are unchanged. This is the quantitative statement that benchmark
   published figure cannot come from the connectivity-weighted Laplacian used
   at unit scale.
 - **Benchmark 21** normalises the diffusivity as `D_e = w_e/max(w)`, that is
-  `rho = 1/36.8671 = 0.027124`, and uses the seven Corti reaction means whose
+  `rho = 1/35.3221 = 0.028311`, and uses the seven Corti reaction means whose
   average over the 83 vertices is `0.1252`. Its Damkohler number is therefore
-  `5.79`, in the regime where regional curves separate. The clearly ordered
+  `5.73`, in the regime where regional curves separate. The clearly ordered
   regional averages of benchmark 21 and the coincident lobe curves of
   benchmark 19 are consistent with each other: the two benchmarks sit on
   opposite sides of the same crossover.
@@ -93,8 +93,8 @@ available time schemes. Beyond `Da` of about 13, that is `rho <= 0.02` at
 
 ```text
 rho = 0.005, one element per edge, Corti scheme:
-  nodal reference  [0.999869, 0.999997]
-  metric-graph FEM [-922.128,  308.005]
+  nodal reference  [0.999848, 0.999997]
+  metric-graph FEM [-506.980,  523.169]
 ```
 
 The nodal reference stays bounded at every scaling tested. The failure occurs

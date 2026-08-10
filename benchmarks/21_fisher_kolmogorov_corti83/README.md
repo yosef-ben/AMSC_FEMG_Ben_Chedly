@@ -87,21 +87,21 @@ The solution remains inside the physical interval throughout the run. At
 `T=20`, the full FEM field has range
 
 ```text
-0.0249591 <= c_h <= 0.653584.
+0.0238645 <= c_h <= 0.653239.
 ```
 
 The mean concentration sampled at the 83 anatomical vertices increases from
-`0.0143373` to `0.157814`. Every regional average grows monotonically.
+`0.0143373` to `0.157989`. Every regional average grows monotonically.
 The final regional means are:
 
 ```text
-frontal       0.202084
-temporal      0.166959
-parietal      0.096729
-insular       0.129195
-limbic        0.210109
-occipital     0.073457
-subcortical   0.127043
+frontal       0.202253
+temporal      0.167108
+parietal      0.096674
+insular       0.129048
+limbic        0.210617
+occipital     0.072868
+subcortical   0.127734
 ```
 
 The high frontal and low occipital values are consistent with their respective
@@ -147,9 +147,9 @@ and contains `c`, `alpha`, and edge `diffusion`.
 From the project root:
 
 ```bash
-cmake -S . -B build
-cmake --build build --target test_fisher_kolmogorov_corti83
-./build/test_fisher_kolmogorov_corti83
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_fisher_kolmogorov_corti83
+./build-release/test_fisher_kolmogorov_corti83
 python3 scripts/plot-fisher-kolmogorov-regions.py \
   output/fisher_kolmogorov/corti83/regional_averages.csv \
   --output output/fisher_kolmogorov/corti83/regional_averages.png
@@ -196,13 +196,13 @@ is. Table 3 of the paper reports the expected concentration per lobe at
 
 | Lobe | Corti et al., `t = 20` | rank | this benchmark | rank |
 |---|---:|---:|---:|---:|
-| frontal | 0.9289 | 1 | 0.2021 | 2 |
-| limbic | 0.8905 | 2 | 0.2101 | 1 |
-| temporal | 0.8699 | 3 | 0.1670 | 3 |
-| insular | 0.8558 | 4 | 0.1292 | 4 |
-| subcortical | 0.8413 | 5 | 0.1270 | 5 |
+| frontal | 0.9289 | 1 | 0.2023 | 2 |
+| limbic | 0.8905 | 2 | 0.2106 | 1 |
+| temporal | 0.8699 | 3 | 0.1671 | 3 |
+| insular | 0.8558 | 4 | 0.1290 | 4 |
+| subcortical | 0.8413 | 5 | 0.1277 | 5 |
 | parietal | 0.7738 | 6 | 0.0967 | 6 |
-| occipital | 0.7336 | 7 | 0.0735 | 7 |
+| occipital | 0.7336 | 7 | 0.0729 | 7 |
 
 Twenty of the twenty-one pairwise orderings agree, giving a rank correlation of
 `0.96`. The single inversion is frontal against limbic, and it is explained by

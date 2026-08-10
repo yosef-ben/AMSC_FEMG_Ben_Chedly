@@ -24,27 +24,44 @@ FreeSurfer parent region. The resulting topology exactly matches Fornari et
 al.: 1015 fine nodes and 37477 fine edges become 83 regions and 1130 edges.
 The unweighted degree range is 6-48.
 
-The public Budapest file contains median consensus quantities, whereas
-Fornari et al. report averages over 418 subjects. Consequently the topology
-matches exactly but the weights are close rather than identical:
+Two provenance facts are not stated in the paper and are recorded here so the
+reconstruction is honest about what is choice and what is data. First, the
+five-occurrence threshold is not declared by Fornari et al.; it is the only
+integer that reproduces their fine graph of 1015 nodes and 37477 edges, since
+four keeps 40895 edges and six keeps 34718. Second, although the paper
+describes the fibre quantities as cohort means over 418 subjects, the
+published graph statistics are reproduced by the median fibre-number and
+fibre-length fields of the public dataset, not by its mean fields. Weighting
+every fine connection by `fiber_count_median / fiber_length_median` and
+summing parallel connections, as conductances in parallel, gives
 
 ```text
 quantity                  this benchmark       Fornari et al.
-mean connectivity         1.6669               1.57
-max connectivity          36.8671              35.32
-mean weighted degree      45.3884              42.8
-max weighted degree       134.8425             127.6
+mean connectivity         1.5702               1.57
+max connectivity          35.3221              35.32
+mean weighted degree      42.7547              42.8
+max weighted degree       127.6435             127.6
+min weighted degree       2.0505               2.1
 ```
 
-The official mean-mode graph was also downloaded and aggregated with the same
-`1%` confidence threshold. It gives mean adjacency `2.4398`, mean weighted
-degree `66.4339`, and spectral gap `1.0608`, all farther from the published
-values than the median aggregation (`1.6669`, `45.3884`, and `0.7954`). A
-unilateral rather than bilateral entorhinal seed does not recover the reported
-lobe separation. The audit is stored in
-`results/connectome_weight_audit.csv`. This supports retaining the closer
-public reconstruction while clearly stating that the original 83-by-83
-averaged matrix is unavailable.
+every value at the precision at which the paper prints it. The regions at the
+extremes match as well: weighted degree from the right frontal pole to the
+right precentral gyrus, largest adjacency and largest fibre count both on the
+right superior parietal to precuneus pair, smallest adjacency on the left
+lateral orbitofrontal to isthmus cingulate pair. The paper names the same
+regions, although its sentence attaches the superior parietal pair to the
+lowest value, which its own fibre counts contradict: 596 fibres of about 17
+mm give the largest ratio, not the smallest. The mean fields of the same file
+give a mean fibre count of 62.13 against the published 40.2 and reproduce
+nothing.
+
+The official mean-combination graph was also downloaded and aggregated with
+the same confidence threshold. It gives mean adjacency `2.4398`, mean
+weighted degree `66.4339`, and spectral gap `1.0608`, all far from the
+published values (the retained reconstruction gives `1.5702`, `42.7547`, and
+`0.7723`). A unilateral rather than bilateral entorhinal seed does not
+recover the reported lobe separation. The audit is stored in
+`results/connectome_weight_audit.csv`.
 
 ## Models
 
@@ -94,9 +111,9 @@ the 8-element reference decreases as follows:
 
 ```text
 elements per edge    DoFs    maximum difference [%]
-1                     83       0.4389
-2                   1213       0.1178
-4                   3473       0.0229
+1                     83       0.4992
+2                   1213       0.1287
+4                   3473       0.0246
 8                   7993       0.0000 (reference)
 ```
 
@@ -109,9 +126,9 @@ The temporal study uses 8 elements per edge and compares the time steps
 
 ```text
 dt       observed rate
-0.4      1.0552
-0.2      1.0263
-0.1      1.0126
+0.4      1.0556
+0.2      1.0262
+0.1      1.0127
 ```
 
 which converge to the expected first order of Backward Euler. The run with
@@ -178,7 +195,7 @@ brains encode nothing: weight appears only in panel (c).
 
 The adjacency uses a base-10 logarithmic colour scale over the full non-zero
 range, with nothing clipped at either end. The reason is measurable: the 2260
-non-zero entries span 3.603 decades and 77.1% of them fall below 5% of the
+non-zero entries span 3.621 decades and 77.3% of them fall below 5% of the
 maximum, so on a linear ramp three quarters of the connectome would render as
 one indistinguishable colour. The consequence is that the top of the range is
 compressed, which is why the bar carries decade ticks. Absent connections are
@@ -195,15 +212,13 @@ For the public reconstruction used by the solver:
 
 ```text
 unweighted degree range = 6 to 48
-weighted degree range   = 2.2885 to 134.8425
-adjacency range         = 0.0092 to 36.8671
+weighted degree range   = 2.0505 to 127.6435
+adjacency range         = 0.0085 to 35.3221
 ```
 
-The ranges and block structure are qualitatively consistent with the
-small-world organization reported in the paper. Exact weighted values are not
-expected to coincide because the original matrix is an average over 418
-subjects, whereas this benchmark uses the downloadable median consensus
-graph. Per-region values are stored in
+The ranges coincide with the published 6-48, 2.1-127.6 and 0.01-35.32 at the
+paper's printed precision, and the block structure shows the small-world
+organization it describes. Per-region values are stored in
 `results/connectivity_diagnostics.csv`.
 
 ## Literature verification
@@ -220,44 +235,52 @@ Confirmed against the paper:
 | unweighted degree range | 6 to 48 | 6 to 48 |
 | mean fibre number | 40.2 | 40.1619 |
 | mean fibre length | 38.40 mm | 38.4009 mm |
-| mean adjacency | 1.57 | 1.6669 |
-| mean weighted degree | 42.8 | 45.3884 |
-| adjacency range | 0.01 to 35.32 | 0.0092 to 36.8671 |
-| weighted degree range | 2.1 to 127.6 | 2.2885 to 134.8425 |
+| mean adjacency | 1.57 | 1.5702 |
+| mean weighted degree | 42.8 | 42.7547 |
+| adjacency range | 0.01 to 35.32 | 0.0085 to 35.3221 |
+| weighted degree range | 2.1 to 127.6 | 2.0505 to 127.6435 |
 | model | `dc/dt = -L c + alpha c (1-c)`, equation (3.2) | same |
 | conversion rate | `alpha = 0.5` | 0.5 |
 | seed | entorhinal cortex at `c_0 = 0.1` | both entorhinal vertices |
 | time integration | implicit, 100 steps of `dt = 0.4` years | same |
 | biomarker | `C(t) = sum_I c_I(t)`, equation (4.1) | same, normalised to a percentage |
 
-The paper defines the edge weight as the mean fibre number divided by the mean
-fibre length, `A_IJ = n_IJ / l_IJ`. The preprocessing here instead sums the
-Budapest `electrical_connectivity_median` of the fine connections. Building the
-Laplacian both ways gives
+The paper defines the edge weight as `A_IJ = n_IJ / l_IJ`, the ratio of fibre
+number and fibre length. Every aggregation of the public per-connection
+fields was built and compared before one was retained:
 
 ```text
-weighting                    mean adjacency   mean weighted degree   lambda_2
-electrical (this benchmark)         1.6669                45.3884     0.7954
-n_IJ / l_IJ (paper formula)         1.3978                38.0599     0.7431
-paper reported values               1.57                  42.8            --
+weighting of a fine connection, summed over parallel ones
+                                      mean adjacency   mean w. degree
+count_median / length_median               1.5702           42.7547   <- retained
+electrical_connectivity_median             1.6669           45.3884
+count_mean / length_mean                   2.2987           62.5910
+sum(count_med) / mean(length_med)          1.3978           38.0599
+paper reported values                      1.57             42.8
 ```
 
-so the current choice is the closer of the two to the published statistics and
-is retained.
+Only the first reproduces the published statistics, and it does so at printed
+precision on every one of them, extremes and attaining regions included; the
+`electrical_connectivity_median` field, the median of the per-subject ratios
+rather than the ratio of the medians, misses by about six percent. The
+match of eight independent statistics and four region identities rules out
+coincidence, so the first weighting is the one used by the solver.
 
 ### The one quantity that is not reproduced
 
 Figure 7 of the paper shows the four lobe biomarkers separated by roughly five
 years, activating in the order temporal, frontal, parietal, occipital. Here
-they cross the 50-percent level within `2.9e-7` years of each other.
+they cross the 50-percent level within `3.9e-7` years of each other.
 
-Benchmark 23 resolves this. With `lambda_2 = 0.795` and `alpha = 0.5` the
-Damkohler number `alpha / lambda_2` is `0.63`: the connectome homogenises
+Benchmark 23 resolves this. With `lambda_2 = 0.772` and `alpha = 0.5` the
+Damkohler number `alpha / lambda_2` is `0.65`: the connectome homogenises
 faster than the reaction grows, so coincident lobe curves are the correct
 solution of equation (3.2) at unit weight scale. Reproducing the published
 separation requires scaling the Laplacian by a factor near `0.005`. The
 published figure therefore cannot come from the connectivity-weighted
-Laplacian used at unit scale, whatever the reconstruction of the weights.
+Laplacian used at unit scale, whatever the reconstruction of the weights;
+the exact reproduction of the published weights above makes this conclusion
+sharper, since the reconstruction is no longer a candidate explanation.
 
 The activation order is also worth recording. At any scaling that separates the
 lobes, the frontal lobe is last here, because the frontal pole is the most
@@ -270,7 +293,7 @@ network diagnostics even though it differs from its figure 7.
 
 The retained run uses `dt = 0.4` to match the paper. The temporal refinement
 table in this benchmark shows the global 50-percent crossing moving from
-`11.50` years at `dt = 0.8` to `13.70` years at `dt = 0.05`, so the headline
+`11.50` years at `dt = 0.8` to `13.71` years at `dt = 0.05`, so the headline
 value carries a time-discretization error of order one year. The paper uses the
 same step with a first-order implicit scheme and therefore carries a comparable
 error; the agreement of the absolute crossing times should be read with that in

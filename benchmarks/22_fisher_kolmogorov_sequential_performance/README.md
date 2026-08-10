@@ -49,15 +49,16 @@ experiments must be compared.
 
 | Cells/edge | DoFs | Matrix nnz | Assembly [s] | 100 steps [s] | Time/step [s] |
 |---:|---:|---:|---:|---:|---:|
-| 1 | 83 | 2343 | 0.000563 | 0.091428 | 0.000914 |
-| 2 | 1213 | 5733 | 0.001679 | 1.739028 | 0.017390 |
-| 4 | 3473 | 12513 | 0.002690 | 1.738110 | 0.017381 |
-| 8 | 7993 | 26073 | 0.004135 | 2.404785 | 0.024048 |
+| 1 | 83 | 2343 | 0.000493 | 0.083234 | 0.000832 |
+| 2 | 1213 | 5733 | 0.000696 | 1.869387 | 0.018694 |
+| 4 | 3473 | 12513 | 0.001562 | 1.548574 | 0.015486 |
+| 8 | 7993 | 26073 | 0.006207 | 2.234264 | 0.022343 |
 
 Matrix nonzeros and assembly cost grow regularly with refinement. By contrast,
 the direct-solver time is not a function of the DoF count alone. The
-one-interior-node mesh has a hub-dominated bipartite sparsity pattern and is
-not cheaper than the four-cell mesh despite having fewer unknowns. Sparse LU
+two-cell mesh, with a hub-dominated sparsity pattern inherited from the
+connectome, is costlier than the four-cell mesh despite having a third of its
+unknowns. Sparse LU
 factorization depends on elimination ordering and fill-in as well as matrix
 dimension.
 

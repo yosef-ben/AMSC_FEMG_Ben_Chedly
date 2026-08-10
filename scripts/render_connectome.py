@@ -21,11 +21,17 @@ from vtk.util import numpy_support
 SURFACE = Path("data/connectome/anatomy/brain_surface.vtk")
 
 # Camera position and up direction for each anatomical projection, in the
-# right/anterior/superior frame of the data.
+# right/anterior/superior frame of the data. The last three are the
+# projections of the brain-network figure of Fornari et al.: the sagittal
+# view taken from the right so the frontal pole points left, the top-down
+# view with the anterior direction to the left, and the unlabelled oblique.
 CAMERA = {
     "sagittal": ((-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
     "coronal": ((0.0, 1.0, 0.0), (0.0, 0.0, 1.0)),
     "axial": ((0.0, 0.0, 1.0), (0.0, 1.0, 0.0)),
+    "sagittal_right": ((1.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
+    "longitudinal": ((0.0, 0.0, 1.0), (1.0, 0.0, 0.0)),
+    "oblique": ((0.32, 0.60, 0.73), (0.0, 0.0, 1.0)),
 }
 
 

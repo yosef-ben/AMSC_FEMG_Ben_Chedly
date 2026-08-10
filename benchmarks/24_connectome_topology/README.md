@@ -28,6 +28,26 @@ strongest one on a circular layout grouped by region, which is the threshold
 Corti et al. use for their connectogram, together with the connectivity summed
 over each pair of groups.
 
+`results/connectome_views` reproduces the brain network figure of Fornari et
+al., their figure 5, in its own composition: the two-by-two arrangement of a
+sagittal, a coronal, a longitudinal and an unlabelled oblique view, uniform
+silver spheres at the 83 vertices, and the 1130 connections drawn with colour
+and thickness both growing with the fibre number, under a rainbow bar
+labelled only at its ends. Two departures from the printed figure are
+deliberate and stated in the report caption as well. The vertex coordinates
+and the pial surface are the ones distributed with the public Budapest
+Reference Connectome viewer, not the MRI-based brain model of the reference,
+so the layout matches anatomy but not their rendering point for point. And
+the reference does not declare how fibre number maps to colour and width, so
+the mapping here is a stated choice: both scale linearly between the smallest
+and the largest fibre number, 1 and 595.5. The distribution is strongly
+skewed, so most connections stay thin and blue and a handful of short
+association bundles, the superior parietal to precuneus pair above all,
+carry the warm colours; the printed figure shows the same aspect. The
+rainbow ramp breaks the colour conventions used everywhere else in this
+project; it is kept in this one figure because matching the reference's own
+colouring is what makes the two directly comparable.
+
 ## Relation to the reference figures
 
 Corti et al. present the same object in four panels: the MRI brain surface, the
@@ -44,7 +64,7 @@ never disagree about which vertex belongs to which group.
 ## What the connectivity matrix shows
 
 The aggregated matrix is dominated by short-range connections: frontal to
-parietal reaches `183` and parietal to occipital `202`, while frontal to
+parietal reaches `175` and parietal to occipital `190`, while frontal to
 temporal is only `1`, spread over 14 connections whose individual weights do
 not exceed `0.19`. This is a direct consequence of the weight definition, the
 fibre count divided by the fibre length, which penalises exactly the long
@@ -56,5 +76,7 @@ reading the regional results of benchmarks 21 and 25.
 
 ```bash
 python3 scripts/plot-connectome-regions.py \
+  --output-dir benchmarks/24_connectome_topology/results
+python3 scripts/plot-connectome-views.py \
   --output-dir benchmarks/24_connectome_topology/results
 ```

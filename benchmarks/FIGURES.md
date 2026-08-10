@@ -26,8 +26,10 @@ disagree. Run it from the project root:
 | `23/diffusion_scaling` | `plot-fisher-diffusion-scaling.py` | `diffusion_scaling.csv`, `curves.npz` | `study-fisher-diffusion-scaling.py` driving `test_fisher_kolmogorov_fornari83` |
 | `24/connectome_regions` | `plot-connectome-regions.py` | `data/connectome/fornari83/{nodes,edges}.csv`, `21/results/reaction_coefficients.csv` | `prepare-fornari-connectome.py`, `test_fisher_kolmogorov_corti83` |
 | `24/connectome_connectogram` | `plot-connectome-regions.py` | as above | as above |
+| `24/connectome_views` | `plot-connectome-views.py` | `data/connectome/fornari83/{nodes,edges}.csv` | `prepare-fornari-connectome.py` |
 | `25/seeding_vulnerability` | `plot-fisher-seeding-vulnerability.py` | `seeding_vulnerability_rho_*.csv`, `seeding_curves_rho_*.npz` | `study-fisher-seeding-vulnerability.py` driving `test_fisher_kolmogorov_fornari83` |
 | `26/anatomical_progression` | `plot-connectome-progression.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
+| `26/activation_time` | `plot-connectome-activation.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
 
 ## Rules the figures follow
 

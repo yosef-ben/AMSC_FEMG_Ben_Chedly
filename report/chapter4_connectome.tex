@@ -176,45 +176,63 @@ we move to the network on which the disease actually spreads.
 Following~\cite{fornari2019prion}, we represent the brain as a weighted undirected
 graph $\mathcal{G}=(\mathcal{V},\mathcal{E})$ whose vertices are anatomical
 regions and whose edges are the axonal bundles connecting them. The graph is
-extracted from the public Budapest Reference Connectome v3.0, which aggregates
-the tractography of $418$ healthy subjects of the Human Connectome Project. We
-retain the connections occurring in at least five subjects and aggregate the
-$1015$ fine parcels into the $83$ regions of the FreeSurfer parcellation,
-removing the connections internal to a parcel.
+extracted from the public Budapest Reference Connectome
+v3.0~\cite{szalkai2017budapest}, a parameterisable consensus over the
+tractography of healthy subjects of the Human Connectome Project; the number
+of subjects in which each connection occurs is recorded edge by edge, and its
+largest value in the file is $418$, the cohort size stated
+by~\cite{fornari2019prion}. We retain the connections occurring in at least
+five subjects and aggregate the $1015$ fine parcels into the $83$ regions of
+the FreeSurfer parcellation, merging parallel connections and removing the
+$7895$ connections internal to a region. The five-subject threshold is not
+declared in the reference; it is the only integer that reproduces the
+published fine graph of $1015$ vertices and $37\,477$ edges, four keeping
+$40\,895$ edges and six $34\,718$. Each fine connection is weighted by its
+fibre count divided by its fibre length, and parallel connections between the
+same two regions add, as conductances in parallel.
 
 The reconstruction is verified against the published values before any
-simulation is run. Table~\ref{tab:connectome} collects the comparison. The
-topology is recovered exactly and the weighted quantities agree to within a few
-percent. The residual discrepancy is expected and its origin is known: the
-downloadable file provides the median consensus over the subjects, whereas the
-published statistics are averages over the $418$ brains, and the original
-$83\times83$ averaged matrix is not distributed. We also downloaded and
-aggregated the mean-mode graph with the same confidence threshold; it gives a
-mean adjacency of $2.4398$ and a mean weighted degree of $66.4339$, both
-farther from the published values than the median reconstruction, so the median
-graph is retained.
+simulation is run, and Table~\ref{tab:connectome} collects the statistics of
+the reconstructed graph: the topology is recovered exactly, and every
+weighted statistic, rounded to the precision at which the reference prints
+it, coincides with the published value. The regions
+attaining the extremes match as well: the weighted degree runs from the
+frontal pole to the precentral gyrus, and the strongest connection and the
+largest fibre count sit on the superior parietal to precuneus pair, as the
+reference reports. One point of provenance must be stated. Although the
+reference describes the fibre quantities as cohort means, the published graph
+statistics are reproduced by the \emph{median} fibre-number and fibre-length
+fields of the public dataset; the mean fields give a mean fibre count of
+$62.13$ against the published $40.2$, and no statistic derived from them
+matches. We also downloaded and aggregated the official mean-combination
+graph with the same confidence threshold; it gives a mean adjacency of
+$2.4398$ and a mean weighted degree of $66.4339$, again far from the
+published values, so the median reconstruction is retained.
 
 \begin{table}[htbp]
 \centering
-\begin{tabular}{lrr}
+\begin{tabular}{lr}
 \hline
-Quantity & This work & \cite{fornari2019prion} \\
+Quantity & Value \\
 \hline
-fine graph vertices / edges         & $1015$ / $37477$    & $1015$ / $37477$ \\
-aggregated vertices / edges         & $83$ / $1130$       & $83$ / $1130$ \\
-degree range                        & $6$ -- $48$         & $6$ -- $48$ \\
-mean fibre number                   & $40.16$             & $40.2$ \\
-mean fibre length                   & $38.40$ mm          & $38.40$ mm \\
-mean adjacency $\bar{A}_{IJ}$       & $1.6669$            & $1.57$ \\
-adjacency range                     & $0.0092$ -- $36.87$ & $0.01$ -- $35.32$ \\
-mean weighted degree $\bar{D}_{II}$ & $45.39$             & $42.8$ \\
-weighted degree range               & $2.29$ -- $134.84$  & $2.1$ -- $127.6$ \\
+fine graph vertices / edges         & $1015$ / $37477$ \\
+aggregated vertices / edges         & $83$ / $1130$ \\
+degree range                        & $6$--$48$ \\
+mean fibre number                   & $40.16$ \\
+mean fibre length                   & $38.40$ mm \\
+mean adjacency $\bar{A}_{IJ}$       & $1.5702$ \\
+adjacency range                     & $0.0085$--$35.3221$ \\
+mean weighted degree $\bar{D}_{II}$ & $42.7547$ \\
+weighted degree range               & $2.0505$--$127.6435$ \\
 \hline
 \end{tabular}
-\caption{Verification of the reconstructed $83$-region connectome against the
-values published in~\cite{fornari2019prion}. The topology is exact; the weights are
-close but not identical because the public file is a median consensus while the
-reference statistics are averages over $418$ subjects.}
+\caption{Statistics of the reconstructed $83$-region connectome. The topology
+coincides with the one published in~\cite{fornari2019prion}, and every weighted
+statistic, rounded to the precision at which the reference prints it,
+reproduces the published value, so the reconstruction is verifiable against
+the source. The graph uses the median fibre fields of the public file, the
+only ones that reproduce the published values, although the reference
+describes the quantities as cohort means.}
 \label{tab:connectome}
 \end{table}
 
@@ -222,8 +240,8 @@ One property of the weighting deserves attention here, because it reappears in
 the regional results. The weight of an edge is the fibre count divided by the
 fibre length, so it penalises long-range bundles. Summed over pairs of
 anatomical groups, the connectivity between the frontal and the parietal group
-reaches $183.5$ and between the parietal and the occipital group $201.8$,
-while the frontal-to-temporal entry is $0.88$, distributed over $14$
+reaches $174.8$ and between the parietal and the occipital group $189.7$,
+while the frontal-to-temporal entry is $0.85$, distributed over $14$
 connections none of which exceeds $0.19$. The short association fibres dominate the weighted
 graph.
 
@@ -256,6 +274,44 @@ panels of the corresponding figure in~\cite{cortiFisherKolmogorovGraphs} are not
 since neither dataset is available and the graph is taken from a public
 consensus connectome rather than reconstructed from patient images.}
 \label{fig:regions}
+\end{figure}
+
+% ---------------------------------------------------------------------
+%  ANALOGA di Figura~\ref{fig:views}
+%    [F] Fig. 5, p. 5, riprodotta elemento per elemento: stessa
+%        disposizione due per due delle viste (sagittale, coronale,
+%        longitudinale e un'obliqua non etichettata), superficie
+%        traslucida, sfere uniformi ai nodi, connessioni rettilinee con
+%        colore E spessore crescenti col numero di fibre, barra
+%        arcobaleno etichettata solo min/max.
+%    Due differenze da dichiarare, e sono gia' nella didascalia: le
+%    coordinate dei nodi e la superficie vengono dal viewer pubblico di
+%    Budapest, non dal modello MRI di [F]; e [F] non dichiara la legge
+%    colore/spessore, quindi la rampa lineare e' una nostra scelta,
+%    dichiarata. Con la rampa lineare l'aspetto coincide: quasi tutte le
+%    connessioni sottili e blu, pochi fasci corti caldi e spessi.
+% ---------------------------------------------------------------------
+
+Figure~\ref{fig:views} presents the same graph in the composition of the brain
+network figure of~\cite{fornari2019prion}: four views, the connections coloured and
+sized by their fibre number, and the vertices as uniform spheres. The
+distribution of fibre counts is strongly skewed, so on the linear ramp most
+connections stay thin and blue and a handful of short association bundles,
+the superior parietal to precuneus pair above all, carry the warm colours;
+the printed figure of the reference shows the same aspect.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{images/connectome_views.pdf}
+\caption{The connectome as a brain network, after figure 5
+of~\cite{fornari2019prion}: sagittal, coronal, longitudinal and oblique views of
+the $83$ vertices and $1130$ connections inside the translucent pial surface.
+Colour and thickness of a connection both grow linearly with its fibre
+number, from $1$ to $595.5$; the reference does not state its mapping, so the
+linear ramp is a choice made here and stated. The vertex coordinates and the
+surface are the ones distributed with the public Budapest Reference
+Connectome viewer, not the MRI-based brain model of the reference.}
+\label{fig:views}
 \end{figure}
 
 % ---------------------------------------------------------------------
@@ -309,7 +365,7 @@ connections.
 Two conventions of our panel differ from the published one and are stated
 because they change how the figure is read. The adjacency uses a base-$10$
 logarithmic colour scale over the full non-zero range, with nothing clipped:
-the $2260$ non-zero entries span $3.603$ decades and $77.1\%$ of them fall
+the $2260$ non-zero entries span $3.621$ decades and $77.3\%$ of them fall
 below $5\%$ of the maximum, so on a linear ramp three quarters of the
 connectome would render as a single indistinguishable colour. The price is that
 the top of the range is compressed, which is why the bar carries decade ticks.
@@ -576,7 +632,7 @@ in Section~\ref{sec:formulation}.
 
 The activation sequence, however, is not reproduced. \cite{fornari2019prion} report
 a separation of roughly five years between the temporal and the occipital lobe;
-our four lobe curves cross the $50$-percent level within $2.9\cdot10^{-7}$
+our four lobe curves cross the $50$-percent level within $3.9\cdot10^{-7}$
 years of each other in the nodal model and $5.7\cdot10^{-3}$ years in the
 finite element model. Since our nodal model is \eqref{eq:nodal} implemented
 literally, the discrepancy cannot be a defect of the spatial discretization,
@@ -613,7 +669,7 @@ spatial study keeps $\Delta t = 0.4$ and refines each connection into $1$, $2$,
 $4$ and $8$ elements. The maximum deviation of the biomarker curves from the
 finest run decreases as
 \[
-0.4389\%, \quad 0.1178\%, \quad 0.0229\%, \quad 0,
+0.4992\%, \quad 0.1287\%, \quad 0.0246\%, \quad 0,
 \]
 over $83$, $1213$, $3473$ and $7993$ degrees of freedom. The small negative
 transient disappears from two elements per connection onwards, confirming that
@@ -621,12 +677,12 @@ it is a coarse-mesh artefact and not a failure of the nonlinear solver.
 
 The temporal study uses eight elements per connection and the steps
 $\Delta t = 0.8, 0.4, 0.2, 0.1, 0.05$; successive differences between biomarker
-curves give the observed rates $1.0552$, $1.0263$ and $1.0126$, converging to
+curves give the observed rates $1.0556$, $1.0262$ and $1.0127$, converging to
 the first order expected of the fully implicit scheme.
 
 We retain $\Delta t = 0.4$ in the comparison above in order to match the
 discretization of the reference, but the study just described moves the network
-crossing time from $11.50$ years at $\Delta t = 0.8$ to $13.70$ years at
+crossing time from $11.50$ years at $\Delta t = 0.8$ to $13.71$ years at
 $\Delta t = 0.05$. The absolute crossing times therefore carry a
 time-discretization error of order one year, in our simulation as well as in
 the reference, which uses the same step with a first-order scheme. Agreement of
@@ -665,16 +721,16 @@ the graph, that is if the Damk\"ohler number
 \mathrm{Da} = \frac{\alpha}{\rho\,\lambda_2}
 \label{eq:damkohler}
 \end{equation}
-is large. For the reconstructed connectome we compute $\lambda_2 = 0.7954$ and
-$\lambda_{\max} = 154.04$.
+is large. For the reconstructed connectome we compute $\lambda_2 = 0.7723$ and
+$\lambda_{\max} = 145.45$.
 
 At the parameters of the reference, $\rho = 1$ and $\alpha = 0.5$, we obtain
-$\mathrm{Da} = 0.63$. The connectome homogenises faster than the reaction
+$\mathrm{Da} = 0.65$. The connectome homogenises faster than the reaction
 develops, and coincident lobe curves are the correct solution of
 \eqref{eq:nodal} at unit weight scale, not a numerical artefact.
 Figure~\ref{fig:damkohler} quantifies this by sweeping $\rho$: the lobe
-separation grows from $2.9\cdot10^{-7}$ years at $\mathrm{Da}=0.63$ to $6.92$
-years at $\mathrm{Da}=629$, seven decades of variation with the topology, the
+separation grows from $3.9\cdot10^{-7}$ years at $\mathrm{Da}=0.65$ to $6.99$
+years at $\mathrm{Da}=647$, seven decades of variation with the topology, the
 seed and the conversion rate held fixed. Recovering the separation reported
 in~\cite{fornari2019prion} requires $\mathrm{Da}$ of order $10^{2}$, that is $\rho$
 close to $0.005$. We conclude that the published figure cannot be produced by
@@ -696,9 +752,9 @@ boundedness.}
 
 This also reconciles two results of this chapter that would otherwise look
 contradictory. The deterministic model of Section~\ref{sec:corti} normalises
-the diffusivity as $D_e = w_e/\max_e w_e$, that is $\rho = 0.0271$, and uses
+the diffusivity as $D_e = w_e/\max_e w_e$, that is $\rho = 0.0283$, and uses
 regional reaction rates whose average over the $83$ vertices is $0.1252$; its
-Damk\"ohler number is $5.80$, on the other side of the crossover, which is why
+Damk\"ohler number is $5.73$, on the other side of the crossover, which is why
 its regional curves separate clearly while those of
 Section~\ref{sec:comparison} do not.
 
@@ -708,7 +764,7 @@ Section~\ref{sec:comparison} do not.
 The same sweep bounds the finite element formulation. Above $\mathrm{Da}$ of
 about $13$, that is $\rho \le 0.02$ at $\alpha=0.5$, the discrete concentration
 leaves $[0,1]$ and then diverges: at $\rho = 0.005$ the nodal reference stays
-within $[0.99987, 1]$ while the finite element solution reaches $[-922, 308]$.
+within $[0.99985, 1]$ while the finite element solution reaches $[-507, 523]$.
 The failure occurs identically with the fully implicit and with the
 semi-implicit scheme, so it is not a failure of the Newton solver, and it
 persists at $1$, $2$, $4$ and $8$ elements per connection, so it is not a
@@ -771,9 +827,9 @@ crossing of the network average moves from $11.11$ years at $\alpha = 0.5$ to
 $59.33$ years at $\alpha = 0.1$ in the nodal model, and from $12.68$ to $67.81$
 years in the finite element model. For $\alpha = 0$ the reaction vanishes and
 the two conserved quantities are preserved to round-off: the nodal average
-drifts by $3.9\cdot10^{-16}$ and the normalised finite element metric integral
+drifts by $1.1\cdot10^{-14}$ and the normalised finite element metric integral
 $\mathbf{1}^{\!\top} M \mathbf{C}/\mathbf{1}^{\!\top} M \mathbf{1}$ by
-$9.7\cdot10^{-17}$.
+$8.0\cdot10^{-16}$.
 
 The nodal and finite element curves start from different global averages, for
 the reason given in Section~\ref{sec:formulation}. No amplitude rescaling is
@@ -833,7 +889,7 @@ followed by the two thalami, where the reference reports the putamen and the
 insula. Both identify the same feature of the network, and the reference itself
 notes that the caudate carries the largest number of connections in the graph.
 The slowest seeds are the frontal and temporal poles; the frontal pole has the
-smallest weighted degree of the entire graph, $2.29$. Finally, and most
+smallest weighted degree of the entire graph, $2.05$. Finally, and most
 interestingly, the entorhinal cortex, the region where the pathology is first
 observed clinically and the seed used throughout this chapter, ranks $76$th and
 $80$th of $83$ at $\rho=1$ and $78$th and $81$st at $\rho=0.02$: it is one of
@@ -933,13 +989,13 @@ seven reaction coefficients and the connectome topology.
 \hline
 Group & \cite{cortiFisherKolmogorovGraphs}, $t=20$ & rank & this work & rank \\
 \hline
-frontal      & $0.9289$ & $1$ & $0.2021$ & $2$ \\
-limbic       & $0.8905$ & $2$ & $0.2101$ & $1$ \\
-temporal     & $0.8699$ & $3$ & $0.1670$ & $3$ \\
-insular      & $0.8558$ & $4$ & $0.1292$ & $4$ \\
-subcortical  & $0.8413$ & $5$ & $0.1270$ & $5$ \\
+frontal      & $0.9289$ & $1$ & $0.2023$ & $2$ \\
+limbic       & $0.8905$ & $2$ & $0.2106$ & $1$ \\
+temporal     & $0.8699$ & $3$ & $0.1671$ & $3$ \\
+insular      & $0.8558$ & $4$ & $0.1290$ & $4$ \\
+subcortical  & $0.8413$ & $5$ & $0.1277$ & $5$ \\
 parietal     & $0.7738$ & $6$ & $0.0967$ & $6$ \\
-occipital    & $0.7336$ & $7$ & $0.0735$ & $7$ \\
+occipital    & $0.7336$ & $7$ & $0.0729$ & $7$ \\
 \hline
 \end{tabular}
 \caption{Regional concentrations at the final time, against table 3
@@ -1048,7 +1104,7 @@ $0.5$, and it corrects an interpretation the progression invites. The obvious
 reading of an anterior-to-posterior gradient is a front travelling outward from
 the seed. That reading is wrong here. Over the $83$ region vertices the
 activation time correlates with the local reaction coefficient at $r=-0.841$
-and with the graph distance from the seed at $r=+0.072$, and the graph
+and with the graph distance from the seed at $r=+0.065$, and the graph
 eccentricity from the seed is $2$: every region lies within two connections of
 the entorhinal and hippocampal seed. The order in which the network is
 recruited is set by the regional conversion rates, $0.1801$ in the frontal
@@ -1065,7 +1121,7 @@ coloured by the first stored year at which its concentration reaches $0.5$. Ten
 of the $10\,170$ degrees of freedom never reach it within the horizon and take
 the late end of the ramp. The activation time correlates with the local
 reaction coefficient at $r=-0.841$ and with the graph distance from the seed at
-$r=+0.072$, so the anterior-to-posterior gradient is a reaction-rate pattern
+$r=+0.065$, so the anterior-to-posterior gradient is a reaction-rate pattern
 and not a travelling front.}
 \label{fig:activation}
 \end{figure}
@@ -1116,10 +1172,10 @@ to one, and reported as the median of five runs after one warm-up.
 Elements per connection & Unknowns & Matrix nonzeros & $100$ steps [s] &
 Per step [s] \\
 \hline
-$1$ & $83$   & $2343$  & $0.0914$ & $0.00091$ \\
-$2$ & $1213$ & $5733$  & $1.7390$ & $0.01739$ \\
-$4$ & $3473$ & $12513$ & $1.7381$ & $0.01738$ \\
-$8$ & $7993$ & $26073$ & $2.4048$ & $0.02405$ \\
+$1$ & $83$   & $2343$  & $0.0832$ & $0.00083$ \\
+$2$ & $1213$ & $5733$  & $1.8694$ & $0.01869$ \\
+$4$ & $3473$ & $12513$ & $1.5486$ & $0.01549$ \\
+$8$ & $7993$ & $26073$ & $2.2343$ & $0.02234$ \\
 \hline
 \end{tabular}
 \caption{Sequential baseline for the deterministic model. Assembly accounts for
@@ -1133,14 +1189,14 @@ almost none in assembly or input, so the target for optimisation is the
 repeated sparse factorisation forced by the semi-implicit scheme
 \eqref{eq:semiimplicit}, not the finite element assembly. Second, the cost per step is
 not a function of the number of unknowns alone: the two-element mesh, with
-$1213$ unknowns, costs exactly as much as the four-element mesh with $3473$.
+$1213$ unknowns, costs more than the four-element mesh with $3473$.
 The one-element mesh has a hub-dominated sparsity pattern inherited from the
 connectome, and sparse factorisation depends on the elimination ordering and
 the resulting fill-in at least as much as on the matrix dimension.
 
 For scale, \cite{fornari2019prion} report that their nodal model runs its $100$
 implicit steps in $0.55$ s without output on a standard laptop; our
-metric-graph formulation at the same $83$ unknowns takes $0.091$ s for its
+metric-graph formulation at the same $83$ unknowns takes $0.083$ s for its
 $100$ semi-implicit steps. The machines and the schemes differ, so this is an
 order-of-magnitude check rather than a comparison, but it confirms that the P1
 metric-graph formulation carries no cost penalty over the nodal network model

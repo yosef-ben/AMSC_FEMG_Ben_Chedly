@@ -16,24 +16,24 @@
       "mean": 27.228915662650603
     },
     "weighted_degree": {
-      "minimum": 2.2885030000000004,
-      "maximum": 134.842522,
-      "mean": 45.38839703614458
+      "minimum": 2.050522184064578,
+      "maximum": 127.64346351390834,
+      "mean": 42.7546710288044
     },
-    "mean_fibre_number": {
+    "fibre_number": {
       "minimum": 1.0,
       "maximum": 595.5,
       "mean": 40.16194690265487
     },
-    "mean_fibre_length_mm": {
+    "fibre_length_mm": {
       "minimum": 11.2866684,
       "maximum": 121.02349910526316,
       "mean": 38.400938150155575
     },
     "connectivity_weight": {
-      "minimum": 0.009191,
-      "maximum": 36.86706900000004,
-      "mean": 1.6669190061946904
+      "minimum": 0.008460234954091846,
+      "maximum": 35.32209168295238,
+      "mean": 1.5701936705268873
     }
   },
   "paper_reference": {
@@ -41,8 +41,8 @@
     "fine_edges": 37477,
     "coarse_vertices": 83,
     "coarse_edges": 1130,
-    "mean_fibre_number": 40.2,
-    "mean_fibre_length_mm": 38.4,
+    "fibre_number": 40.2,
+    "fibre_length_mm": 38.4,
     "connectivity_weight": {
       "minimum": 0.01,
       "maximum": 35.32,

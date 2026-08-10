@@ -1,6 +1,20 @@
 #!/usr/bin/env python3
 
-"""Aggregate the Budapest v3 connectome to the 83-region FreeSurfer graph."""
+"""Aggregate the Budapest v3 connectome to the 83-region FreeSurfer graph.
+
+The weight of a fine connection is its median fibre count divided by its
+median fibre length, and parallel connections between the same two regions
+add, as conductances in parallel. Although Fornari et al. describe the fibre
+quantities as cohort means, it is the median fields of the public file that
+reproduce every published graph statistic to printed precision, including
+which regions attain the extremes; the mean fields do not. The per-edge
+``electrical_connectivity_median`` field, the median of the per-subject
+ratios, is close but reproduces none of the published values exactly.
+
+The five-subject occurrence threshold is not stated in the reference either;
+it is the only integer that reproduces the published fine graph of 1015
+vertices and 37477 edges (4 keeps 40895 edges, 6 keeps 34718).
+"""
 
 import argparse
 import csv
@@ -140,7 +154,8 @@ def aggregate(nodes, edges, regions, minimum_occurrences):
             float(value["fiber_length_median"]) for value in values
         )
         connectivity = sum(
-            float(value["electrical_connectivity_median"]) for value in values
+            float(value["fiber_count_median"]) / float(value["fiber_length_median"])
+            for value in values
         )
         coarse_edges.append(
             {
@@ -182,8 +197,8 @@ def write_outputs(output_dir, regions, coarse_edges, metadata):
 
     with (output_dir / "edges.csv").open("w", newline="", encoding="utf-8") as stream:
         fields = [
-            "edge_id", "source", "target", "fine_edges", "mean_fibre_number",
-            "mean_fibre_length_mm", "connectivity_weight"
+            "edge_id", "source", "target", "fine_edges", "fibre_number",
+            "fibre_length_mm", "connectivity_weight"
         ]
         writer = csv.DictWriter(stream, fieldnames=fields)
         writer.writeheader()
@@ -194,8 +209,8 @@ def write_outputs(output_dir, regions, coarse_edges, metadata):
                     "source": region_id[edge["source_key"]],
                     "target": region_id[edge["target_key"]],
                     "fine_edges": edge["fine_edges"],
-                    "mean_fibre_number": f"{edge['fibre_number']:.12g}",
-                    "mean_fibre_length_mm": f"{edge['fibre_length']:.12g}",
+                    "fibre_number": f"{edge['fibre_number']:.12g}",
+                    "fibre_length_mm": f"{edge['fibre_length']:.12g}",
                     "connectivity_weight": f"{edge['connectivity']:.12g}",
                 }
             )
@@ -251,8 +266,8 @@ def main():
             "edges": len(coarse_edges),
             "degree": summary(degrees),
             "weighted_degree": summary(weighted_degrees),
-            "mean_fibre_number": summary(fibre_numbers),
-            "mean_fibre_length_mm": summary(fibre_lengths),
+            "fibre_number": summary(fibre_numbers),
+            "fibre_length_mm": summary(fibre_lengths),
             "connectivity_weight": summary(connectivities),
         },
         "paper_reference": {
@@ -260,8 +275,8 @@ def main():
             "fine_edges": 37477,
             "coarse_vertices": 83,
             "coarse_edges": 1130,
-            "mean_fibre_number": 40.2,
-            "mean_fibre_length_mm": 38.4,
+            "fibre_number": 40.2,
+            "fibre_length_mm": 38.4,
             "connectivity_weight": {
                 "minimum": 0.01, "maximum": 35.32, "mean": 1.57
             },

@@ -70,7 +70,7 @@ why. Over the 83 region vertices, the activation time correlates
 
 ```text
 with the local reaction coefficient   r = -0.841
-with the graph distance from the seed r = +0.072
+with the graph distance from the seed r = +0.065
 ```
 
 and the graph eccentricity from the seed is `2`: every region lies within two

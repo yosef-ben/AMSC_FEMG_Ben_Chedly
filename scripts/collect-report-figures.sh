@@ -16,6 +16,7 @@ copy 22_fisher_kolmogorov_sequential_performance/results/sequential_performance.
 copy 23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.pdf
 copy 24_connectome_topology/results/connectome_regions.pdf
 copy 24_connectome_topology/results/connectome_connectogram.pdf
+copy 24_connectome_topology/results/connectome_views.pdf
 copy 25_connectome_seeding_vulnerability/results/seeding_vulnerability.pdf
 copy 26_connectome_progression/results/anatomical_progression.pdf
 copy 26_connectome_progression/results/activation_time.pdf

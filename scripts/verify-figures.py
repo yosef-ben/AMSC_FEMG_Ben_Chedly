@@ -111,15 +111,18 @@ def check_19_topology(report):
     nonzero = adjacency[adjacency > 0]
 
     # The three ranges printed at the ends of the two colour bars, which are
-    # also the values Fornari et al. publish.
+    # also the values Fornari et al. publish: 6-48, 2.1-127.6 and 0.01-35.32.
     report.check(name, "smallest degree", float(degree.min()), 6.0)
     report.check(name, "largest degree", float(degree.max()), 48.0)
     report.check(name, "smallest weighted degree", float(weighted.min()),
-                 2.288503)
+                 2.05052)
     report.check(name, "largest weighted degree", float(weighted.max()),
-                 134.842522)
-    report.check(name, "smallest adjacency", float(nonzero.min()), 0.009191)
-    report.check(name, "largest adjacency", float(nonzero.max()), 36.867069)
+                 127.6435)
+    report.check(name, "mean weighted degree", float(weighted.mean()),
+                 42.7547)
+    report.check(name, "smallest adjacency", float(nonzero.min()), 0.0084602)
+    report.check(name, "largest adjacency", float(nonzero.max()), 35.3221)
+    report.check(name, "mean adjacency", float(nonzero.mean()), 1.57019)
 
     report.check(name, "symmetric", 1.0 if np.allclose(adjacency,
                                                        adjacency.T) else 0.0,
@@ -128,12 +131,74 @@ def check_19_topology(report):
                  1.0 if np.all(np.diag(adjacency) == 0) else 0.0, 1.0)
     report.check(name, "non-zero cells", float(len(nonzero)), 2260.0)
 
+    # The regions attaining the extremes, which the reference names: the
+    # frontal pole and the precentral gyrus for the weighted degree, the
+    # superior parietal to precuneus pair for the largest adjacency and the
+    # most fibres. The published pairing of the smallest and largest
+    # adjacency is internally inconsistent with its own fibre counts; the
+    # reconstruction resolves it, and these checks pin the resolution down.
+    nodes = {int(row["node_id"]): row["name"]
+             for row in read_csv(Path("data/connectome/fornari83/nodes.csv"))}
+    identities = (
+        ("smallest weighted degree region", nodes[int(weighted.argmin())],
+         "ctx-rh-frontalpole"),
+        ("largest weighted degree region", nodes[int(weighted.argmax())],
+         "ctx-rh-precentral"),
+    )
+    masked = np.where(adjacency > 0, adjacency, np.inf)
+    pair = np.unravel_index(np.argmax(adjacency), adjacency.shape)
+    identities += (("largest adjacency pair",
+                    " -- ".join(sorted(nodes[k] for k in pair)),
+                    "ctx-rh-precuneus -- ctx-rh-superiorparietal"),)
+    pair = np.unravel_index(np.argmin(masked), adjacency.shape)
+    identities += (("smallest adjacency pair",
+                    " -- ".join(sorted(nodes[k] for k in pair)),
+                    "ctx-lh-isthmuscingulate -- ctx-lh-lateralorbitofrontal"),)
+    fibre = np.zeros_like(adjacency)
+    for row in edges:
+        i, j = int(row["source"]), int(row["target"])
+        fibre[i, j] = fibre[j, i] = float(row["fibre_number"])
+    pair = np.unravel_index(np.argmax(fibre), fibre.shape)
+    identities += (("largest fibre number pair",
+                    " -- ".join(sorted(nodes[k] for k in pair)),
+                    "ctx-rh-precuneus -- ctx-rh-superiorparietal"),)
+    for label, found, expected in identities:
+        report.note(name, label, f"{found} (expected {expected})")
+        if found != expected:
+            report.failed += 1
+    report.check(name, "largest fibre number", float(fibre.max()), 595.5)
+
     # The colour scale is logarithmic; this is the measurement that justifies
     # it, and it is quoted in the caption.
     report.check(name, "decades spanned",
-                 float(np.log10(nonzero.max() / nonzero.min())), 3.603)
+                 float(np.log10(nonzero.max() / nonzero.min())), 3.6207)
     report.check(name, "fraction below 5% of the maximum",
-                 float((nonzero < 0.05 * nonzero.max()).mean()), 0.771)
+                 float((nonzero < 0.05 * nonzero.max()).mean()), 0.7735)
+
+
+def check_24_views(report):
+    """Data behind the four-view brain-network figure, after Fornari fig. 5.
+
+    The figure colours and sizes the connections by their fibre number on a
+    linear ramp between the smallest and largest value; these checks pin the
+    endpoints of that ramp, the counts, and the reproduction of the published
+    fibre statistics at printed precision (1 to 596, mean 40.2).
+    """
+    name = "24 connectome_views"
+    edges = read_csv(Path("data/connectome/fornari83/edges.csv"))
+    fibres = [float(row["fibre_number"]) for row in edges]
+    lengths = [float(row["fibre_length_mm"]) for row in edges]
+    report.check(name, "connections drawn", float(len(edges)), 1130.0)
+    report.check(name, "smallest fibre number", min(fibres), 1.0)
+    report.check(name, "largest fibre number", max(fibres), 595.5)
+    report.check(name, "mean fibre number", sum(fibres) / len(fibres),
+                 40.1619)
+    report.check(name, "published mean fibre number, printed precision",
+                 round(sum(fibres) / len(fibres), 1), 40.2)
+    report.check(name, "mean fibre length", sum(lengths) / len(lengths),
+                 38.4009, "mm")
+    report.check(name, "published mean fibre length, printed precision",
+                 round(sum(lengths) / len(lengths), 2), 38.40, "mm")
 
 
 def check_18_timestep(report):
@@ -206,8 +271,8 @@ def check_19(report):
     name = "19 biomarker_comparison"
     base = BENCH / "19_fisher_kolmogorov_fornari83/results"
     for label, filename, expected in (
-            ("nodal", "nodal_biomarkers.csv", 2.9469e-07),
-            ("FEM", "fem_biomarkers.csv", 5.7e-03)):
+            ("nodal", "nodal_biomarkers.csv", 3.8703e-07),
+            ("FEM", "fem_biomarkers.csv", 8.378e-03)):
         rows = read_csv(base / filename)
         times = [float(row["time"]) for row in rows]
         crossings = [crossing(times, [float(row[lobe]) for row in rows], 50.0)
@@ -219,12 +284,12 @@ def check_19(report):
 
     name = "19 refinement"
     rows = read_csv(base / "space_refinement.csv")
-    for row, expected in zip(rows, (0.4389, 0.1178, 0.0229, 0.0)):
+    for row, expected in zip(rows, (0.4992, 0.1287, 0.0246, 0.0)):
         report.check(name, f"max difference, {row['cells_per_edge']} cells",
                      float(row["max_biomarker_difference"]), expected, "%")
     rows = read_csv(base / "time_refinement.csv")
     rates = [float(row["rate"]) for row in rows if row["rate"]]
-    for rate, expected in zip(rates, (1.0552, 1.0263, 1.0126)):
+    for rate, expected in zip(rates, (1.0556, 1.0262, 1.0127)):
         report.check(name, "observed temporal rate", rate, expected)
 
 
@@ -233,10 +298,10 @@ def check_20(report):
     name = "20 alpha_sensitivity"
     rows = read_csv(BENCH / "20_fisher_kolmogorov_alpha_sensitivity/results"
                            "/alpha_sensitivity.csv")
-    expected = {("Nodal reference", 0.5): 11.1054737623,
-                ("Nodal reference", 0.1): 59.3302643285,
-                ("Metric-graph FEM", 0.5): 12.6760711624,
-                ("Metric-graph FEM", 0.1): 67.8056471471}
+    expected = {("Nodal reference", 0.5): 11.1060671084,
+                ("Nodal reference", 0.1): 59.3308235145,
+                ("Metric-graph FEM", 0.5): 12.6792077931,
+                ("Metric-graph FEM", 0.1): 67.8076795244}
     for row in rows:
         key = (row["method"], float(row["alpha"]))
         if key in expected:
@@ -256,10 +321,10 @@ def check_21(report):
                            "/regional_averages.csv")
     final = rows[-1]
     report.check(name, "final time", float(final["time"]), 20.0, "years")
-    expected = {"frontal": 0.202084, "temporal": 0.166959,
-                "parietal": 0.096729, "insular": 0.129195,
-                "limbic": 0.210109, "occipital": 0.073457,
-                "subcortical": 0.127043}
+    expected = {"frontal": 0.202253, "temporal": 0.167108,
+                "parietal": 0.096674, "insular": 0.129048,
+                "limbic": 0.210617, "occipital": 0.072868,
+                "subcortical": 0.127734}
     for region, value in expected.items():
         report.check(name, f"{region} at T", float(final[region]), value)
 
@@ -304,7 +369,7 @@ def check_23(report):
     base = BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
     with open(base / "diffusion_scaling_summary.json") as stream:
         summary = json.load(stream)
-    report.check(name, "Fiedler value", summary["fiedler_value"], 0.795445)
+    report.check(name, "Fiedler value", summary["fiedler_value"], 0.772254)
     report.check(name, "benchmark 21 scaling", summary["benchmark_21_scaling"],
                  1.0 / summary["maximum_adjacency"])
     rows = read_csv(base / "diffusion_scaling.csv")
@@ -322,8 +387,8 @@ def check_25(report):
     name = "25 seeding_vulnerability"
     base = BENCH / "25_connectome_seeding_vulnerability/results"
     for scaling, span, fastest, slowest in (
-            (1, 0.018, "Right-Caudate", "ctx-rh-frontalpole"),
-            (0.02, 4.020, "Right-Caudate", "ctx-rh-temporalpole")):
+            (1, 0.0207, "Right-Caudate", "ctx-rh-frontalpole"),
+            (0.02, 4.178, "Right-Caudate", "ctx-rh-temporalpole")):
         rows = read_csv(base / f"seeding_vulnerability_rho_{scaling:g}.csv")
         values = [float(row["infection_time_years"]) for row in rows]
         report.check(name, f"span at rho={scaling:g}",
@@ -391,7 +456,8 @@ def check_26(report):
 def main():
     report = Report()
     for check in (check_18, check_18_timestep, check_19, check_19_topology,
-                  check_20, check_21, check_22, check_23, check_25, check_26):
+                  check_20, check_21, check_22, check_23, check_24_views,
+                  check_25, check_26):
         try:
             check(report)
         except FileNotFoundError as error:

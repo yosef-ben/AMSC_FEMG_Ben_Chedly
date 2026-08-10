@@ -11,6 +11,7 @@ conventions are listed in CONVENTIONS and printed when the script runs.
 """
 
 import argparse
+import csv
 import sys
 import tempfile
 from pathlib import Path
@@ -242,6 +243,17 @@ def main():
         degree[source] += 1
         degree[target] += 1
     weighted = adjacency.sum(axis=1)
+
+    # The per-region degrees behind panels (a) and (b), stored so the numbers
+    # on the figure stay traceable to a file.
+    with (args.output_dir / "connectivity_diagnostics.csv").open(
+            "w", newline="") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["node_id", "name", "unweighted_degree",
+                         "weighted_degree"])
+        for index, node in enumerate(nodes):
+            writer.writerow([index, node["name"], int(degree[index]),
+                             f"{weighted[index]:.6f}"])
 
     coords = np.array([node["coords"] for node in nodes])
     runs = region_runs([node["region"] for node in nodes])
