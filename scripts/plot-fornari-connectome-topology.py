@@ -31,12 +31,12 @@ from connectome_style import REGION_COLOUR, REGION_ORDER, load_edges, load_nodes
 import render_connectome as rc
 
 
-DEGREE_MAP = plt.cm.plasma
-# viridis rather than magma_r: with magma_r the weakest non-zero cell sits
-# only 32.6 in OKLab from the grey used for an absent connection, exactly where
-# the weak/absent confusion lives. With viridis no point of the ramp comes
-# closer than 48.5 to that grey.
-ADJACENCY_MAP = plt.cm.viridis
+# Both ramps are the blue-to-red rainbow of the reference's own figure, so
+# the two degree brains and the adjacency matrix read directly against the
+# published panels. The rainbow low end is a dark navy, far from the flat
+# grey of an absent connection, so the weak/absent distinction survives.
+DEGREE_MAP = plt.cm.jet
+ADJACENCY_MAP = plt.cm.jet
 ZERO_COLOUR = "#E6E8EC"
 
 RADIUS_MIN, RADIUS_MAX = 1.25, 5.60     # mm, sphere radius in the render
@@ -141,7 +141,7 @@ def _line_actor(coords, edges):
 
 def render_brain(output, coords, radii, table, edges, scale,
                  size=(2200, 1720)):
-    """Sagittal glass brain, seen from the left, as in the reference."""
+    """Sagittal glass brain, frontal pole to the left, as in the reference."""
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(1.0, 1.0, 1.0)
     renderer.SetUseDepthPeeling(1)
@@ -158,7 +158,7 @@ def render_brain(output, coords, radii, table, edges, scale,
     window.AddRenderer(renderer)
     window.SetSize(*size)
 
-    direction, up = rc.CAMERA["sagittal"]
+    direction, up = rc.CAMERA["sagittal_right"]
     renderer.ResetCamera()
     camera = renderer.GetActiveCamera()
     focal = np.array(camera.GetFocalPoint())
@@ -329,19 +329,44 @@ def main():
     cmap = ADJACENCY_MAP.copy()
     cmap.set_bad(ZERO_COLOUR)
     norm = LogNorm(nonzero.min(), nonzero.max())
-    axis.imshow(masked, cmap=cmap, norm=norm, origin="upper",
-                interpolation="nearest", extent=(0, n, n, 0))
+    # Origin at the lower left, as printed: the intra-hemisphere blocks sit
+    # in the lower-left and upper-right quadrants, as the reference describes.
+    # The extent must agree with the origin, or it silently re-inverts it.
+    axis.imshow(masked, cmap=cmap, norm=norm, origin="lower",
+                interpolation="nearest", extent=(0, n, 0, n))
     axis.set_aspect("equal")
     draw_strips(axis, runs, n)
+
+    # The extremes that section 3.2 of the reference names, marked on the
+    # matrix and computed from the data, never typed in: a solid outline on
+    # the two cells of the strongest connection, a dashed one on the weakest.
+    from connectome_style import short_name
+    strongest = np.unravel_index(np.argmax(adjacency), adjacency.shape)
+    positive = np.where(adjacency > 0, adjacency, np.inf)
+    weakest = np.unravel_index(np.argmin(positive), adjacency.shape)
+    for (row, column), style in ((strongest, "-"), (weakest, "--")):
+        for a, b in ((row, column), (column, row)):
+            axis.add_patch(Rectangle((b - 0.6, a - 0.6), 2.2, 2.2,
+                                     facecolor="none", edgecolor="black",
+                                     linewidth=1.3, linestyle=style,
+                                     zorder=6))
+    extremes_note = (
+        f"strongest {short_name(nodes[strongest[0]]['name'])} -- "
+        f"{short_name(nodes[strongest[1]]['name'])} (solid),   "
+        f"weakest {short_name(nodes[weakest[0]]['name'])} -- "
+        f"{short_name(nodes[weakest[1]]['name'])} (dashed)")
     margin = 3.6
     axis.set_xlim(-margin, n + margin)
-    axis.set_ylim(n + margin, -margin)
+    axis.set_ylim(-margin, n + margin)
     axis.set_axis_off()
     axis.text(-0.005, 1.004, "(c)", transform=axis.transAxes, fontsize=14,
               style="italic", va="bottom", ha="left")
     axis.text(0.5, -0.016,
-              "rows and columns in solver order:   right hemisphere 0-40,"
+              "rows from the bottom, columns from the left, in solver order:"
+              "   right hemisphere 0-40,"
               "   left 41-81,   brainstem 82", transform=axis.transAxes,
+              ha="center", va="top", fontsize=10, color="0.42")
+    axis.text(0.5, -0.042, extremes_note, transform=axis.transAxes,
               ha="center", va="top", fontsize=10, color="0.42")
 
     # ---------------------------------------------------------- colour bars

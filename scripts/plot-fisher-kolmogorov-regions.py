@@ -2,9 +2,13 @@
 
 import argparse
 import csv
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from connectome_style import REGION_COLOUR
 
 
 def arguments():
@@ -35,13 +39,13 @@ def main():
         "occipital": "Occipital lobe",
         "subcortical": "Subcortical nuclei",
     }
-    colors = ["#d62728", "#1f77b4", "#2ca02c", "#9467bd",
-              "#ff7f0e", "#17becf", "#8c564b"]
-
+    # One colour per anatomical group, shared with every other connectome
+    # figure through connectome_style.
     fig, axis = plt.subplots(figsize=(9.0, 5.4))
-    for name, color in zip(names, colors):
+    for name in names:
         axis.plot(time, [float(row[name]) for row in rows],
-                  color=color, linewidth=1.8, label=labels[name])
+                  color=REGION_COLOUR[name], linewidth=1.8,
+                  label=labels[name])
     axis.plot(time, [float(row["global"]) for row in rows],
               color="black", linewidth=2.2, linestyle="--", label="Global mean")
     axis.set_xlabel("Time [years]")

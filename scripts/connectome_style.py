@@ -17,17 +17,21 @@ REGION_ASSIGNMENT = Path("benchmarks/21_fisher_kolmogorov_corti83/results"
                          "/reaction_coefficients.csv")
 
 # Seven anatomical groups of Corti et al., ordered as in their table 1. The
-# hues were selected so that every pair separates by at least 13.9 in OKLab
-# (x100) under protanopia, deuteranopia and tritanopia simulation, and by at
-# least 17.3 in normal vision.
+# hues are the ones of the legend of their figure 2, sampled from the
+# published panels, so the anatomical figures can be read directly against
+# the reference. The choice trades colour-vision robustness for
+# comparability: under Machado severity-1.0 simulation the smallest pairwise
+# OKLab (x100) separation is 3.3 (insular against limbic, tritanopia)
+# against 16.5 in normal vision; the renders mitigate this with dark marker
+# edges and lightness differences.
 REGION_COLOUR = {
-    "frontal": "#332288",
-    "temporal": "#2CA02C",
-    "parietal": "#A6761D",
-    "insular": "#CC79A7",
-    "limbic": "#661100",
-    "occipital": "#88CCEE",
-    "subcortical": "#F0E442",
+    "frontal": "#E40000",
+    "temporal": "#ED7D31",
+    "parietal": "#FFFF00",
+    "insular": "#00E503",
+    "limbic": "#00DED2",
+    "occipital": "#3432B2",
+    "subcortical": "#DE27CE",
 }
 REGION_ORDER = tuple(REGION_COLOUR)
 

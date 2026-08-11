@@ -19,7 +19,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
-from matplotlib.patches import FancyArrowPatch
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -32,7 +31,12 @@ VIEW_ORDER = ("sagittal", "coronal", "axial")
 # Corti et al. draw their connectogram with the connections above 5% of the
 # strongest one; the same threshold is used here.
 CONNECTOGRAM_THRESHOLD = 0.05
-WEIGHT_MAP = plt.cm.magma_r
+# The weight row uses the rainbow ramp of the reference's brain-network
+# figure, so the two can be read side by side. The group matrix keeps a
+# perceptual ramp instead: it is a heatmap with printed values, not a
+# render reproducing a published panel.
+WEIGHT_MAP = plt.cm.jet
+MATRIX_MAP = plt.cm.viridis
 
 
 def arguments():
@@ -61,19 +65,35 @@ def connectogram(axis, nodes, edges):
     angle = {node: 2 * np.pi * position / len(order)
              for position, node in enumerate(order)}
     maximum = max(weight for _, _, weight in edges)
-    for source, target, weight in edges:
-        # Corti et al. show the principal connections *between* regions, so
-        # connections internal to a group are left out.
-        if nodes[source]["region"] == nodes[target]["region"]:
-            continue
-        if weight < CONNECTOGRAM_THRESHOLD * maximum:
-            continue
+    # Corti et al. show the principal connections *between* regions, each
+    # drawn as a colour gradient from one group to the other; the same
+    # construction is used here. Every arc is the quadratic Bezier that
+    # matplotlib's "arc3, rad = 0.28" would draw, sampled into segments whose
+    # colours interpolate the two group colours; stronger connections are
+    # drawn later, hence on top.
+    drawn = [(source, target, weight) for source, target, weight in edges
+             if nodes[source]["region"] != nodes[target]["region"]
+             and weight >= CONNECTOGRAM_THRESHOLD * maximum]
+    samples = np.linspace(0.0, 1.0, 33)[:, None]
+    for source, target, weight in sorted(drawn, key=lambda edge: edge[2]):
         start = np.array([np.cos(angle[source]), np.sin(angle[source])])
         end = np.array([np.cos(angle[target]), np.sin(angle[target])])
-        axis.add_patch(FancyArrowPatch(
-            start, end, connectionstyle="arc3,rad=0.28", arrowstyle="-",
-            linewidth=0.35 + 1.9 * weight / maximum, color="0.45",
-            alpha=0.55, zorder=1))
+        chord = end - start
+        control = (start + end) / 2 + 0.28 * np.array([-chord[1], chord[0]])
+        curve = ((1 - samples) ** 2 * start
+                 + 2 * samples * (1 - samples) * control
+                 + samples ** 2 * end)
+        segments = np.stack([curve[:-1], curve[1:]], axis=1)
+        first = np.array(matplotlib.colors.to_rgb(
+            REGION_COLOUR[nodes[source]["region"]]))
+        second = np.array(matplotlib.colors.to_rgb(
+            REGION_COLOUR[nodes[target]["region"]]))
+        blend = np.linspace(0.0, 1.0, len(segments))[:, None]
+        colours = (1 - blend) * first + blend * second
+        axis.add_collection(matplotlib.collections.LineCollection(
+            segments, colors=colours,
+            linewidths=0.35 + 1.9 * weight / maximum,
+            alpha=0.8, capstyle="round", zorder=1))
     for node in order:
         axis.plot(np.cos(angle[node]), np.sin(angle[node]), marker="o",
                   markersize=5.5, color=REGION_COLOUR[nodes[node]["region"]],
@@ -100,7 +120,13 @@ def main():
     plt.rcParams.update({"font.size": 9.5})
 
     weights = np.array([weight for _, _, weight in edges])
-    weight_norm = matplotlib.colors.LogNorm(weights.min(), weights.max())
+    # Square-root ramp, stated in the caption: the reference declares no
+    # mapping, the distribution is strongly skewed, and the square root keeps
+    # the mid-range readable while leaving the warm colours to the short
+    # association bundles. A linear ramp paints nearly everything at the cold
+    # end; the logarithmic reading of the same weights lives in the adjacency
+    # panel of the topology figure, where cell-level comparison is the point.
+    weight_norm = matplotlib.colors.PowerNorm(0.5, weights.min(), weights.max())
     coords = np.array([node["coords"] for node in nodes])
     scale = common_scale()
 
@@ -125,10 +151,11 @@ def main():
                 region_index, region_table, node_radius=3.6, edges=edges,
                 edge_values=[0.66] * len(edges), edge_table=grey_table,
                 edge_radii=[0.16] * len(edges), scale=scale)[0]
-            # Bottom row: connections by weight, as in Fornari et al.
+            # Bottom row: connections by weight, as in Fornari et al., with
+            # the uniform silver spheres of their brain-network figure.
             panels["weight", view] = render(
                 Path(scratch) / f"weight_{view}.png", view, coords,
-                [0.80] * len(nodes), grey_table, node_radius=2.6, edges=edges,
+                [0.84] * len(nodes), grey_table, node_radius=3.8, edges=edges,
                 edge_values=edge_level, edge_table=weight_table,
                 edge_radii=edge_radii, scale=scale)[0]
 
@@ -170,7 +197,7 @@ def main():
                       fontsize=10, color="0.3")
 
     matrix = region_matrix(nodes, edges)
-    image = axes[1].imshow(matrix, cmap=WEIGHT_MAP, origin="upper")
+    image = axes[1].imshow(matrix, cmap=MATRIX_MAP, origin="upper")
     axes[1].set_xticks(range(len(REGION_ORDER)))
     axes[1].set_yticks(range(len(REGION_ORDER)))
     axes[1].set_xticklabels(REGION_ORDER, rotation=45, ha="right")
@@ -182,8 +209,8 @@ def main():
         for j in range(len(REGION_ORDER)):
             axes[1].text(j, i, f"{matrix[i, j]:.0f}", ha="center",
                          va="center", fontsize=7.5,
-                         color="white" if matrix[i, j] > 0.55 * matrix.max()
-                         else "0.2")
+                         color="0.1" if matrix[i, j] > 0.55 * matrix.max()
+                         else "white")
     axes[1].set_title("connectivity summed over each pair of groups",
                       fontsize=10, color="0.3")
     for tick, name in zip(axes[1].get_xticklabels(), REGION_ORDER):

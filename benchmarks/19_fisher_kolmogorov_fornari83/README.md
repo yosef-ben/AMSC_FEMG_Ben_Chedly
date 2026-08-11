@@ -197,14 +197,21 @@ The adjacency uses a base-10 logarithmic colour scale over the full non-zero
 range, with nothing clipped at either end. The reason is measurable: the 2260
 non-zero entries span 3.621 decades and 77.3% of them fall below 5% of the
 maximum, so on a linear ramp three quarters of the connectome would render as
-one indistinguishable colour. The consequence is that the top of the range is
-compressed, which is why the bar carries decade ticks. Absent connections are
-not on the scale at all; the 4629 zero entries, the 83 diagonal ones among
-them, are drawn in one flat grey keyed on the bar as "no connection".
+one indistinguishable colour. The two end values of the ramp are printed at
+the bar. Absent connections are not on the scale at all; the 4629 zero
+entries, the 83 diagonal ones among them, are drawn in one flat grey keyed on
+the bar as "no connection", so a weak connection can never be confused with a
+missing one.
 
 Rows and columns keep the solver's own node order, with no permutation,
-clustering or thresholding, so that the panel can be laid beside the published
-one and compared cell for cell. That is also why the group strips break into 23
+clustering or thresholding, and rows run from the bottom as in the printed
+figure, so that the panel can be laid beside the published one and compared
+cell for cell: the intra-hemisphere blocks sit in the lower-left and
+upper-right quadrants, exactly where the paper describes them. Both colour
+bars use the blue-to-red rainbow of the published figure. The two cells of
+the strongest connection and the two of the weakest carry outline markers,
+computed from the data and named under the panel; they are the pairs the
+paper's section 3.2 singles out. That is also why the group strips break into 23
 runs rather than seven blocks: right hemisphere occupies indices 0 to 40, left
 41 to 81, and the brainstem 82.
 

@@ -267,7 +267,12 @@ this chapter, in the three anatomical projections.
 \includegraphics[width=\textwidth]{images/connectome_regions.pdf}
 \caption{The $83$-region connectome, seen through the pial surface in the
 sagittal, coronal and axial projections. Top: vertices coloured by anatomical
-group. Bottom: connections coloured by connectivity weight. The surface is the
+group, the colours of figure 2 of~\cite{cortiFisherKolmogorovGraphs}. Bottom:
+connections coloured and sized by their connectivity weight, on a square-root
+ramp between the smallest and the largest value, stated here because no
+mapping is declared in the references; the distribution is strongly skewed,
+and the square root keeps the mid-range readable while the short association
+bundles keep the warm colours. The surface is the
 same file used for the ParaView output and shares the coordinate frame of the
 vertices; nothing is rescaled to make the two agree. The MRI and tractography
 panels of the corresponding figure in~\cite{cortiFisherKolmogorovGraphs} are not reproduced,
@@ -295,20 +300,23 @@ consensus connectome rather than reconstructed from patient images.}
 Figure~\ref{fig:views} presents the same graph in the composition of the brain
 network figure of~\cite{fornari2019prion}: four views, the connections coloured and
 sized by their fibre number, and the vertices as uniform spheres. The
-distribution of fibre counts is strongly skewed, so on the linear ramp most
-connections stay thin and blue and a handful of short association bundles,
-the superior parietal to precuneus pair above all, carry the warm colours;
-the printed figure of the reference shows the same aspect.
+distribution of fibre counts is strongly skewed, and on the square-root ramp
+used here the strongest short association bundles, the superior parietal to
+precuneus pair above all, carry the warm colours while the mid-range stays
+distinguishable; the printed figure of the reference shows the same broad
+spread of warm edges.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{images/connectome_views.pdf}
 \caption{The connectome as a brain network, after figure 5
 of~\cite{fornari2019prion}: sagittal, coronal, longitudinal and oblique views of
-the $83$ vertices and $1130$ connections inside the translucent pial surface.
-Colour and thickness of a connection both grow linearly with its fibre
-number, from $1$ to $595.5$; the reference does not state its mapping, so the
-linear ramp is a choice made here and stated. The vertex coordinates and the
+the $83$ vertices and $1130$ connections. The three labelled views sit inside
+the translucent pial surface; the oblique view shows the graph alone, as in
+the reference.
+Colour and thickness of a connection both grow with the square root of its
+fibre number, between $1$ and $595.5$; the reference does not state its
+mapping, so the square-root ramp is a choice made here and stated. The vertex coordinates and the
 surface are the ones distributed with the public Budapest Reference
 Connectome viewer, not the MRI-based brain model of the reference.}
 \label{fig:views}
@@ -335,8 +343,10 @@ groups.
 \includegraphics[width=\textwidth]{images/connectome_connectogram.pdf}
 \caption{Connectivity of the reconstructed graph. Left: the connections above
 $5\%$ of the strongest one, on a circular layout grouped by anatomical group,
-following the threshold used in~\cite{cortiFisherKolmogorovGraphs}. Right: connectivity summed
-over each pair of groups.}
+with the threshold and the colouring of~\cite{cortiFisherKolmogorovGraphs}: each
+connection is drawn as a gradient between the colours of the two groups it
+joins, and thickness grows with the weight. Right: connectivity summed over
+each pair of groups.}
 \label{fig:connectogram}
 \end{figure}
 
@@ -360,19 +370,26 @@ of~\cite{fornari2019prion}: the non-weighted degree, the connectivity-weighted
 degree, and the weighted adjacency matrix. The ranges and the block structure
 are consistent with the small-world organisation described there, with strongly
 connected hubs inside each hemisphere and comparatively few interhemispheric
-connections.
+connections. The specific regions the reference names are recovered as well:
+in panel (b) the smallest sphere is the frontal pole and the largest the
+precentral gyrus, the two vertices it points out in blue and red, and on the
+matrix the strongest and the weakest connection, marked and named under the
+panel, join the superior parietal to the precuneus and the lateral
+orbitofrontal to the isthmus cingulate, the two pairs its text singles out.
 
 Two conventions of our panel differ from the published one and are stated
 because they change how the figure is read. The adjacency uses a base-$10$
 logarithmic colour scale over the full non-zero range, with nothing clipped:
 the $2260$ non-zero entries span $3.621$ decades and $77.3\%$ of them fall
 below $5\%$ of the maximum, so on a linear ramp three quarters of the
-connectome would render as a single indistinguishable colour. The price is that
-the top of the range is compressed, which is why the bar carries decade ticks.
-Absent connections are not on the scale at all: the $4629$ zero entries, the
-$83$ diagonal ones among them, are drawn in one flat grey. Rows and columns
-keep the solver's own node order, with no permutation or clustering, so that
-the panel can be laid beside the published one and compared cell by cell.
+connectome would render as a single indistinguishable colour; the two end
+values of the ramp are printed at the bar. And absent connections are not on
+the scale at all: the $4629$ zero entries, the $83$ diagonal ones among them,
+are drawn in one flat grey, so that a weak connection can never be confused
+with a missing one. Rows and columns keep the solver's own node order, with
+no permutation or clustering, and rows run from the bottom as in the printed
+figure, so that the panel can be laid beside the published one and compared
+cell by cell.
 
 \begin{figure}[htbp]
 \centering
@@ -383,7 +400,9 @@ connectivity-weighted degree, with sphere radius and colour encoding the same
 quantity, each panel normalised to its own range. (c) weighted adjacency
 $A_{IJ}$ on a base-$10$ logarithmic scale over the full non-zero range, with
 absent connections drawn off-scale in grey and anatomical-group strips along
-all four edges. Rows and columns are in the solver's node order: right
+all four edges; the outlined cells are the strongest and the weakest
+connection, the pairs named in the text of~\cite{fornari2019prion}. Rows and
+columns are in the solver's node order, rows from the bottom: right
 hemisphere $0$--$40$, left $41$--$81$, brainstem $82$.}
 \label{fig:topology}
 \end{figure}
