@@ -208,12 +208,29 @@ clustering or thresholding, and rows run from the bottom as in the printed
 figure, so that the panel can be laid beside the published one and compared
 cell for cell: the intra-hemisphere blocks sit in the lower-left and
 upper-right quadrants, exactly where the paper describes them. Both colour
-bars use the blue-to-red rainbow of the published figure. The two cells of
-the strongest connection and the two of the weakest carry outline markers,
-computed from the data and named under the panel; they are the pairs the
-paper's section 3.2 singles out. That is also why the group strips break into 23
-runs rather than seven blocks: right hemisphere occupies indices 0 to 40, left
-41 to 81, and the brainstem 82.
+bars use the blue-to-red rainbow of the published figure. No cell is singled
+out on the matrix: the panel's point is the heterogeneity of the network,
+and the extreme pairs are verified against the paper in the domain
+verification above instead.
+
+The eight warm clusters along the diagonal, four per hemisphere, are the
+connections internal to the cortical lobes, each bounded on the panel by a
+thin dashed box computed from the region assignment. Every box is the
+longest consecutive run of its lobe in the solver order, so it contains
+cells of that lobe and of nothing else, and the script asserts as much
+before drawing it: right frontal at indices 0-9, parietal 15-18, occipital
+19-23, temporal 27-32, and the mirrored runs 41-50, 56-59, 60-64, 68-73 on
+the left. Two vertices per hemisphere sit outside their lobe's box, because
+the atlas enumeration interleaves the limbic belt, the cingulate between
+the frontal and the parietal cortex and the entorhinal-parahippocampal pair
+inside the temporal lobe: they are the paracentral gyrus, indices 10 and 51,
+and the fusiform gyrus, indices 24 and 65, located by the strips. The mean
+adjacency inside a lobe is between 1.91 and 4.25 times the mean of its
+hemisphere block, which is what makes the clusters read warm on the
+logarithmic ramp; these ratios are pinned by the verification harness. The
+interleaving is also why the group strips break into 23 runs rather than
+seven blocks: right hemisphere occupies indices 0 to 40, left 41 to 81, and
+the brainstem 82.
 
 For the public reconstruction used by the solver:
 

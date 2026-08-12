@@ -337,24 +337,33 @@ def main():
     axis.set_aspect("equal")
     draw_strips(axis, runs, n)
 
-    # The extremes that section 3.2 of the reference names, marked on the
-    # matrix and computed from the data, never typed in: a solid outline on
-    # the two cells of the strongest connection, a dashed one on the weakest.
-    from connectome_style import short_name
-    strongest = np.unravel_index(np.argmax(adjacency), adjacency.shape)
-    positive = np.where(adjacency > 0, adjacency, np.inf)
-    weakest = np.unravel_index(np.argmin(positive), adjacency.shape)
-    for (row, column), style in ((strongest, "-"), (weakest, "--")):
-        for a, b in ((row, column), (column, row)):
-            axis.add_patch(Rectangle((b - 0.6, a - 0.6), 2.2, 2.2,
-                                     facecolor="none", edgecolor="black",
-                                     linewidth=1.3, linestyle=style,
-                                     zorder=6))
-    extremes_note = (
-        f"strongest {short_name(nodes[strongest[0]]['name'])} -- "
-        f"{short_name(nodes[strongest[1]]['name'])} (solid),   "
-        f"weakest {short_name(nodes[weakest[0]]['name'])} -- "
-        f"{short_name(nodes[weakest[1]]['name'])} (dashed)")
+    # Thin dashed boxes bound the eight intra-lobe clusters along the
+    # diagonal, four cortical lobes per hemisphere, computed from the region
+    # assignment and never typed in. Each box is the longest consecutive run
+    # of its lobe in the solver order, so it contains cells of that lobe and
+    # of nothing else; the one parietal and one temporal vertex per
+    # hemisphere that the atlas enumeration separates from their lobe, by
+    # interleaving the limbic belt, stay outside and are located by the
+    # strips. The benchmark record names them. The boxes mark structure,
+    # not single connections.
+    for side in ("right", "left"):
+        for lobe in ("frontal", "temporal", "parietal", "occipital"):
+            members = sorted(k for k, node in enumerate(nodes)
+                             if node["hemisphere"] == side
+                             and node["region"] == lobe)
+            runs_of_lobe, start = [], members[0]
+            for previous, current in zip(members, members[1:]):
+                if current != previous + 1:
+                    runs_of_lobe.append((start, previous))
+                    start = current
+            runs_of_lobe.append((start, members[-1]))
+            low, high = max(runs_of_lobe, key=lambda run: run[1] - run[0])
+            assert all(nodes[k]["region"] == lobe
+                       for k in range(low, high + 1)), lobe
+            axis.add_patch(Rectangle((low, low), high + 1 - low,
+                                     high + 1 - low, facecolor="none",
+                                     edgecolor="0.15", linewidth=0.9,
+                                     linestyle=(0, (4, 3)), zorder=6))
     margin = 3.6
     axis.set_xlim(-margin, n + margin)
     axis.set_ylim(-margin, n + margin)
@@ -365,8 +374,6 @@ def main():
               "rows from the bottom, columns from the left, in solver order:"
               "   right hemisphere 0-40,"
               "   left 41-81,   brainstem 82", transform=axis.transAxes,
-              ha="center", va="top", fontsize=10, color="0.42")
-    axis.text(0.5, -0.042, extremes_note, transform=axis.transAxes,
               ha="center", va="top", fontsize=10, color="0.42")
 
     # ---------------------------------------------------------- colour bars

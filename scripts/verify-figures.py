@@ -175,6 +175,29 @@ def check_19_topology(report):
     report.check(name, "fraction below 5% of the maximum",
                  float((nonzero < 0.05 * nonzero.max()).mean()), 0.7735)
 
+    # The eight warm clusters along the diagonal are the intra-lobe
+    # connections; the report says their mean adjacency is between roughly
+    # two and four times the mean of their hemisphere block.
+    hemisphere = {int(row["node_id"]): row["hemisphere"]
+                  for row in read_csv(
+                      Path("data/connectome/fornari83/nodes.csv"))}
+    group = {int(row["node_id"]): row["region"]
+             for row in read_csv(BENCH / "21_fisher_kolmogorov_corti83"
+                                         "/results/reaction_coefficients.csv")}
+    ratios = []
+    for side, low, high in (("right", 0, 41), ("left", 41, 82)):
+        block = adjacency[low:high, low:high]
+        block_mean = block[block > 0].mean()
+        for lobe in ("frontal", "temporal", "parietal", "occipital"):
+            members = [k for k in range(low, high)
+                       if hemisphere[k] == side and group[k] == lobe]
+            inside = adjacency[np.ix_(members, members)]
+            ratios.append(float(inside[inside > 0].mean() / block_mean))
+    report.check(name, "smallest intra-lobe to block mean ratio",
+                 min(ratios), 1.912)
+    report.check(name, "largest intra-lobe to block mean ratio",
+                 max(ratios), 4.252)
+
 
 def check_24_views(report):
     """Data behind the four-view brain-network figure, after Fornari fig. 5.

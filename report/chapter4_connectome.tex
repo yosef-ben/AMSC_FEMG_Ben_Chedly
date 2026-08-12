@@ -365,45 +365,73 @@ each pair of groups.}
 %    lo zero fuori scala. Il motivo e' misurato ed e' scritto nel testo.
 % ---------------------------------------------------------------------
 
-Figure~\ref{fig:topology} reproduces the three connectivity diagnostics
-of~\cite{fornari2019prion}: the non-weighted degree, the connectivity-weighted
-degree, and the weighted adjacency matrix. The ranges and the block structure
-are consistent with the small-world organisation described there, with strongly
-connected hubs inside each hemisphere and comparatively few interhemispheric
-connections. The specific regions the reference names are recovered as well:
-in panel (b) the smallest sphere is the frontal pole and the largest the
-precentral gyrus, the two vertices it points out in blue and red, and on the
-matrix the strongest and the weakest connection, marked and named under the
-panel, join the superior parietal to the precuneus and the lateral
-orbitofrontal to the isthmus cingulate, the two pairs its text singles out.
+Fig.~\ref{fig:topology} summarizes the connectivity of the reconstructed
+graph through the degree of its vertices in the non-weighted skeleton, their
+degree in the weighted graph and the (weighted) adjacency matrix. The number
+of connections per region varies between $6$ and $48$, consistently
+with~\cite{fornari2019prion}, which identifies the frontal pole, at the anterior
+tip of the hemisphere, and the caudate, one of the deep subcortical nuclei,
+among the least and most connected regions, respectively. Weighting
+substantially changes this picture. The weighted degree spans
+$2.05 \le D_{II} \le 127.64$, with a mean of $42.75$, in agreement with the
+values reported in the reference. The minimum occurs at the frontal pole and
+the maximum at the precentral gyrus, on the upper surface of the hemisphere,
+showing that a region with many connections does not necessarily have the
+largest total connectivity weight.
 
-Two conventions of our panel differ from the published one and are stated
-because they change how the figure is read. The adjacency uses a base-$10$
-logarithmic colour scale over the full non-zero range, with nothing clipped:
-the $2260$ non-zero entries span $3.621$ decades and $77.3\%$ of them fall
-below $5\%$ of the maximum, so on a linear ramp three quarters of the
-connectome would render as a single indistinguishable colour; the two end
-values of the ramp are printed at the bar. And absent connections are not on
-the scale at all: the $4629$ zero entries, the $83$ diagonal ones among them,
-are drawn in one flat grey, so that a weak connection can never be confused
-with a missing one. Rows and columns keep the solver's own node order, with
-no permutation or clustering, and rows run from the bottom as in the printed
-figure, so that the panel can be laid beside the published one and compared
-cell by cell.
+The adjacency matrix in panel~(c) reflects the same organization described
+in~\cite{fornari2019prion}. The two dense diagonal blocks correspond to
+connections within the two hemispheres, whereas the off-diagonal blocks are
+much sparser and contain the interhemispheric connections. Within each
+hemisphere block, the warmest cells gather in clusters along the diagonal:
+they are the connections internal to the four cortical lobes, frontal,
+parietal, occipital and temporal in the row order of the matrix, eight
+clusters in all across the two hemispheres, as in the reference, each
+bounded by a thin dashed box; the mean
+adjacency inside a lobe is between roughly two and four times the mean of
+its hemisphere block. The coloured strips along the four sides identify the
+seven anatomical groups used later in the analysis and locate these
+clusters. The non-zero adjacency values span
+$0.0085 \le A_{IJ} \le 35.3221$, with a mean of $1.5702$, reproducing the
+published range and mean to the reported precision. The most important
+feature of panel~(c) is not the identity of a single strong or weak
+connection, but the pronounced heterogeneity of the network: most pairs of
+regions are either disconnected or only weakly connected, whereas a
+comparatively small number of connections carry much larger weights. Together
+with the heterogeneous weighted degree in panel~(b), this reveals the
+presence of strongly connected hubs embedded in a much more weakly connected
+network. This structure is directly relevant to disease spreading. In the
+network model of~\cite{fornari2019prion}, highly connected regions are expected
+to become effective hubs for the propagation of misfolded proteins. Thus,
+Fig.~\ref{fig:topology} already provides a structural explanation for the
+heterogeneous vulnerability explored later in
+Section~\ref{sec:vulnerability}: the disease does not propagate over a
+uniform network, but through a small number of preferentially connected
+pathways and hubs.
+
+Panel~(c) uses a base-$10$ logarithmic colour scale to make this
+heterogeneity visible. The $2260$ non-zero entries span $3.621$ decades, with
+$77.3\%$ of them below $5\%$ of the maximum; on a linear scale, most
+connections would therefore collapse into a narrow colour range. Missing
+connections are shown separately in grey and are not part of the logarithmic
+scale. Rows and columns retain the solver ordering, without permutation or
+clustering, allowing a direct comparison with Fig.~6
+of~\cite{fornari2019prion}.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/connectome_topology.pdf}
-\caption{Connectivity diagnostics of the reconstructed graph, after
-figure 6 of~\cite{fornari2019prion}. (a) non-weighted degree and (b)
-connectivity-weighted degree, with sphere radius and colour encoding the same
-quantity, each panel normalised to its own range. (c) weighted adjacency
-$A_{IJ}$ on a base-$10$ logarithmic scale over the full non-zero range, with
-absent connections drawn off-scale in grey and anatomical-group strips along
-all four edges; the outlined cells are the strongest and the weakest
-connection, the pairs named in the text of~\cite{fornari2019prion}. Rows and
-columns are in the solver's node order, rows from the bottom: right
-hemisphere $0$--$40$, left $41$--$81$, brainstem $82$.}
+\caption{Connectivity diagnostics of the reconstructed graph, following
+Fig.~6 of~\cite{fornari2019prion}. (a) Non-weighted degree and
+(b) connectivity-weighted degree, with sphere size and colour encoding the
+corresponding quantity; each panel is normalized to its own range.
+(c) Weighted adjacency matrix $A_{IJ}$ displayed on a base-$10$ logarithmic
+scale over the complete non-zero range. Missing connections are shown
+separately in grey, while the coloured strips identify the seven anatomical
+groups used in the subsequent analysis and the thin dashed boxes bound the
+eight intra-lobe clusters along the diagonal. Rows and columns follow the solver
+ordering, with rows displayed from the bottom: right hemisphere $0$--$40$,
+left hemisphere $41$--$81$, and brainstem $82$.}
 \label{fig:topology}
 \end{figure}
 
