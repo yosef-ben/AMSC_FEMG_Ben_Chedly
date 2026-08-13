@@ -183,15 +183,8 @@ def main():
                             pad=0.03, aspect=38, shrink=0.85)
     bar.set_ticks(np.linspace(low, high, 5))
     bar.set_ticklabels([f"{value:.0f}" for value in np.linspace(low, high, 5)])
-    axis.set_title("Order in which the network is recruited", fontsize=11)
-    figure.text(0.5, 0.055,
-                f"activation correlates with the local reaction coefficient "
-                f"($r={with_rate:+.2f}$) and not with the graph distance from "
-                f"the seed ($r={with_distance:+.2f}$);\n"
-                f"every region lies within {diameter} connections of the "
-                f"seed, so the order is set by the regional conversion rates, "
-                f"not by a travelling front",
-                ha="center", va="top", fontsize=8.5, color="0.35")
+    # No baked title or caption: the reading of the figure, including the
+    # two correlations, lives in the LaTeX caption and in the text.
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(args.output, dpi=260, bbox_inches="tight",

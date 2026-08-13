@@ -44,10 +44,12 @@ coincide while those of `21` separate, and it bounds the consistent-mass P1
 discretization, which loses boundedness above `Da` of about 13. Read it
 immediately after `19`, since it answers the question `19` leaves open.
 
-### Domain and dynamics, 24 to 26
+### Domain and dynamics, 24 to 27
 
 `24` documents the graph itself, `25` the regional vulnerability to seeding,
-`26` the anatomical progression and the activation-time map.
+`26` the anatomical progression and the activation-time map, and `27` the
+staged spreading of the two clinical seedings, tau and amyloid-beta, against
+the progression the literature expects.
 
 ### Performance, 22
 
@@ -63,7 +65,10 @@ python3 scripts/prepare-fornari-connectome.py     # rebuild the graph
 python3 scripts/audit-fornari-connectome.py       # audit it against the paper
 cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release
-./build-release/test_fisher_kolmogorov_logistic   # orders 2.00 and 1.00
+./build-release/test_fisher_kolmogorov_logistic   # orders: semi-implicit
+                                                  # 1.99918, 1.99966;
+                                                  # fully implicit
+                                                  # 1.00144, 1.00036
 /usr/bin/python3 scripts/verify-figures.py        # every figure against its data
 ```
 

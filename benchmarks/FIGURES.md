@@ -18,7 +18,7 @@ disagree. Run it from the project root:
 | `18/sensitivity` | `plot-fisher-kolmogorov-1d-sensitivity.py` | `profiles.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/front_speeds` (diagnostic, not in the report) | `plot-fisher-kolmogorov-front-speed.py` | `profiles.csv`, `front_speeds.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/time_step_study` | `plot-fisher-kolmogorov-time-step-study.py` | `time_step_profiles.csv`, `time_step_study.csv` | `test_fisher_kolmogorov_1d_time_step_study` |
-| `19/biomarker_comparison` | `plot-fisher-fornari83.py` | `nodal_biomarkers.csv`, `fem_biomarkers.csv` | `test_fisher_kolmogorov_fornari83` |
+| `19/biomarker_comparison` | `plot-fisher-fornari83.py` | `nodal_biomarkers.csv`, `fem_biomarkers.csv`; inset from `data/connectome/fornari83/nodes.csv` | `test_fisher_kolmogorov_fornari83` |
 | `19/connectome_topology` | `plot-fornari-connectome-topology.py` | `data/connectome/fornari83/{nodes,edges}.csv` | `prepare-fornari-connectome.py` |
 | `20/alpha_sensitivity` | `plot-fisher-alpha-sensitivity.py` | `fornari83_alpha/alpha_*/` | `test_fisher_kolmogorov_fornari83` |
 | `21/regional_averages` | `plot-fisher-kolmogorov-regions.py` | `regional_averages.csv` | `test_fisher_kolmogorov_corti83` |
@@ -30,6 +30,8 @@ disagree. Run it from the project root:
 | `25/seeding_vulnerability` | `plot-fisher-seeding-vulnerability.py` | `seeding_vulnerability_rho_*.csv`, `seeding_curves_rho_*.npz` | `study-fisher-seeding-vulnerability.py` driving `test_fisher_kolmogorov_fornari83` |
 | `26/anatomical_progression` | `plot-connectome-progression.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
 | `26/activation_time` | `plot-connectome-activation.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
+| `27/seeding_patterns` | `plot-connectome-staging.py` | `staging/{tau,amyloid}_nodal/nodal_profiles.csv` | `test_fisher_kolmogorov_fornari83` |
+| `27/seeding_patterns_expected` | `plot-connectome-staging.py` | as above, plus `27/reference/weickenmeier_fig1_{tau,amyloid}.png` | as above; the reference strips are cut from the article PDF by `extract-weickenmeier-staging.py` |
 
 ## Rules the figures follow
 
@@ -45,3 +47,6 @@ disagree. Run it from the project root:
   scaling where the infection times actually differ.
 - Axis ranges start at zero for concentrations and biomarkers; logarithmic axes
   are used only for quantities spanning decades, and are labelled as such.
+- Published artwork appears only in the expected-against-obtained composite of
+  benchmark 27, in rows of its own, cut from the article PDF by a script and
+  never blended with computed content; the caption states its source.

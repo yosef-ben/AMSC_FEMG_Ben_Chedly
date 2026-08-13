@@ -24,11 +24,6 @@
 %
 %  Ogni numero riportato qui e' ricalcolato dai file di risultato con
 %  scripts/verify-figures.py (102 controlli, nessuno fallito).
-%
-%  NOTA SUI LIVELLI: qui sotto "One-dimensional sensitivity analysis" e'
-%  una \subsubsection, come nella versione dell'autore, mentre le parti
-%  successive sono \subsection. Cosi' si ottiene 4.0.1 seguito da 4.1.
-%  Per una numerazione uniforme conviene promuovere questa a \subsection.
 % =====================================================================
 
 % ---------------------------------------------------------------------
@@ -44,9 +39,33 @@
 %  sovrapponibili.
 % ---------------------------------------------------------------------
 
-\section{Spreading of neudegenerative diseases within the brain's connectome}
+\section{Spreading of neurodegenerative diseases within the brain's connectome}
 
 We have validated our finite element library for the solution of graph-based differential problems on a sequence of elliptic and parabolic benchmarks. We now consider a more application-oriented test case. In particular, we study the Fisher–Kolmogorov equation on a brain connectome's topology. This problem provides a natural extension of the previous linear parabolic models, as it combines diffusion along the graph with a nonlinear reaction term. At the same time, it provides a meaningful test for assessing the scalability of our framework through graph reordering and parallel programming techniques, with the particularly interesting perspective of modeling the propagation of infectious misfolded proteins through the brain, a process that is responsible for neurodegenerative diseases. The goal of this section is therefore not to provide a detailed biological study, but to investigate how the developed solver can be extended from controlled benchmark problems to a realistic network-based diffusion-reaction model.
+
+Figure~\ref{fig:expected} anticipates the outcome. The top rows show the
+clinically expected progression of the two hallmark proteins of Alzheimer's
+disease, as drawn in figure 1 of~\cite{weickenmeier2019prion}; the bottom
+rows show the corresponding progressions computed on the reconstructed
+connectome with the solver of this work. The rest of the chapter builds the
+domain, states the model and verifies every ingredient behind this figure.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{images/seeding_patterns_expected.pdf}
+\caption{Expected against computed progression for the two hallmark
+proteins of Alzheimer's disease. First and third row: the clinical staging
+drawings of figure 1 of~\cite{weickenmeier2019prion}, medial view, adopted
+there from the neuropathological literature; tau above, amyloid-$\beta$
+below. Second and fourth row: the progressions computed in this chapter
+(Section~\ref{sec:staging}), sphere radius and blue intensity both growing
+with the local concentration, at the first instants at which the network
+mean reaches $10$, $40$ and $80$ percent. Tau, seeded at the entorhinal
+cortex, reaches the temporal neighbourhood first and the whole network
+last; amyloid-$\beta$, seeded on the four cortical lobes, descends towards
+the deep structures, which activate last.}
+\label{fig:expected}
+\end{figure}
 
 % ---------------------------------------------------------------------
 %  DA LEGGERE prima di questa sottosezione
@@ -63,7 +82,7 @@ We have validated our finite element library for the solution of graph-based dif
 %        tutti i parametri, riga per riga.
 % ---------------------------------------------------------------------
 
-\subsubsection{One-dimensional sensitivity analysis}
+\subsection{One-dimensional sensitivity analysis}
 \label{sec:onedim}
 
 Prion diseases are characterized by a chain reaction in which misfolded proteins force native ones into a similar pathogenic structure. A physics-based reaction-diffusion model can explain the spreading and growth of these proteins in neurodegenerative diseases: the Fisher-Kolmogorov equation combined with an anisotropic diffusion model \cite{weickenmeier2019prion,cortiFisherKolmogorovGraphs,fornari2019prion}. Following the work described in \cite{weickenmeier2019prion}, we demonstrate the role of the individual model parameters through a one-dimensional sensitivity test, that we exploit also to validate the nonlinear solver before it touches a connectome. We solve
@@ -78,9 +97,9 @@ with homogeneous Neumann boundary conditions,
 \[
 \frac{\partial c}{\partial x}(-1,t) = \frac{\partial c}{\partial x}(1,t) = 0 .
 \]
-The initial concentration is zero at every mesh node except at the central node, where $c(0,0)=0.1$. The interval is discretized using 200 linear finite elements. Backward Euler is employed with $\Delta t = 0.1$ and the nonlinear problem arising at each time step is solved by Newton's method; this is the fully implicit scheme of Section~\ref{sec:timediscretization}. The sensitivity analysis combines the diffusion coefficients $d \in \{1.0, 2.0, 4.0\}\cdot10^{-4}$ with the reaction coefficients $\alpha \in \{1.0,2.0,4.0\}$. These are the choices made in~\cite{weickenmeier2019prion}, including the number of elements and the number of time steps.
+The initial concentration is zero at every mesh node except at the central node, where $c(0,0)=0.1$. The interval is discretized using 200 linear finite elements. Backward Euler is employed with $\Delta t = 0.1$ and the nonlinear problem arising at each time step is solved by Newton's method; this is the fully implicit scheme of Section~\ref{sec:formulation}. The sensitivity analysis combines the diffusion coefficients $d \in \{1.0, 2.0, 4.0\}\cdot10^{-4}$ with the reaction coefficients $\alpha \in \{1.0,2.0,4.0\}$. These are the choices made in~\cite{weickenmeier2019prion}, including the number of elements and the number of time steps.
 \noindent
-Fig.~\ref{fig:sensitivity} presents the results using an activation-time representation. For every pair $(x,c)$, the color denotes the first time at which the concentration at position $x$ reaches a prescribed level of $c$. The black curves are therefore contours of equal activation time.
+Figure~\ref{fig:sensitivity} presents the results using an activation-time representation. For every pair $(x,c)$, the colour denotes the first time at which the concentration at position $x$ reaches a prescribed level of $c$. The black curves are therefore contours of equal activation time.
 Increasing $\alpha$ accelerates the local conversion of healthy proteins, whereas increasing $d$ enhances their spatial propagation. Consequently, both parameters increase the propagation speed, although through different mechanisms. The results are in agreement with the ones in \cite{weickenmeier2019prion}.
 
 %The numerical fronts remain symmetric with respect to $x=0$: over
@@ -102,7 +121,7 @@ Increasing $\alpha$ accelerates the local conversion of healthy proteins, wherea
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/sensitivity.pdf}
-\caption{\footnotesize Activation-time maps for the  one dimensional Fisher--Kolmogorov problem. The reaction coefficient increases from left to right, while the diffusion coefficient increases from top to bottom. For each pair $(x,c)$, the color represents the first time at which the numerical concentration at $x$ reaches a particular level $c$; black curves denote equal activation times. All panels use the same time scale $t \in [0,20]$.}
+\caption{\footnotesize Activation-time maps for the  one dimensional Fisher--Kolmogorov problem. The reaction coefficient increases from left to right, while the diffusion coefficient increases from top to bottom. For each pair $(x,c)$, the colour represents the first time at which the numerical concentration at $x$ reaches a particular level $c$; black curves denote equal activation times. All panels use the same time scale $t \in [0,20]$.}
 \label{fig:sensitivity}
 \end{figure}
 
@@ -132,7 +151,7 @@ From this sensitivity test we can also derive the main properties of prion-like 
 % ---------------------------------------------------------------------
 \noindent
 The reference reports a preliminary study in which the time step was varied from $\Delta t/4$ to $4\Delta t$, using $\Delta t = 0.1$ as the reference value, with $\alpha = 2.0$ and $d = 2\cdot10^{-4}$. The authors concluded that $\Delta t = 0.1$ was sufficiently small to obtain a converged solution, whereas larger time steps produced a spurious increase in spreading. That study is described in words only: neither the data nor a figure is given, so the used criterion behind the statement cannot be reconstructed. What we can do is to repeat the experiment in order to observe the spurious solutions obtained for larger time steps.\\
-We resort to the coordinate $x_{f}$ of the right front of the solutions as a diagnostic reference, defined as the point where the profile of the curve crosses $c = 0.5$. All the runs are compared at the common time $T = 19.2$, the largest time that is a whole multiple of every step tested: $\Delta t = \{0.025, 0.05, 0.1,0.2, 0.3,0.4\}$. Fig.~\ref{fig:timestep} shows the outcome of the experiment. The qualitative observation of the reference is confirmed. Increasing the time step moves the front outward and at a certain point, the front disappears altogether: for $\Delta t \ge 0.2$ the interval is essentially full, so no $c = 0.5$ crossing exists at all. Large time steps do produce a spurious increase in numerical propagation, exactly as described.\\
+We resort to the coordinate $x_{f}$ of the right front of the solutions as a diagnostic reference, defined as the point where the profile of the curve crosses $c = 0.5$. All the runs are compared at the common time $T = 19.2$, the largest time that is a whole multiple of every step tested: $\Delta t = \{0.025, 0.05, 0.1,0.2, 0.3,0.4\}$. Figure~\ref{fig:timestep} shows the outcome of the experiment. The qualitative observation of the reference is confirmed. Increasing the time step moves the front outward and at a certain point, the front disappears altogether: for $\Delta t \ge 0.2$ the interval is essentially full, so no $c = 0.5$ crossing exists at all. Large time steps do produce a spurious increase in numerical propagation, exactly as described.\\
 Quantitatively, the reading is more delicate. The three time steps that admit a front give:
 \[
 x_{f} = \{0.6889, \quad 0.7268, \quad 0.8145\}
@@ -140,7 +159,7 @@ x_{f} = \{0.6889, \quad 0.7268, \quad 0.8145\}
 \Delta t = \{0.025,\ 0.05,\ 0.1\},
 \]
 so the solution at $\Delta t = 0.1$ is not yet insensitive to further temporal refinement. This does not directly contradict the reference, since the criterion used there to assess convergence is not reported. Our numerical result only shows that, when the front position is used as a diagnostic, the solution still changes appreciably under further temporal refinement. Panel (b) quantifies the same experiment with three dimensionless differences from the finest run ($\Delta t = 0.025)$, all evaluated on the profiles at the common time $T$.\\
-The things this experiment does not establish should be stated plainly: it is not a study of the temporal order of convergence: the run at $\Delta t = 0.025$ is a numerical reference and not an exact solution, so the dimensionless plotted quantities are differences between two numerical solutions and not errors. The formal temporal orders are verified in Section~\ref{sec:timediscretization}, once both time integrators have been introduced, against a problem with an exact solution.
+The things this experiment does not establish should be stated plainly: it is not a study of the temporal order of convergence: the run at $\Delta t = 0.025$ is a numerical reference and not an exact solution, so the dimensionless plotted quantities are differences between two numerical solutions and not errors. The formal temporal orders of the two integrators, recorded in Table~\ref{tab:integrators}, are verified against a problem with an exact solution in the benchmark record.
 
 \begin{figure}[htbp]
 \centering
@@ -152,7 +171,7 @@ $e_\infty = \max_{x\in\Omega} \bigl| c_{\Delta t} - c_{ref} \bigr|, e_2 = \left(
 \end{figure}
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.2
+%  DA LEGGERE prima della sottosezione sul connettoma
 %    [F] par. 3.1 "The connectivity-weighted graph", pp. 4-5: la
 %        costruzione del grafo dal Budapest Reference Connectome v3.0,
 %        la mappatura da 1015 a 83 nodi, e TUTTE le statistiche che
@@ -177,7 +196,7 @@ Following~\cite{fornari2019prion}, we represent the brain as a weighted undirect
 graph $\mathcal{G}=(\mathcal{V},\mathcal{E})$ whose vertices are anatomical
 regions and whose edges are the axonal bundles connecting them. The graph is
 extracted from the public Budapest Reference Connectome
-v3.0~\cite{szalkai2017budapest}, a parameterisable consensus over the
+v3.0~\cite{szalkai2017budapest}, a parameterizable consensus over the
 tractography of healthy subjects of the Human Connectome Project; the number
 of subjects in which each connection occurs is recorded edge by edge, and its
 largest value in the file is $418$, the cohort size stated
@@ -238,7 +257,7 @@ describes the quantities as cohort means.}
 
 One property of the weighting deserves attention here, because it reappears in
 the regional results. The weight of an edge is the fibre count divided by the
-fibre length, so it penalises long-range bundles. Summed over pairs of
+fibre length, so it penalizes long-range bundles. Summed over pairs of
 anatomical groups, the connectivity between the frontal and the parietal group
 reaches $174.8$ and between the parietal and the occipital group $189.7$,
 while the frontal-to-temporal entry is $0.85$, distributed over $14$
@@ -365,7 +384,7 @@ each pair of groups.}
 %    lo zero fuori scala. Il motivo e' misurato ed e' scritto nel testo.
 % ---------------------------------------------------------------------
 
-Fig.~\ref{fig:topology} summarizes the connectivity of the reconstructed
+Figure~\ref{fig:topology} summarizes the connectivity of the reconstructed
 graph through the degree of its vertices in the non-weighted skeleton, their
 degree in the weighted graph and the (weighted) adjacency matrix. The number
 of connections per region varies between $6$ and $48$, consistently
@@ -403,7 +422,7 @@ presence of strongly connected hubs embedded in a much more weakly connected
 network. This structure is directly relevant to disease spreading. In the
 network model of~\cite{fornari2019prion}, highly connected regions are expected
 to become effective hubs for the propagation of misfolded proteins. Thus,
-Fig.~\ref{fig:topology} already provides a structural explanation for the
+Figure~\ref{fig:topology} already provides a structural explanation for the
 heterogeneous vulnerability explored later in
 Section~\ref{sec:vulnerability}: the disease does not propagate over a
 uniform network, but through a small number of preferentially connected
@@ -437,7 +456,7 @@ left hemisphere $41$--$81$, and brainstem $82$.}
 
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.3
+%  DA LEGGERE prima del confronto col modello di rete
 %    [F] par. 3.3 "The network model", p. 5: equazione (3.2), il modello
 %        nodale con N incognite. E' il modello di riferimento con cui ci
 %        confrontiamo, e va letto con attenzione perche' la differenza
@@ -450,196 +469,136 @@ left hemisphere $41$--$81$, and brainstem $82$.}
 %        elementi finiti nel continuo tridimensionale. Serve per vedere
 %        che il nostro termine di reazione integrato e' l'analogo su
 %        grafo metrico del loro, e non un prodotto nodale.
-%    Da confrontare esplicitamente: [F] eq. (3.2) contro la nostra
-%    eq.~\eqref{eq:fem}. La differenza e' la matrice di massa.
+%    Da confrontare esplicitamente: [F] eq. (3.2) contro il sistema
+%    semi-discreto dei primi capitoli. La differenza e' la matrice di massa.
 % ---------------------------------------------------------------------
 
 \subsection{Network model and metric-graph formulation}
 \label{sec:formulation}
 
-On the connectome, \cite{fornari2019prion} solve a system of ordinary differential
-equations with one unknown per region,
+% Nota: quando i capitoli introduttivi avranno i loro \label, sostituire
+% "the first part of this work" con i \ref corrispondenti: la formulazione
+% debole del problema parabolico (eq. 4-5), il sistema semi-discreto con i
+% blocchi di massa e rigidezza (eq. 6-7), il Teorema 2.1 (stiffness =
+% Laplaciano del grafo esteso) e il theta-metodo del sistema completamente
+% discreto (eq. 8).
+
+We solve the Fisher--Kolmogorov equation posed on the (metric) graph
+presented in the previous section; on every edge $e$:
+\begin{equation}
+\partial_t c(s,t) - \partial_s\!\left[D_e\,\partial_s c(s,t)\right]
+  = \alpha(s)\,c(s,t)\,[1-c(s,t)].
+\label{eq:fk}
+\end{equation}
+The edge diffusivity $D_e$ is the connectivity weight of the connection and
+$\alpha$ is the conversion rate. Up to the nonlinear right-hand side, this
+is the same parabolic problem studied in the first part of this work, whose
+P1 discretization applies verbatim, with the mass matrix $M$ and the
+weighted stiffness matrix $K_D$; the only new ingredient is the nonlinear
+reaction term. The references solve a simpler system, with one unknown per
+node and no spatial structure inside the connections:
 \begin{equation}
 \frac{\mathrm{d}c_I}{\mathrm{d}t}
   = -\sum_{J=1}^{N} L_{IJ}\,c_J + \alpha\,c_I\,[1-c_I],
   \qquad I = 1,\dots,N,
 \label{eq:nodal}
 \end{equation}
-where $L = D - A$ is the connectivity-weighted graph Laplacian. This is a nodal
-model: the brain regions are points and the connections carry no internal
-structure. The same equation is the starting point of~\cite{cortiFisherKolmogorovGraphs}.
+where $L = D - A$ is the connectivity-weighted graph Laplacian of
+Section~\ref{sec:connectome}; this is equation (3.2)
+of~\cite{fornari2019prion} and the starting point
+of~\cite{cortiFisherKolmogorovGraphs}. We will refer to it as the nodal
+model. It serves as the term of comparison next to our finite element
+solution, it stands in for it only in the one regime where
+Section~\ref{sec:boundary} shows the present discretization to be
+unreliable, and both systems are run with the code of this work.
 
-The formulation developed in this work replaces the graph by a metric graph.
-Every connection becomes an interval carrying its own diffusion coefficient,
-the concentration is a continuous piecewise linear function on the whole
-network, and on each edge $e$ it satisfies
-\begin{equation}
-\partial_t c - \partial_s\!\left(D_e\,\partial_s c\right)
-  = \alpha(s)\,c\,(1-c),
-\end{equation}
-with continuity at the vertices and the weighted Kirchhoff flux balance
-\[
-\sum_{e \ni v} D_e\,\partial_{n_e} c_e(v,t) = 0
-\]
-imposed naturally by the weak formulation. The P1 semi-discretization is
-\begin{equation}
-M\,\dot{\mathbf{C}} + K_D\,\mathbf{C} = \mathbf{R}(\mathbf{C}),
-\qquad
-R_i(\mathbf{C}) = \int_{\Gamma} \alpha\,c_h\,(1-c_h)\,\varphi_i \,.
-\label{eq:fem}
-\end{equation}
-The reaction vector and its Jacobian are integrated with three-point
-Gauss--Legendre quadrature on every cell, which is exact for the degree-four
-integrands generated by a P1 concentration and a P1 reaction coefficient. The
-reaction is therefore a consistent finite element integral and not a nodal
-Hadamard product, which is the operation appearing in equation (4)
-of~\cite{cortiFisherKolmogorovGraphs}.
+The two systems are related exactly,
+and the relation is a corollary of the theory of the first part of this
+work, which identifies the stiffness matrix with the Laplace matrix of the
+extended graph: at one element per connection and unit metric lengths the
+extended graph is the connectome itself, so $K_D$ coincides with $L$, entry
+by entry, and \eqref{eq:nodal} is the finite element system with the
+consistent mass matrix replaced by the identity and the reaction evaluated
+at the vertices.\footnote{A diagonal-mass counterpart of the finite element
+system, not its row-sum lumped version: at unit edge lengths the lumped
+diagonal would be $\mathrm{deg}_I/2$, not $1$.} The differences are
+therefore two, and only two. The consistent mass gives a value prescribed
+at a vertex a metric support over the incident connections. Refinement adds
+degrees of freedom inside the connections, which the nodal model cannot
+represent. Section~\ref{sec:comparison} measures both.
 
-Two differences between \eqref{eq:nodal} and \eqref{eq:fem} account for
-essentially all the discrepancy observed below. First, the mass matrix $M$ is
-not the identity, so a value prescribed at a vertex has a metric support that
-depends on how many connections meet there. Second, one element per connection
-makes the vertex unknowns of \eqref{eq:fem} coincide in number with the
-unknowns of \eqref{eq:nodal} but not in meaning, and refining the mesh inside
-the connections adds degrees of freedom that the nodal model cannot represent
-at all. It is worth noting for later that the nodal model is exactly the
-mass-lumped counterpart of \eqref{eq:fem}.
+Each reproduced experiment uses the time scheme and way of treating the
+nonlinear term of its own reference. Table~\ref{tab:integrators} summarizes
+the two schemes.
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di questa sottosottosezione
-%    [C] par. 2.1 "Discrete formulation", p. 3, equazione (4): e' lo
-%        schema semi-implicito che riportiamo in eq.~\eqref{eq:semiimplicit}.
-%        Da leggere riga per riga: la parte delicata e' che il fattore di
-%        saturazione viene ESTRAPOLATO, mentre il primo fattore di
-%        concentrazione e' centrato nel tempo.
+%  DA LEGGERE sugli schemi temporali della tabella
+%    [C] par. 2.1 "Discrete formulation", p. 3, equazione (4): lo schema
+%        semi-implicito; la formula completa dell'update resta nel README
+%        del benchmark 21 e nel codice. La parte delicata e' che il
+%        fattore di saturazione viene ESTRAPOLATO (la retta per le ultime
+%        due soluzioni prolungata a meta' passo, dove lo schema e'
+%        centrato), mentre il primo fattore e' centrato nel tempo.
 %    [W] par. 2.3, p. 268, equazioni (10) e (11): il residuo e la matrice
-%        tangente dello schema completamente implicito con Newton.
-%  Qui i due integratori vengono nominati una volta sola e usati con quei
-%  nomi in tutto il capitolo: "semi-implicit" e "fully implicit". Evitare
-%  di chiamarli con il nome degli autori nel testo: la citazione basta.
-% ---------------------------------------------------------------------
-
-\subsubsection{Time discretization}
-\label{sec:timediscretization}
-
-Two time integrators are used in this chapter, and since the choice between
-them matters for both cost and robustness we state them once here and refer to
-them by the same names throughout.
-
-The \emph{fully implicit} scheme is Backward Euler applied to \eqref{eq:fem},
-with the whole reaction term evaluated at the new time level. Each step
-therefore requires a nonlinear solve, which we perform by Newton's method on
-the consistently linearised residual, exactly as in~\cite{weickenmeier2019prion}.
-
-The \emph{semi-implicit} scheme is the one used by~\cite{cortiFisherKolmogorovGraphs}. Diffusion
-and the first concentration factor of the reaction are centred in time, and
-only the saturation factor is extrapolated,
-\begin{equation}
-\mathbf{C}^\star = \tfrac{3}{2}\mathbf{C}^{n} - \tfrac{1}{2}\mathbf{C}^{n-1},
-\qquad
-G(\mathbf{C}^\star)_{ij}
-  = \int_\Gamma \alpha\,(1-c^\star)\,\varphi_i\varphi_j ,
-\label{eq:semiimplicit}
-\end{equation}
-\begin{equation}
-\Big(M + \tfrac{\Delta t}{2} K_D - \tfrac{\Delta t}{2} G(\mathbf{C}^\star)\Big)
-  \mathbf{C}^{n+1}
-= \Big(M - \tfrac{\Delta t}{2} K_D + \tfrac{\Delta t}{2} G(\mathbf{C}^\star)\Big)
-  \mathbf{C}^{n},
-\label{eq:semiimplicitupdate}
-\end{equation}
-started from $\mathbf{C}^{-1} = \mathbf{C}^{0}$. Each step is then a single
-linear solve, at the price of an explicit treatment of one factor. Since
-$G(\mathbf{C}^\star)$ changes at every step, the sparse matrix on the left of
-\eqref{eq:semiimplicitupdate} is rebuilt and factorised at every step, which is
-the dominant cost measured in Section~\ref{sec:performance}.
-
-Table~\ref{tab:integrators} summarises the two and records where each is used.
-
-\begin{table}[htbp]
+%        tangente dello schema comple\begin{table}[htbp]
 \centering
+\setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lll}
 \hline
- & Fully implicit & Semi-implicit \\
+ & Fully implicit~\cite{weickenmeier2019prion,fornari2019prion}
+ & Semi-implicit~\cite{cortiFisherKolmogorovGraphs} \\
 \hline
-reaction term      & evaluated at $t^{n+1}$  & saturation factor extrapolated \\
-solve per step     & Newton iteration        & one linear system \\
-order in time      & first                   & second \\
-used in            & Sections~\ref{sec:onedim}, \ref{sec:comparison}--\ref{sec:vulnerability}
-                   & Sections~\ref{sec:corti}--\ref{sec:performance} \\
+Time discretization
+& Backward Euler ($\theta = 1$)
+& Crank--Nicolson ($\theta = 1/2$) \\
+
+Nonlinear term
+& implicit, at $t^{n+1}$
+& saturation frozen at $\mathbf{C}^\star$ \\
+
+Initialization
+& $\mathbf{C}^{0}$
+& $\mathbf{C}^{-1} = \mathbf{C}^{0}$ \\
+
+Solve per step
+& Newton iteration
+& linear system, matrix rebuilt \\
+
+Order in time
+& first
+& second \\
+
+Used in (sections)
+& \ref{sec:onedim}, \ref{sec:comparison}--\ref{sec:vulnerability}
+& \ref{sec:corti}--\ref{sec:performance} \\
 \hline
 \end{tabular}
-\caption{The two time integrators used in this chapter. The fully implicit
-scheme is the one adopted by~\cite{weickenmeier2019prion} and \cite{fornari2019prion};
-the semi-implicit one is that of~\cite{cortiFisherKolmogorovGraphs}.}
+\caption{The time discretization strategies adopted by the references, as
+implemented in this work; both are the $\theta$-method of the first part of
+this work plus a treatment of the nonlinearity. The extrapolation
+$\mathbf{C}^\star = \tfrac{3}{tamente implicito con Newton.
+%  Nel testo i due schemi sono chiamati "fully implicit" e "semi-implicit"
+%  come nelle colonne della tabella; gli ordini sono verificati sulla
+%  logistica esatta nel record dei benchmark
+%  (test_fisher_kolmogorov_logistic).
+% ---------------------------------------------------------------------
+
+2}\mathbf{C}^{n} - \tfrac{1}{2}\mathbf{C}^{n-1}$
+is the straight line through the two previous solutions prolonged to the
+midpoint of the step, where the Crank--Nicolson scheme is centred: the
+prediction is second-order accurate, so each step costs a single linear
+solve without losing the order. The matrix carrying the frozen factor must
+however be rebuilt and refactorized at every step, the dominant cost
+measured in Section~\ref{sec:performance}. Both orders are verified against
+the exact logistic solution in the benchmark record.}
 \label{tab:integrators}
 \end{table}
 
-% ---------------------------------------------------------------------
-%  NOTA: questo paragrafo NON ridimostra gli ordini di Eulero implicito e
-%  Crank-Nicolson, che sono gia' stabiliti nel Capitolo 3 sul problema
-%  parabolico lineare con soluzione esatta (il test di convergenza
-%  temporale sulla stella, quello della Figura 7). Verifica una cosa
-%  diversa e piu' stretta: che il trattamento NON LINEARE non li degradi.
-%  Il punto delicato e' l'estrapolazione del fattore di saturazione in
-%  eq.~\eqref{eq:semiimplicit}; con un'estrapolazione del primo ordine lo schema
-%  scenderebbe al primo ordine.
-%  DA FARE: mettere un \label sulla sottosezione del Capitolo 3 e
-%  sostituire qui sotto "the temporal convergence test of Chapter 3" con
-%  il \ref corrispondente. Attenzione: nel testo quel test e' chiamato
-%  Test 2 e nella didascalia della Figura 7 Test 4; va uniformato.
-% ---------------------------------------------------------------------
-
-The orders in time of Backward Euler and Crank--Nicolson are already
-established in the temporal convergence test of Chapter 3, on the linear
-parabolic problem and against an exact solution. What that test cannot say is
-whether the nonlinear treatment preserves them, and one step of the present
-chapter makes the question a real one: the semi-implicit scheme
-\eqref{eq:semiimplicit} does not solve the reaction term exactly but extrapolates its
-saturation factor, and a first-order extrapolation in place of
-$\tfrac{3}{2}\mathbf{C}^{n}-\tfrac{1}{2}\mathbf{C}^{n-1}$ would reduce the
-whole scheme to first order.
-
-The check is cheap because the nonlinear problem admits an exact solution in
-one special case. On a spatially uniform initial datum with uniform
-coefficients the solution stays uniform, the diffusion term vanishes
-identically, and the semi-discrete system reduces to the scalar logistic
-equation, whose solution is known in closed form. Running the four-pointed star
-with $c_0 = 0.1$ and $\alpha = 0.2$ at every vertex up to $T=1$, and measuring
-the largest vertex error against that solution, successive halvings from
-$\Delta t = 0.02$ to $0.005$ give the rates $1.99918$ and $1.99966$ for the
-semi-implicit scheme and $1.00144$ and $1.00036$ for the fully implicit one,
-collected in Table~\ref{tab:logistic}. The extrapolation and the Newton solve
-therefore leave the orders established in Chapter 3 intact.
-
-\begin{table}[htbp]
-\centering
-\begin{tabular}{lccccc}
-\hline
- & \multicolumn{2}{c}{Semi-implicit}
- & & \multicolumn{2}{c}{Fully implicit} \\
-\cline{2-3}\cline{5-6}
-$\Delta t$ & error & rate & & error & rate \\
-\hline
-$0.02$  & $1.183\cdot10^{-7}$ & --        & & $3.294\cdot10^{-5}$ & --       \\
-$0.01$  & $2.959\cdot10^{-8}$ & $1.99918$ & & $1.645\cdot10^{-5}$ & $1.00144$\\
-$0.005$ & $7.398\cdot10^{-9}$ & $1.99966$ & & $8.224\cdot10^{-6}$ & $1.00036$\\
-\hline
-\end{tabular}
-\caption{Verification of the two time integrators against the exact logistic
-solution, on the four-pointed star with $c_0 = 0.1$ and $\alpha = 0.2$ at every
-vertex and $T = 1$. The error is the largest deviation over the vertices; the
-rate is the base-two logarithm of the ratio of successive errors. Because the
-datum and the coefficients are uniform the diffusion term vanishes identically,
-so what is measured is the treatment of the nonlinear reaction alone.}
-\label{tab:logistic}
-\end{table}
-
 
 
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.4
+%  DA LEGGERE prima della sottosezione sul Damkohler
 %    [F] par. 4 "Biomarker models", p. 6, prime righe: la definizione di
 %        biomarker abnormality.
 %    [F] par. 4.1 "The Fisher-Kolmogorov model", p. 6: e' il paragrafo da
@@ -666,16 +625,26 @@ so what is measured is the treatment of the nonlinear reaction alone.}
 We reproduce the baseline simulation of~\cite{fornari2019prion}: conversion rate
 $\alpha=0.5$, misfolded protein seeded in the entorhinal cortex at $c_0=0.1$,
 all other regions healthy, and $100$ implicit steps of $\Delta t = 0.4$ years.
-The biomarker abnormality of a group of regions is the concentration averaged
-over its vertices, expressed as a percentage.
+Following the reference, the evolution is summarized by a biomarker: for a
+group of regions $\mathcal{I}$, the abnormality is the concentration averaged
+over its vertices and expressed as a percentage,
+\begin{equation}
+C_{\mathcal{I}}(t)
+  = \frac{100}{|\mathcal{I}|}\sum_{I \in \mathcal{I}} c_I(t),
+\label{eq:biomarker}
+\end{equation}
+evaluated for the four cortical lobes and for the network as a whole. The
+reference defines its biomarker as the plain sum of the concentrations, its
+equation (4.1); the normalization used here changes the units to a
+percentage and nothing else.
 
-Both solutions remain in the physical interval, up to a transient undershoot of
-order $10^{-4}$ in the finite element solution which we trace below to the
-coarse mesh, and both approach the stable state $c=1$. The biomarker curves
-have the expected sigmoid shape, and the $50$-percent crossing of the network
-average occurs at $11.11$ years for the nodal model and $12.68$ years for the
-finite element model, the difference being the metric-support effect described
-in Section~\ref{sec:formulation}.
+Both solutions remain in the physical interval and approach the stable
+state $c=1$; the finite element solution shows a transient undershoot of
+order $10^{-4}$, traced below to the coarse mesh. The biomarker curves have
+the expected sigmoid shape. The $50$-percent crossing of the network average
+occurs at $11.11$ years for the nodal model and at $12.68$ years for the
+finite element one; the difference is the metric-support effect described in
+Section~\ref{sec:formulation}.
 
 The activation sequence, however, is not reproduced. \cite{fornari2019prion} report
 a separation of roughly five years between the temporal and the occipital lobe;
@@ -697,7 +666,7 @@ no rescaling is applied to the upper panels.}
 \end{figure}
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.4.1
+%  DA LEGGERE prima della sottosezione sul Damkohler.1
 %    Nessuna lettura nei tre paper: nessuno dei tre riporta uno studio di
 %    raffinamento in spazio o in tempo su connettoma. E' interamente
 %    nostro, ed e' esattamente il tipo di contributo che ci si aspetta da
@@ -735,6 +704,20 @@ time-discretization error of order one year, in our simulation as well as in
 the reference, which uses the same step with a first-order scheme. Agreement of
 absolute times between the two works should be read with that in mind.
 
+The refinement study also quantifies what the metric-graph formulation buys.
+Taking the spatially resolved solution at eight elements per connection as
+the reference, the network crossing time of the coarsest finite element
+mesh is early by $0.030$ years, an error the refinement path above reduces
+further at first order; the crossing time of the nodal model is early by
+$1.61$ years, and no refinement available to that model can reduce it,
+because the gap comes from its formulation, the identity mass and the
+pointwise reaction, not from a mesh. If the metric graph is accepted as the
+model of the network, the discretization error of the finite element
+formulation is controllable and its resolved limit is well defined, whereas
+the nodal model carries a fixed modeling offset. This is a statement about
+the two discrete systems, not about the disease: no clinical accuracy is
+implied, since no patient data enters either computation.
+
 
 % ---------------------------------------------------------------------
 %  DA LEGGERE prima di 4.5
@@ -756,23 +739,38 @@ absolute times between the two works should be read with that in mind.
 \subsection{What controls the regional separation}
 \label{sec:damkohler}
 
-Consider \eqref{eq:nodal} with the Laplacian scaled by a positive factor
-$\rho$, so that $\rho=1$ recovers the published model. Linearising around a
-small uniform concentration, the average over the network grows at the reaction
-rate $\alpha$, while any imbalance between regions relaxes at the rate
-$\rho\lambda_2$, where $\lambda_2$ is the Fiedler value of $L$, its smallest
-non-zero eigenvalue. A difference between lobes can therefore survive long
-enough to be visible only if the reaction is faster than the homogenisation of
-the graph, that is if the Damk\"ohler number
+Section~\ref{sec:comparison} ended on a disagreement: the reference reports
+lobes activating years apart, while our curves coincide. This section shows
+that one dimensionless number controls the separation.
+
+Consider \eqref{eq:nodal} with the connectivity weights scaled by a uniform
+factor $\rho > 0$, so that the Laplacian becomes $\rho L$ and $\rho = 1$
+recovers the published model; in the metric-graph formulation the same
+factor multiplies every edge diffusivity $D_e$. Two rates then compete.
+Linearised around a small concentration, the reaction grows every regional
+value at the rate $\alpha$. Diffusion damps every contrast between regions;
+expanding on the eigenvectors of $L$, the slowest, longest-lived contrast
+decays at the rate $\rho\lambda_2$, where $\lambda_2$ is the smallest
+non-zero eigenvalue of $L$ (its Fiedler value). The reaction therefore
+differentiates the regions on the time scale $1/\alpha$, while the network
+erases their differences on the time scale $1/(\rho\lambda_2)$. The
+Damk\"ohler number is the ratio of the two,
 \begin{equation}
-\mathrm{Da} = \frac{\alpha}{\rho\,\lambda_2}
+\mathrm{Da}
+  \;=\; \frac{1/(\rho\lambda_2)}{1/\alpha}
+  \;=\; \frac{\alpha}{\rho\,\lambda_2},
 \label{eq:damkohler}
 \end{equation}
-is large. For the reconstructed connectome we compute $\lambda_2 = 0.7723$ and
-$\lambda_{\max} = 145.45$.
+the homogenization time of the slowest contrast over the reaction time.
+When $\mathrm{Da} \ll 1$ the graph homogenizes before the reaction can tell
+the regions apart, and coincident regional curves are the correct outcome;
+when $\mathrm{Da} \gg 1$ the contrasts imprinted by the topology and by the
+seed survive up to saturation, and the curves separate. For the
+reconstructed connectome, $\lambda_2 = 0.7723$, computed from the same edge
+weights the solver uses.
 
 At the parameters of the reference, $\rho = 1$ and $\alpha = 0.5$, we obtain
-$\mathrm{Da} = 0.65$. The connectome homogenises faster than the reaction
+$\mathrm{Da} = 0.65$. The connectome homogenizes faster than the reaction
 develops, and coincident lobe curves are the correct solution of
 \eqref{eq:nodal} at unit weight scale, not a numerical artefact.
 Figure~\ref{fig:damkohler} quantifies this by sweeping $\rho$: the lobe
@@ -788,17 +786,17 @@ of the weights is adopted.
 \centering
 \includegraphics[width=\textwidth]{images/diffusion_scaling.pdf}
 \caption{Regional separation as a function of the Damk\"ohler number
-\eqref{eq:damkohler}. Top: lobe biomarkers at three scalings, drawn with the
-convention of figure 7 of~\cite{fornari2019prion} so that the two can be compared.
-Bottom: the separation between the earliest and the latest lobe against
-$\mathrm{Da}$, with the two settings used in this chapter marked and the shaded
-region indicating where the consistent-mass P1 discretization loses
-boundedness.}
+\eqref{eq:damkohler}. (a)--(c) lobe biomarkers at three scalings, drawn with
+the colour and line-style convention of figure 7 of~\cite{fornari2019prion} so
+that the two can be compared. (d) the separation between the earliest and the
+latest lobe against $\mathrm{Da}$, with the two settings used in this chapter
+marked and the shaded region indicating where the consistent-mass P1
+discretization loses boundedness.}
 \label{fig:damkohler}
 \end{figure}
 
 This also reconciles two results of this chapter that would otherwise look
-contradictory. The deterministic model of Section~\ref{sec:corti} normalises
+contradictory. The deterministic model of Section~\ref{sec:corti} normalizes
 the diffusivity as $D_e = w_e/\max_e w_e$, that is $\rho = 0.0283$, and uses
 regional reaction rates whose average over the $83$ vertices is $0.1252$; its
 Damk\"ohler number is $5.73$, on the other side of the crossover, which is why
@@ -808,12 +806,20 @@ Section~\ref{sec:comparison} do not.
 \subsubsection{A validity boundary for the discretization}
 \label{sec:boundary}
 
-The same sweep bounds the finite element formulation. Above $\mathrm{Da}$ of
-about $13$, that is $\rho \le 0.02$ at $\alpha=0.5$, the discrete concentration
-leaves $[0,1]$ and then diverges: at $\rho = 0.005$ the nodal reference stays
-within $[0.99985, 1]$ while the finite element solution reaches $[-507, 523]$.
+The same sweep bounds the finite element formulation, and the boundary
+deserves a precise statement. The violation of the physical range grows with
+$\mathrm{Da}$ well before the failure: the transient undershoot of the
+finite element solution is $-1.3\cdot10^{-4}$ at $\mathrm{Da}=0.65$ and
+already $[-0.17, 1.04]$ at $\mathrm{Da}=12.9$, from which the solution still
+recovers and converges to the healthy-to-infected plateau. Above
+$\mathrm{Da}$ of about $13$, that is $\rho \le 0.02$ at $\alpha=0.5$, it no
+longer recovers and diverges: at $\rho = 0.005$ the nodal reference stays
+within $[0.99985, 1]$ while the finite element solution reaches
+$[-507, 523]$. The boundary therefore separates recoverable from
+unrecoverable violations of the maximum principle, not violation from
+compliance.
 The failure occurs identically with the fully implicit and with the
-semi-implicit scheme, so it is not a failure of the Newton solver, and it
+semi-implicit scheme, so it is not a failure of the Newton solver. It
 persists at $1$, $2$, $4$ and $8$ elements per connection, so it is not a
 matter of resolving the front.
 
@@ -822,24 +828,81 @@ so the semi-discrete system does not satisfy a discrete maximum principle;
 while diffusion dominates, the diffusion matrix compensates, and once the
 reaction dominates nothing does. As observed in Section~\ref{sec:formulation},
 the nodal model \eqref{eq:nodal} and the Hadamard product used
-in~\cite{cortiFisherKolmogorovGraphs} are exactly the mass-lumped counterparts of
-\eqref{eq:fem}, which is why they remain bounded at every scaling tested.
-The same defect is visible on the one-dimensional problem of
-Section~\ref{sec:onedim}, which is worth recording because it shows that the
-boundary is a property of the discretization and not of the connectome: with
-the sharp single-node initial datum, refining the time step at $\alpha=2$ and
-$d=10^{-4}$ makes the undershoot grow rather than shrink, from
-$-1.5\cdot10^{-13}$ at $\Delta t = 0.1$ to $-5.4\cdot10^{-6}$ at $0.05$ and
-$-9.1\cdot10^{-4}$ at $0.025$. Introducing an optional lumped mass matrix is
-therefore the natural way to extend the present formulation into the
-reaction-dominated regime, and we leave it as the immediate continuation of
-this work. Both simulations reported in this chapter
-satisfy $\mathrm{Da}\le 6$ and are therefore well inside the region where the
-discretization is reliable.
+in~\cite{cortiFisherKolmogorovGraphs} carry a diagonal mass with the reaction
+evaluated at the vertices, so no positive off-diagonal mass entry exists to
+violate the maximum principle, which is why they remain bounded at every
+scaling tested.
+The defect is a property of the discretization, not of the connectome: on
+the one-dimensional problem of Section~\ref{sec:onedim}, with the sharp
+single-node datum at $\alpha=2$ and $d=10^{-4}$, refining the time step
+makes the undershoot grow rather than shrink, from $-1.5\cdot10^{-13}$ at
+$\Delta t = 0.1$ to $-9.1\cdot10^{-4}$ at $\Delta t = 0.025$. Introducing an
+optional lumped mass matrix is therefore the natural way to extend the
+present formulation into the reaction-dominated regime, and we leave it as
+the immediate continuation of this work. Every finite element result of this
+chapter sits at $\mathrm{Da} \le 5.73$, well inside the reliable region;
+where a larger $\mathrm{Da}$ is required, in Sections~\ref{sec:staging}
+and~\ref{sec:vulnerability}, the nodal system takes over, and the text says
+so there.
 
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.6
+%  DA LEGGERE prima della sottosezione sui pattern di semina
+%    [W] par. 2.7 "Neurodegeneration models", p. 271: le regioni di semina
+%        delle quattro malattie; per noi contano le due di Alzheimer:
+%        amyloid-beta "first appear in the neocortex", tau "first in the
+%        locus coeruleus and transentorhinal layer".
+%    [F] Fig. 1, p. 2: il pattern atteso in tre stadi, riga (a) clinica e
+%        riga (c) modello di rete; la nostra figura riproduce la riga (c).
+%    [W] Fig. 1 e Fig. 7, pp. 265 e 271: la stessa progressione attesa e
+%        le condizioni iniziali.
+%  ANALOGA di Figura~\ref{fig:expected} (in apertura di capitolo)
+%    [F] Fig. 1, pannello (c): sfere il cui raggio e la cui intensita' blu
+%        crescono con la concentrazione, tre stadi da sinistra a destra.
+%    Le righe "expected" del montaggio sono ritagliate dalla fig. 1 di
+%    [W], p. 266, da scripts/extract-weickenmeier-staging.py; il modello
+%    continuo di [F] non e' riproducibile senza il loro solutore 3D.
+% ---------------------------------------------------------------------
+
+\subsection{Seeding patterns and expected progression}
+\label{sec:staging}
+
+The two hallmark proteins of Alzheimer's disease enter the model through the
+initial condition alone. Tau inclusions appear first in the transentorhinal
+region, and the expected progression is the Braak sequence: entorhinal
+cortex, then the temporal lobe, then the interconnected neocortex.
+Amyloid-$\beta$ deposits appear first in the neocortex, and the expected
+progression runs the other way, downwards, with the deep structures last
+\cite{weickenmeier2019prion}. On the graph the two seedings are the entorhinal
+vertices at $c_0=0.1$, the seed used throughout this chapter, and the $58$
+vertices of the four cortical lobes at the same level.
+
+The two computed progressions are the ones shown below their clinical
+counterparts in Figure~\ref{fig:expected}, the figure that opens this
+chapter, in the construction of figure 1 of~\cite{fornari2019prion}: three
+stages, selected as the first instants at which the network mean reaches
+$10$, $40$ and $80$ percent. The solution shown is the nodal network model
+at $\rho = 0.005$, the scaling Section~\ref{sec:damkohler} identifies with
+the separation the reference publishes; at this scaling the consistent-mass
+finite element formulation leaves the physical range
+(Section~\ref{sec:boundary}), while the nodal solution remains in $[0,1]$
+throughout, and the figure script verifies it.
+
+Both expected patterns are recovered. The tau row starts from a single dark
+sphere at the entorhinal cortex, reaches the temporal neighbourhood first
+and involves the whole network last, over $10.4$, $14.8$ and $18.8$ years.
+The amyloid row starts from a faint uniform cortical mantle and descends:
+averaging the first crossings of $c=0.5$ over each anatomical group, the
+four seeded lobes activate between $4.5$ and $4.9$ years, the insula at
+$5.6$, the limbic belt at $6.3$, and the subcortical nuclei last at $7.7$
+years, three years behind the cortex, which is the downward sequence the
+literature describes. The one caveat carries over from
+Section~\ref{sec:damkohler}: within the late tau stages the ordering of the
+remaining lobes reflects the connectivity of the graph, the weakly connected
+frontal pole last, and not the clinical sequence.
+
+% ---------------------------------------------------------------------
+%  DA LEGGERE prima della sottosezione sul tasso di conversione
 %    [F] par. 5 "Treatment opportunities", p. 7, introduzione.
 %    [F] par. 5.1 "Delaying conversion", pp. 7-8: e' l'esperimento che
 %        riproduciamo. Contiene l'interpretazione di alpha come
@@ -854,8 +917,8 @@ discretization is reliable.
 %        e stesso orizzonte di 80 anni. La nostra aggiunge il confronto
 %        nodale/FEM, che in [F] non esiste perche' hanno un solo modello.
 %    Da guardare anche [F] Fig. 10, p. 8, che e' la versione anatomica
-%    dello stesso esperimento; la nostra corrispondente e' la
-%    Figura~\ref{fig:progression}, discussa piu' avanti.
+%    dello stesso esperimento; la nostra vista anatomica corrispondente
+%    e' la Figura~\ref{fig:expected}.
 % ---------------------------------------------------------------------
 
 \subsection{Sensitivity to the conversion rate}
@@ -874,7 +937,7 @@ crossing of the network average moves from $11.11$ years at $\alpha = 0.5$ to
 $59.33$ years at $\alpha = 0.1$ in the nodal model, and from $12.68$ to $67.81$
 years in the finite element model. For $\alpha = 0$ the reaction vanishes and
 the two conserved quantities are preserved to round-off: the nodal average
-drifts by $1.1\cdot10^{-14}$ and the normalised finite element metric integral
+drifts by $1.1\cdot10^{-14}$ and the normalized finite element metric integral
 $\mathbf{1}^{\!\top} M \mathbf{C}/\mathbf{1}^{\!\top} M \mathbf{1}$ by
 $8.0\cdot10^{-16}$.
 
@@ -922,11 +985,13 @@ The network enters the model only through $L$, so it is natural to ask which
 regions are the most dangerous places for the disease to start. Following the
 infection-time study of~\cite{fornari2019prion} we seed each of the $83$ regions in
 turn and record the time at which the network biomarker reaches $95\%$. The
+sweep runs on the nodal system \eqref{eq:nodal}, because one of its two
+scalings lies beyond the validity boundary of Section~\ref{sec:boundary}. The
 reference performs this experiment with the Heterodimer model rather than with
 Fisher--Kolmogorov, so the absolute times are not comparable and we compare only
 the ranking, which depends on the network rather than on the kinetics.
 
-At $\rho = 1$ the infection times span $0.02$ years, which is the homogenisation
+At $\rho = 1$ the infection times span $0.02$ years, which is the homogenization
 effect quantified in Section~\ref{sec:damkohler}; at $\rho=0.02$ they span four
 years and the ordering becomes measurable. Three observations of the reference
 survive at both scalings.
@@ -973,7 +1038,8 @@ the same.}
 %    [C] par. 2.1 "Discrete formulation", p. 3: equazione (4), lo schema
 %        semi-implicito di Crank-Nicolson con estrapolazione del secondo
 %        ordine. E' lo schema che implementiamo, e va confrontato riga
-%        per riga con la nostra eq.~\eqref{eq:semiimplicit}.
+%        per riga con la tabella degli integratori e con
+%        l'implementazione in fisher_kolmogorov_problem.
 %    [C] Tabella 1, p. 11: le sette medie stimate mu_l. Sono i numeri che
 %        usiamo. Da citare esplicitamente.
 %    [C] par. 4.1, p. 8: la proiezione PET che costituisce il dato
@@ -1007,12 +1073,12 @@ takes the mean values estimated in table 1 of the reference: $0.1801$ in the
 frontal lobe, $0.1421$ temporal, $0.0627$ parietal, $0.1005$ insular, $0.1351$
 limbic, $0.0545$ occipital and $0.1147$ in the subcortical nuclei. The nodal
 values are interpolated linearly along each connection. The diffusivity is the
-normalised connectivity $D_e = w_e/\max_e w_e$; the reference does not state a
-normalisation, and Section~\ref{sec:damkohler} shows that this choice is what
+normalized connectivity $D_e = w_e/\max_e w_e$; the reference does not state a
+normalization, and Section~\ref{sec:damkohler} shows that this choice is what
 places the simulation in the regime where regional curves separate.
 
 The time discretization is the semi-implicit scheme
-\eqref{eq:semiimplicit}, which is the one the reference adopts. We use
+of Table~\ref{tab:integrators}, which is the one the reference adopts. We use
 $\Delta t = 0.2$ years, four elements per connection, $3473$ degrees of freedom
 and a horizon of $20$ years, and we replace the unavailable PET projection by a documented
 synthetic datum: entorhinal and hippocampal regions start at $c = 0.10$ and all
@@ -1075,123 +1141,24 @@ the central curve has a counterpart.}
 \label{fig:regional}
 \end{figure}
 
-
-% ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.9
-%    [W] par. 3.3 "Prion-like spreading in neurodegenerative disease",
-%        p. 273: descrive le simulazioni tridimensionali di cui le
-%        Figure 10-12 sono il risultato.
-%    [W] Fig. 11, p. 276, e Fig. 12, p. 277: sono le due figure a cui la
-%        nostra si ispira. Guardare in particolare come il mesh
-%        tetraedrico resta visibile in grigio dove la concentrazione e'
-%        bassa: e' il meccanismo che abbiamo copiato, non la palette.
-%    [W] Fig. 10, p. 275: la versione bidimensionale su sezione
-%        sagittale, ancora piu' vicina alla nostra come composizione.
-%    [F] par. 5.1 e Fig. 10, p. 8: l'altra figura anatomica di
-%        riferimento, con l'effetto di ritardo al calare di alpha.
-%    Da tenere presente leggendo: le loro immagini sono sezioni di un
-%    campo continuo su mesh di volume con circa 80 000 incognite. La
-%    differenza con il nostro substrato va dichiarata, non attenuata.
-% ---------------------------------------------------------------------
-
-\subsection{Anatomical progression}
-\label{sec:progression}
-
-Figure~\ref{fig:progression} shows the spreading itself, as a mid-sagittal
-section in the construction of~\cite{weickenmeier2019prion}: the pial surface is
-clipped to one half-space and the graph to the other, so the network sits
-inside an opaque brain rather than floating over a translucent one, and the
-zero of the colour ramp is the neutral grey of the discretisation, so the
-lesion emerges from a pale wireframe instead of the whole object being dark.
-Nothing is thresholded away; the white marks are the exact $c=0.5$ level set of
-the P1 interpolant. The three stages are the stored times at which the network
-mean concentration reaches $0.2$, $0.4$ and $0.6$, which is the same biomarker
-the reference plots, so the staging is a property of the solution rather than a
-choice of ours.
-
-What is drawn deserves emphasis: not the $83$ regions, but every degree of
-freedom the metric-graph formulation carries, the region vertices together with
-the nodes along each connection, $10\,170$ in all at eight elements per
-connection. This is precisely what the nodal model \eqref{eq:nodal} does not
-have, and it is what makes the field read as a volume rather than as a
-wireframe.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/anatomical_progression.pdf}
-\caption{Mid-sagittal section of the spreading, for the deterministic model of
-Section~\ref{sec:corti} refined to eight elements per connection, in the
-construction of figures 10 and 11 of~\cite{weickenmeier2019prion}. The pial surface
-is clipped to $x\ge0$ and the graph to $x\le0$ on the same plane, so the
-network is occluded by the anatomy. Every drawn element is a degree of freedom
-of the simulation and tube and vertex radii are constant, so thickness encodes
-nothing. The zero of the colour ramp is the grey of the discretisation, the
-scale is fixed on $[0,1]$ in all panels, and nothing is thresholded away; white
-marks are the exact $c=0.5$ level set. Stages are the stored times at which the
-network mean reaches $0.2$, $0.4$ and $0.6$. The horizon is $60$ years rather
-than the $20$ of Section~\ref{sec:corti}; model, coefficients, seed and time
-step are unchanged.}
-\label{fig:progression}
-\end{figure}
-
-% ---------------------------------------------------------------------
-%  ANALOGA di Figura~\ref{fig:activation}
-%    NESSUNA diretta. L'idea di una mappa dei tempi di attivazione compare
-%    in [W] Fig. 3, p. 269, ma li' e' monodimensionale e nel piano (x,c);
-%    la versione su rete e' nostra.
-%    Il risultato che la figura porta, cioe' che l'ordine e' dettato dai
-%    tassi di reazione e non dalla propagazione, non ha corrispondente in
-%    nessuno dei tre paper ed e' il secondo contributo del capitolo dopo
-%    il numero di Damkohler.
-% ---------------------------------------------------------------------
-
-Figure~\ref{fig:activation} condenses the whole history into one image by
-colouring each degree of freedom with the year its concentration reaches
-$0.5$, and it corrects an interpretation the progression invites. The obvious
-reading of an anterior-to-posterior gradient is a front travelling outward from
-the seed. That reading is wrong here. Over the $83$ region vertices the
-activation time correlates with the local reaction coefficient at $r=-0.841$
-and with the graph distance from the seed at $r=+0.065$, and the graph
-eccentricity from the seed is $2$: every region lies within two connections of
-the entorhinal and hippocampal seed. The order in which the network is
-recruited is set by the regional conversion rates, $0.1801$ in the frontal
-group against $0.0545$ in the occipital one, and not by propagation. This is
-the conclusion of Section~\ref{sec:damkohler} reached independently, and it is
-why no directional arrows are drawn: an arrow would assert a direction of
-travel the solution does not contain.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.86\textwidth]{images/activation_time.pdf}
-\caption{Order in which the network is recruited: every degree of freedom
-coloured by the first stored year at which its concentration reaches $0.5$. Ten
-of the $10\,170$ degrees of freedom never reach it within the horizon and take
-the late end of the ramp. The activation time correlates with the local
-reaction coefficient at $r=-0.841$ and with the graph distance from the seed at
-$r=+0.065$, so the anterior-to-posterior gradient is a reaction-rate pattern
-and not a travelling front.}
-\label{fig:activation}
-\end{figure}
-
-One limitation is structural and we state it rather than work around it. The
-reference fills its brain silhouette because its unknown lives on a tetrahedral
-volume mesh with about $80\,000$ unknowns; ours lives on $1130$
-one-dimensional connections, so the coloured structure occupies a lens-shaped
-core with bare tissue around it. That rim is an absence of degrees of freedom,
-not an absence of disease. Filling it, by interpolating the graph field into
-the volume or by assigning cortical triangles to their nearest region, is the
-one operation that would make our figure resemble theirs, and it would
-manufacture spatial detail the model does not carry. Two further points a
-reader will otherwise misread: pale grey means low and never healthy, since the
-initial condition is $c=0.01$ everywhere and the network minimum rises
-monotonically, whereas the reference's white tissue genuinely is $c=0$; and the
-interior nodes of a connection lie on the straight chord between two region
-centroids, which is the discretization the solver used and not an anatomical
-fibre path.
+The same run, refined to eight elements per connection and extended to $60$
+years, settles how the network is recruited. Colouring each of the
+$10\,170$ degrees of freedom with the first year its concentration reaches
+$0.5$ gives an anterior-to-posterior gradient whose obvious reading, a front
+travelling outward from the seed, is wrong: over the region vertices the
+activation time correlates with the local reaction coefficient at
+$r=-0.841$ and with the graph distance from the seed at $r=+0.065$, and the
+graph eccentricity from the seed is $2$, every region lying within two
+connections of the entorhinal and hippocampal seed. The recruitment order is
+set by the regional conversion rates, $0.1801$ in the frontal group against
+$0.0545$ in the occipital one, not by propagation, which is the conclusion
+of Section~\ref{sec:damkohler} reached independently. The activation map and
+the staged concentration sections drawn from this run are kept in the
+benchmark record.
 
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.10
+%  DA LEGGERE prima della baseline sequenziale
 %    [F] par. 4.1, p. 6, ultima frase: "runs 0.55 and 0.64 s without and
 %        with output on a standard laptop computer". E' l'unico dato di
 %        costo computazionale nei tre paper, ed e' il termine di
@@ -1234,7 +1201,7 @@ Two facts emerge from Table~\ref{tab:performance} and they set the agenda for
 what follows. First, more than $99\%$ of the time is spent in the time loop and
 almost none in assembly or input, so the target for optimisation is the
 repeated sparse factorisation forced by the semi-implicit scheme
-\eqref{eq:semiimplicit}, not the finite element assembly. Second, the cost per step is
+(Table~\ref{tab:integrators}), not the finite element assembly. Second, the cost per step is
 not a function of the number of unknowns alone: the two-element mesh, with
 $1213$ unknowns, costs more than the four-element mesh with $3473$.
 The one-element mesh has a hub-dominated sparsity pattern inherited from the
@@ -1253,10 +1220,11 @@ connections.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/sequential_performance.pdf}
-\caption{Sequential baseline. Left: assembly, time loop and total against the
+\caption{Sequential baseline. (a) assembly, time loop and total against the
 number of unknowns, with the band spanning the minimum and maximum of five
-runs. Right: cost per time step, showing that it is not a function of the
-unknown count alone.}
+runs. (b) cost per time step, showing that it is not a function of the
+unknown count alone: the two-element mesh costs more per step than the
+four-element one.}
 \label{fig:performance}
 \end{figure}
 

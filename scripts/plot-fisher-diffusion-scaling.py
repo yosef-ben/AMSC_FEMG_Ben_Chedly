@@ -7,10 +7,15 @@ import csv
 import json
 from pathlib import Path
 
+import sys
+
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import figure_style
 
 # Hue assignment of Fornari et al. figure 7. Checked for colour-vision
 # deficiency: every pair separates by at least 10.8 in OKLab (x100) under
@@ -60,31 +65,44 @@ def main():
     bounded = np.array([r["fem_corti_crank_nicolson"] == "bounded"
                         for r in rows])
 
-    figure = plt.figure(figsize=(11.0, 7.6))
-    grid = figure.add_gridspec(2, 3, height_ratios=[1.0, 1.15], hspace=0.42,
-                               wspace=0.28)
+    figure_style.apply()
+    figure = plt.figure(figsize=(9.8, 7.2))
+    grid = figure.add_gridspec(2, 3, height_ratios=[1.0, 1.2], hspace=0.46,
+                               wspace=0.24)
 
     for column, scaling in enumerate(args.panels):
         axes = figure.add_subplot(grid[0, column])
         key = f"rho_{scaling:g}"
         time = curves[f"{key}_time"]
+        axes.axhline(50, color="0.6", linewidth=0.9,
+                     linestyle=(0, (4, 3)), zorder=1)
         for lobe, (colour, style) in LOBE_STYLE.items():
             axes.plot(time, curves[f"{key}_{lobe}"], color=colour,
-                      linestyle=style, linewidth=1.8, label=lobe)
+                      linestyle=style, linewidth=1.8, zorder=3)
         axes.plot(time, curves[f"{key}_global"], color="0.35",
-                  linestyle=(0, (6, 3)), linewidth=1.2, label="network")
+                  linestyle=(0, (6, 3)), linewidth=1.2, zorder=2)
         index = int(np.argmin(np.abs(scalings - scaling)))
-        axes.set_title(rf"$\rho = {scaling:g}$,  Da $= {damkohler[index]:.1f}$",
-                       fontsize=10)
+        axes.text(0.05, 0.955,
+                  rf"$\rho = {scaling:g}$" "\n"
+                  rf"Da $= {damkohler[index]:.1f}$",
+                  transform=axes.transAxes, fontsize=9,
+                  fontweight="bold", color="0.35", va="top")
         axes.set_xlim(0, 40)
-        axes.set_ylim(0, 100)
-        axes.set_xlabel("time (years)")
+        axes.set_ylim(0, 102)
+        axes.set_xticks([0, 20, 40])
+        axes.set_yticks([0, 50, 100])
+        figure_style.xname(axes, "t [yr]", y=-0.135, fontsize=9)
         if column == 0:
-            axes.set_ylabel("biomarker abnormality (%)")
-        axes.grid(alpha=0.25, linewidth=0.6)
-        axes.axhline(50, color="0.75", linewidth=0.7, zorder=0)
-        if column == 0:
-            axes.legend(fontsize=8, loc="lower right", framealpha=0.9)
+            axes.set_ylabel("biomarker abnormality [%]", labelpad=2)
+            # Colour and line style to lobe, once for the whole figure.
+            for slot, (lobe, (colour, _)) in enumerate(LOBE_STYLE.items()):
+                figure_style.label_series(axes, 25.5, 42.0 - 10.5 * slot,
+                                          lobe, colour, fontsize=8.5)
+        else:
+            axes.set_yticklabels([])
+        axes.text(0.0, 1.05, f"({chr(97 + column)})",
+                  transform=axes.transAxes, fontsize=10.5,
+                  fontweight="bold", style="italic", va="bottom")
 
     axes = figure.add_subplot(grid[1, :])
     unbounded_max = damkohler[~bounded].min() if (~bounded).any() else None
@@ -121,15 +139,15 @@ def main():
     axes.set_yscale("log")
     axes.set_xlim(0.4, damkohler.max() * 1.6)
     axes.set_ylim(1e-7, 60)
-    axes.set_xlabel(r"Damkohler number  Da $= \alpha / (\rho\,\lambda_2)$"
-                    "     (reaction rate / graph homogenisation rate)")
-    axes.set_ylabel("lobe activation spread (years)")
-    axes.grid(alpha=0.25, linewidth=0.6, which="both")
-    axes.set_title("Lobe separation is set by the diffusion scaling, "
-                   "not by the connectome topology", fontsize=10)
-
-    figure.suptitle("Benchmark 23: diffusion scaling of the 83-region "
-                    "Fisher-Kolmogorov connectome", fontsize=12)
+    axes.set_xticks([1, 10, 100])
+    axes.set_xticklabels(["1", "10", "100"])
+    axes.set_yticks([1e-6, 1e-4, 1e-2, 1])
+    axes.set_yticklabels([r"$10^{-6}$", r"$10^{-4}$", r"$10^{-2}$", "1"])
+    axes.minorticks_off()
+    axes.set_ylabel("lobe activation spread [years]", labelpad=2)
+    figure_style.xname(axes, r"Da $= \alpha/(\rho\lambda_2)$", y=-0.10)
+    axes.text(0.0, 1.03, "(d)", transform=axes.transAxes, fontsize=10.5,
+              fontweight="bold", style="italic", va="bottom")
     args.output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(args.output, dpi=200, bbox_inches="tight")
     stem = args.output.with_suffix(".pdf")

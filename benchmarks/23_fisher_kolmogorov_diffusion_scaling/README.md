@@ -88,8 +88,13 @@ reaction rate are unchanged. This is the quantitative statement that benchmark
 ## Validity boundary of the metric-graph FEM
 
 The sweep also runs the P1 metric-graph FEM at one element per edge, with both
-available time schemes. Beyond `Da` of about 13, that is `rho <= 0.02` at
-`alpha = 0.5`, the discrete concentration leaves `[0,1]` and then diverges:
+available time schemes, and classifies a run as bounded when its final state
+lies in `[0,1]`. The violation of the physical range grows with `Da` well
+before the failure: the transient undershoot is `-1.3e-4` at `Da = 0.65`
+(the stored biomarkers of benchmark 19) and already `[-0.17, 1.04]` at
+`Da = 12.9` (`results/fem_transient_rho_0p05.csv`), from which the solution
+still recovers. Beyond `Da` of about 13, that is `rho <= 0.02` at `alpha = 0.5`,
+it no longer recovers and diverges:
 
 ```text
 rho = 0.005, one element per edge, Corti scheme:
@@ -97,7 +102,9 @@ rho = 0.005, one element per edge, Corti scheme:
   metric-graph FEM [-506.980,  523.169]
 ```
 
-The nodal reference stays bounded at every scaling tested. The failure occurs
+The boundary therefore separates recoverable from unrecoverable violations
+of the maximum principle, not violation from compliance. The nodal reference
+stays in `[0,1]` at every scaling tested. The failure occurs
 identically with Backward Euler and Newton and with the semi-implicit
 Crank-Nicolson scheme, so it is not a nonlinear-solver failure. It also
 persists at 2, 4 and 8 elements per edge, so it is not a matter of resolving
@@ -106,11 +113,15 @@ the front.
 The cause is the consistent P1 mass matrix. Its off-diagonal entries are
 positive, so the semi-discrete system does not satisfy a discrete maximum
 principle; while diffusion dominates, the diffusion matrix compensates, but
-once the reaction dominates nothing does. The standard remedy is mass lumping,
-which is exactly what the nodal model of Fornari et al. and the Hadamard
-product in equation (4) of Corti et al. amount to. Adding an optional lumped
-mass matrix to `fisher_kolmogorov_problem` is the natural follow-up and would
-extend the FEM into the reaction-dominated regime.
+once the reaction dominates nothing does. The standard remedy is a diagonal
+mass. The nodal model of Fornari et al. and the Hadamard product in equation
+(4) of Corti et al. both carry one, the identity, with the reaction evaluated
+at the vertices; the row-sum lumped mass, whose diagonal is deg/2 at unit
+edge lengths, differs from it by a per-vertex rescaling of time, and either
+choice removes the positive off-diagonal entries that break the maximum
+principle. Adding an optional lumped mass matrix to
+`fisher_kolmogorov_problem` is the natural follow-up and would extend the FEM
+into the reaction-dominated regime.
 
 Benchmarks 19 and 21 are unaffected: both sit at `Da <= 6`, well inside the
 bounded region.

@@ -60,7 +60,16 @@ three-point Gauss-Legendre quadrature.
 The implementation follows the semi-implicit Crank-Nicolson construction used
 by Corti et al. Diffusion and the first concentration factor are centered in
 time, whereas the saturation factor is extrapolated with
-`3/2 C^n - 1/2 C^(n-1)`.
+`C* = 3/2 C^n - 1/2 C^(n-1)`, started from `C^(-1) = C^0`. The full update,
+equation (4) of the paper on the metric graph, is
+
+```text
+(M + dt/2 K_D - dt/2 G(C*)) C^(n+1) = (M - dt/2 K_D + dt/2 G(C*)) C^n,
+G(C*)_ij = int_Gamma alpha (1 - c*) phi_i phi_j.
+```
+
+Since `G(C*)` changes at every step, the matrix on the left is rebuilt and
+factorized at every step; benchmark 22 measures this as the dominant cost.
 
 ```text
 T                 = 20 years

@@ -6,7 +6,14 @@ import argparse
 import csv
 from pathlib import Path
 
+import sys
+
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import figure_style
 
 
 ALPHAS = (0.0, 0.1, 0.2, 0.3, 0.4, 0.5)
@@ -146,31 +153,40 @@ def main():
         args.threshold,
     )
 
-    plt.rcParams.update({"font.size": 11})
+    figure_style.apply()
     figure, axes = plt.subplots(
-        1, 2, figsize=(11.0, 4.3), sharex=True, sharey=True
+        1, 2, figsize=(9.6, 3.9), sharex=True, sharey=True
     )
     for axis, (method, cases) in zip(axes, datasets.items()):
+        axis.axhline(args.threshold, color="0.6", linewidth=0.9,
+                     linestyle=(0, (4, 3)), zorder=1)
         for alpha, color in zip(ALPHAS, COLORS):
             data = cases[alpha]
-            axis.plot(
-                data["time"],
-                data["global"],
-                color=color,
-                linewidth=2.0,
-                label=fr"$\alpha={alpha:.1f}$",
-            )
-        axis.axhline(
-            args.threshold, color="#888888", linewidth=0.8, linestyle=":"
-        )
-        axis.set_title(method)
-        axis.set_xlabel("time (years)")
+            axis.plot(data["time"], data["global"], color=color,
+                      linewidth=1.9, solid_capstyle="round", zorder=3)
+        # Colour-to-rate column in the empty lower-right region, as in the
+        # one-dimensional figures: the numbers live in the caption, the
+        # column only ties each colour to its rate.
+        for slot, (alpha, color) in enumerate(zip(reversed(ALPHAS),
+                                                  reversed(COLORS))):
+            figure_style.label_series(
+                axis, 64.0, 5.5 + 6.5 * slot,
+                fr"$\alpha = {alpha:.1f}$".replace("0.0", "0"),
+                color, fontsize=9)
+        axis.text(0.03, 0.965, method.lower(), transform=axis.transAxes,
+                  fontsize=9.5, fontweight="bold", color="0.35", va="top")
         axis.set_xlim(0.0, 80.0)
         axis.set_ylim(0.0, 102.0)
-        axis.grid(True, which="both", linewidth=0.5, alpha=0.35)
-    axes[0].set_ylabel("normalized global concentration (%)")
-    axes[0].legend(loc="lower right", frameon=True, ncol=2)
-    figure.tight_layout()
+        axis.set_xticks([0, 20, 40, 60, 80])
+        axis.set_yticks([0, args.threshold, 100])
+        axis.set_yticklabels(["0", "50", "100"])
+        figure_style.xname(axis, "time [years]", y=-0.12)
+    axes[0].set_ylabel("biomarker abnormality [%]", labelpad=2)
+    for letter, axis in zip("ab", axes):
+        axis.text(0.0, 1.045, f"({letter})", transform=axis.transAxes,
+                  fontsize=10.5, fontweight="bold", style="italic",
+                  va="bottom")
+    figure.tight_layout(w_pad=2.6)
     figure.savefig(args.output_dir / "alpha_sensitivity.png", dpi=220)
     figure.savefig(args.output_dir / "alpha_sensitivity.pdf")
     plt.close(figure)

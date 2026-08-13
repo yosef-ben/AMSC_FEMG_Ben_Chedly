@@ -404,6 +404,104 @@ def check_23(report):
                if row["fem_corti_crank_nicolson"] == "bounded"]
     report.check(name, "smallest bounded scaling", min(bounded), 0.05)
 
+    # The transient extremes the validity-boundary discussion quotes: the
+    # violation grows with Da before the failure, and at Da = 12.9 the
+    # solution leaves [0,1] and still recovers.
+    rows = read_csv(BENCH / "19_fisher_kolmogorov_fornari83/results"
+                           "/fem_biomarkers.csv")
+    report.check(name, "transient minimum at Da = 0.65",
+                 min(float(row["min"]) for row in rows), -1.337e-4)
+    rows = read_csv(base / "fem_transient_rho_0p05.csv")
+    report.check(name, "transient minimum at Da = 12.9",
+                 min(float(row["min"]) for row in rows), -0.16743)
+    report.check(name, "transient maximum at Da = 12.9",
+                 max(float(row["max"]) for row in rows), 1.04356)
+    report.check(name, "recovers to the plateau at Da = 12.9",
+                 float(rows[-1]["min"]), 0.999424)
+
+
+def check_27(report):
+    """Stage times and expected orderings of the two clinical seedings."""
+    name = "27 seeding_patterns"
+    base = BENCH / "27_connectome_seeding_patterns/results"
+    import numpy as np
+    group = {int(row["node_id"]): row["region"]
+             for row in read_csv(BENCH / "21_fisher_kolmogorov_corti83"
+                                         "/results/reaction_coefficients.csv")}
+    expected_stages = {"tau": (10.4, 14.8, 18.8),
+                       "amyloid": (0.8, 4.4, 8.8)}
+    for case in ("tau", "amyloid"):
+        rows = read_csv(base / f"{case}_profiles.csv")
+        times = np.array([float(row["time"]) for row in rows])
+        values = np.array([[float(row[f"node_{k}"]) for k in range(83)]
+                           for row in rows])
+        report.check(name, f"{case} stays in [0,1]",
+                     1.0 if values.min() >= 0.0
+                     and values.max() <= 1.0 + 1e-10 else 0.0, 1.0)
+        means = values.mean(axis=1)
+        for target, expected in zip((0.10, 0.40, 0.80),
+                                    expected_stages[case]):
+            stage = times[int(np.argmax(means >= target))]
+            report.check(name, f"{case} stage at mean {target:.0%}",
+                         float(stage), expected, "years")
+
+    # The amyloid ordering the report states: seeded lobes first, then the
+    # insula, the limbic belt, and the subcortical nuclei last.
+    rows = read_csv(base / "amyloid_profiles.csv")
+    times = [float(row["time"]) for row in rows]
+    activation = {}
+    for k in range(83):
+        series = [float(row[f"node_{k}"]) for row in rows]
+        first = next((times[i] for i, v in enumerate(series) if v >= 0.5),
+                     None)
+        activation.setdefault(group[k], []).append(first)
+    mean_activation = {g: sum(v) / len(v) for g, v in activation.items()}
+    report.check(name, "amyloid subcortical mean activation",
+                 mean_activation["subcortical"], 7.75, "years")
+    report.check(name, "amyloid limbic mean activation",
+                 mean_activation["limbic"], 6.33, "years")
+    latest_cortical = max(mean_activation[g] for g in
+                          ("frontal", "temporal", "parietal", "occipital"))
+    report.check(name, "subcortical last, after every cortical lobe",
+                 1.0 if mean_activation["subcortical"] > latest_cortical
+                 and mean_activation["limbic"] > latest_cortical else 0.0,
+                 1.0)
+
+    # The tau row starts at the entorhinal seeds: the first two vertices to
+    # reach c = 0.5 must be the entorhinal cortices.
+    rows = read_csv(base / "tau_profiles.csv")
+    times = [float(row["time"]) for row in rows]
+    nodes = {int(row["node_id"]): row["name"]
+             for row in read_csv(Path("data/connectome/fornari83/nodes.csv"))}
+    firsts = []
+    for k in range(83):
+        series = [float(row[f"node_{k}"]) for row in rows]
+        first = next((times[i] for i, v in enumerate(series) if v >= 0.5),
+                     float("inf"))
+        firsts.append((first, nodes[k]))
+    earliest = sorted(firsts)[:2]
+    report.note(name, "first two activated vertices, tau",
+                ", ".join(name for _, name in earliest)
+                + " (expected the two entorhinal cortices)")
+    if not all("entorhinal" in name for _, name in earliest):
+        report.failed += 1
+
+
+def check_19_accuracy(report):
+    """The formulation gap the convergence section quantifies."""
+    name = "19 accuracy"
+    base = BENCH / "19_fisher_kolmogorov_fornari83/results"
+    rows = read_csv(base / "nodal_biomarkers.csv")
+    times = [float(row["time"]) for row in rows]
+    nodal = crossing(times, [float(row["global"]) for row in rows], 50.0)
+    rows = read_csv(base / "space_refinement.csv")
+    fem = {int(row["cells_per_edge"]): float(row["global_t50"])
+           for row in rows}
+    report.check(name, "nodal crossing behind the resolved FEM",
+                 fem[8] - nodal, 1.605, "years")
+    report.check(name, "coarsest FEM behind the resolved FEM",
+                 fem[8] - fem[1], 0.0296, "years")
+
 
 def check_25(report):
     """Extremes and spans of the seeding study."""
@@ -478,9 +576,9 @@ def check_26(report):
 
 def main():
     report = Report()
-    for check in (check_18, check_18_timestep, check_19, check_19_topology,
-                  check_20, check_21, check_22, check_23, check_24_views,
-                  check_25, check_26):
+    for check in (check_18, check_18_timestep, check_19, check_19_accuracy,
+                  check_19_topology, check_20, check_21, check_22, check_23,
+                  check_24_views, check_25, check_26, check_27):
         try:
             check(report)
         except FileNotFoundError as error:

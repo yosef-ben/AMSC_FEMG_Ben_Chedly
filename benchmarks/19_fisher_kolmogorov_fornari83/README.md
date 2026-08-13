@@ -80,7 +80,16 @@ M C_dot + H C = R(C).
 Every coarse connection is represented by one unit P1 element and its
 diffusion coefficient is the connectivity weight. Thus `H` has the weighted
 graph-Laplacian structure, while `M` and the consistently integrated reaction
-term distinguish the FEM model from the nodal reference.
+term distinguish the FEM model from the nodal reference. The reaction vector
+is
+
+```text
+R_i(C) = int_Gamma alpha c_h (1 - c_h) phi_i ds,
+```
+
+integrated cell by cell with three-point Gauss-Legendre quadrature, exact
+for its degree-four integrands, so no quadrature error enters the
+comparison.
 
 Both models use Backward Euler with Newton, `alpha=0.5`, `dt=0.4` years, and
 `T=40` years. The two entorhinal regions start at `c=0.1`; all other regions
@@ -102,6 +111,11 @@ In `biomarker_comparison`, the upper panels show the four regional curves and
 the network average. Since several absolute curves nearly overlap, the lower
 panels report each regional curve minus the network average. This makes every
 computed trend visible without altering or rescaling the underlying data.
+Panel (a) carries the anatomical inset of Fornari's figure 7: the connectome
+with the four lobes in the lobe colours and every other vertex in grey. The
+lobe membership mirrors `classify()` of the C++ test that computes the
+curves, and the plot script asserts the same 58 four-lobe vertex count the
+test enforces.
 
 ## Discretization study
 

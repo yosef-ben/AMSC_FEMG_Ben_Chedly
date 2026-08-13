@@ -13,6 +13,11 @@ cp output/fisher_kolmogorov/diffusion_scaling/diffusion_scaling.csv \
    output/fisher_kolmogorov/diffusion_scaling/diffusion_scaling_summary.json \
    benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/
 
+# Transient behind the recoverable-violation statement: entorhinal seed at
+# rho = 0.05 (Da = 12.9), whose biomarker extremes are stored in results.
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau 0.5 40 0.05 cn
+cp output/fisher_kolmogorov/staging/tau/fem_biomarkers.csv benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/fem_transient_rho_0p05.csv
+
 # Single runs behind the FEM validity statement.
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/scratch 0.5 40 0.005 cn
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/scratch 0.5 40 0.005 be

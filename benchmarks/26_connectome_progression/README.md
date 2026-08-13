@@ -7,6 +7,13 @@ biomarker, in the visual grammar the reference works use for that purpose.
 
 ## The two figures
 
+Neither figure enters the report: the staged story is told there by the
+seeding-pattern figure of benchmark 27, and the recruitment-order result the
+activation map carries, the correlations r = -0.841 with the local reaction
+rate and r = +0.065 with the graph distance, is quoted in the text of the
+deterministic-model section. Both images stay in this record, together with
+the ParaView output, as the anatomical views of the finite element solution.
+
 `results/anatomical_progression` is a **mid-sagittal section** at three stages.
 `results/activation_time` is a single image carrying the whole history: every
 degree of freedom coloured by the year its concentration reaches `0.5`.

@@ -1,0 +1,24 @@
+cmake --build build-release --target test_fisher_kolmogorov_fornari83
+
+# Tau seeding (entorhinal) and amyloid-beta seeding (neocortex), nodal
+# network model at the scaling that reproduces the published separation.
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau_nodal 0.5 40 0.005 nodal
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/amyloid_nodal 0.5 40 0.005 nodal neocortex
+
+# Reference strips: the two Alzheimer rows of figure 1 of Weickenmeier et
+# al. (p. 266), cut deterministically from the article PDF for the
+# expected-against-obtained composite of the report.
+python3 scripts/extract-weickenmeier-staging.py \
+  --pdf QuantumGraphs/Weickenmeier.pdf \
+  --output-dir benchmarks/27_connectome_seeding_patterns/reference
+
+python3 scripts/plot-connectome-staging.py \
+  --tau output/fisher_kolmogorov/staging/tau_nodal/nodal_profiles.csv \
+  --amyloid output/fisher_kolmogorov/staging/amyloid_nodal/nodal_profiles.csv \
+  --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
+  --output-dir benchmarks/27_connectome_seeding_patterns/results
+
+cp output/fisher_kolmogorov/staging/tau_nodal/nodal_profiles.csv benchmarks/27_connectome_seeding_patterns/results/tau_profiles.csv
+cp output/fisher_kolmogorov/staging/tau_nodal/nodal_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/tau_biomarkers.csv
+cp output/fisher_kolmogorov/staging/amyloid_nodal/nodal_profiles.csv benchmarks/27_connectome_seeding_patterns/results/amyloid_profiles.csv
+cp output/fisher_kolmogorov/staging/amyloid_nodal/nodal_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/amyloid_biomarkers.csv
