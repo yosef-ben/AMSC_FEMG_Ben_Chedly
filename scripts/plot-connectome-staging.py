@@ -212,7 +212,7 @@ def composite(reference_dir, panels, box, stage_times, output_dir):
 
     figure.savefig(output_dir / "seeding_patterns_expected.pdf",
                    facecolor="white")
-    figure.savefig(output_dir / "seeding_patterns_expected.png", dpi=260,
+    figure.savefig(output_dir / "seeding_patterns_expected.png", dpi=300,
                    facecolor="white")
     plt.close(figure)
 

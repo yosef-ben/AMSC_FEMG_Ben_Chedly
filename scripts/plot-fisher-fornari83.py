@@ -79,7 +79,7 @@ def render_inset(path):
     coords = np.array([node["coords"] for node in nodes])
     rc.render(path, "sagittal_right", coords, values, table,
               node_radius=3.6, scale=rc.common_scale(),
-              surface_opacity=0.075)
+              size=(2200, 1800), surface_opacity=0.075)
     return path
 
 
@@ -173,6 +173,9 @@ def main():
         absolute.set_ylim(0.0, 102.0)
         absolute.set_yticks([0, args.threshold, 100])
         absolute.set_yticklabels(["0", "50", "100"])
+        # The columns share their time axis, but the upper panels keep
+        # their own tick labels so no panel is left without times.
+        absolute.tick_params(labelbottom=True)
         deviation.set_xlim(0.0, 25.0)
         # One common range for the two deviation panels, so the nodal and
         # the finite element deviations can be compared directly.
@@ -196,7 +199,7 @@ def main():
                   fontsize=10.5, fontweight="bold", style="italic",
                   va="bottom")
     figure.tight_layout(w_pad=2.6, h_pad=2.2)
-    figure.savefig(args.output_dir / "biomarker_comparison.png", dpi=220)
+    figure.savefig(args.output_dir / "biomarker_comparison.png", dpi=300)
     figure.savefig(args.output_dir / "biomarker_comparison.pdf")
     plt.close(figure)
 

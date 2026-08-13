@@ -56,7 +56,7 @@ each computed row below the corresponding clinical staging strip of figure 1
 of Weickenmeier et al. (p. 266; the drawings are adopted there from Jucker
 and Walker). The strips in `reference/` are not redrawn: they are cut from
 the article PDF by `scripts/extract-weickenmeier-staging.py`, which renders
-the page at 300 dpi, detects the four cartoon rows as bands of saturated
+the page at 600 dpi, detects the four cartoon rows as bands of saturated
 pixels, keeps the two Alzheimer rows after checking their dominant hue, and
 drops the label text at the last unsaturated gap. The reference rows are the
 literature's expectation and carry no result of ours; every quantitative

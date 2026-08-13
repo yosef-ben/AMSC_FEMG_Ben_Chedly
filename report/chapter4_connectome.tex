@@ -540,7 +540,14 @@ the two schemes.
 %        due soluzioni prolungata a meta' passo, dove lo schema e'
 %        centrato), mentre il primo fattore e' centrato nel tempo.
 %    [W] par. 2.3, p. 268, equazioni (10) e (11): il residuo e la matrice
-%        tangente dello schema comple\begin{table}[htbp]
+%        tangente dello schema completamente implicito con Newton.
+%  Nel testo i due schemi sono chiamati "fully implicit" e "semi-implicit"
+%  come nelle colonne della tabella; gli ordini sono verificati sulla
+%  logistica esatta nel record dei benchmark
+%  (test_fisher_kolmogorov_logistic).
+% ---------------------------------------------------------------------
+
+\begin{table}[htbp]
 \centering
 \setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lll}
@@ -576,14 +583,7 @@ Used in (sections)
 \caption{The time discretization strategies adopted by the references, as
 implemented in this work; both are the $\theta$-method of the first part of
 this work plus a treatment of the nonlinearity. The extrapolation
-$\mathbf{C}^\star = \tfrac{3}{tamente implicito con Newton.
-%  Nel testo i due schemi sono chiamati "fully implicit" e "semi-implicit"
-%  come nelle colonne della tabella; gli ordini sono verificati sulla
-%  logistica esatta nel record dei benchmark
-%  (test_fisher_kolmogorov_logistic).
-% ---------------------------------------------------------------------
-
-2}\mathbf{C}^{n} - \tfrac{1}{2}\mathbf{C}^{n-1}$
+$\mathbf{C}^\star = \tfrac{3}{2}\mathbf{C}^{n} - \tfrac{1}{2}\mathbf{C}^{n-1}$
 is the straight line through the two previous solutions prolonged to the
 midpoint of the step, where the Crank--Nicolson scheme is centred: the
 prediction is second-order accurate, so each step costs a single linear
@@ -649,7 +649,7 @@ Section~\ref{sec:formulation}.
 The activation sequence, however, is not reproduced. \cite{fornari2019prion} report
 a separation of roughly five years between the temporal and the occipital lobe;
 our four lobe curves cross the $50$-percent level within $3.9\cdot10^{-7}$
-years of each other in the nodal model and $5.7\cdot10^{-3}$ years in the
+years of each other in the nodal model and $8.4\cdot10^{-3}$ years in the
 finite element model. Since our nodal model is \eqref{eq:nodal} implemented
 literally, the discrepancy cannot be a defect of the spatial discretization,
 and Section~\ref{sec:damkohler} is devoted to explaining it.

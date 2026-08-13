@@ -28,10 +28,11 @@ import numpy as np
 from PIL import Image
 
 PAGE = 3           # PDF page holding figure 1 (journal page 266)
-DPI = 300
+DPI = 600          # the strips span the full report text width, so the
+                   # rendering must stay well above print resolution
 SATURATION = 0.18  # chroma threshold separating drawings from black text
-MIN_BAND = 60      # minimum band height in pixels at 300 dpi
-PAD = 6            # padding around detected content, pixels
+MIN_BAND = DPI // 5   # minimum band height in pixels
+PAD = DPI // 50       # padding around detected content, pixels
 
 
 def arguments():
@@ -111,7 +112,7 @@ def main():
         image = render_page(args.pdf, scratch)
 
     chroma = saturation(image)
-    rows = (chroma > SATURATION).sum(axis=1) > 40
+    rows = (chroma > SATURATION).sum(axis=1) > DPI // 8
     detected = bands(rows)
     if len(detected) != 4:
         raise RuntimeError(

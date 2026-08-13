@@ -48,6 +48,13 @@ class Report:
     def note(self, figure, quantity, message):
         self.rows.append((figure, quantity, message, "", "", True))
 
+    def check_contains(self, figure, quantity, text, needle):
+        ok = needle in text
+        self.failed += not ok
+        self.rows.append((figure, quantity,
+                          f"'{needle}' {'found' if ok else 'MISSING'}",
+                          "", "", ok))
+
     def show(self):
         width = max(len(row[0]) for row in self.rows)
         for figure, quantity, found, expected, unit, ok in self.rows:
@@ -293,6 +300,8 @@ def check_19(report):
     """Lobe separation and refinement rates of the Fornari comparison."""
     name = "19 biomarker_comparison"
     base = BENCH / "19_fisher_kolmogorov_fornari83/results"
+    spreads = {}
+    networks = {}
     for label, filename, expected in (
             ("nodal", "nodal_biomarkers.csv", 3.8703e-07),
             ("FEM", "fem_biomarkers.csv", 8.378e-03)):
@@ -301,9 +310,30 @@ def check_19(report):
         crossings = [crossing(times, [float(row[lobe]) for row in rows], 50.0)
                      for lobe in ("temporal", "frontal", "parietal",
                                   "occipital")]
-        spread = max(crossings) - min(crossings)
-        report.check(name, f"{label} lobe spread", spread, expected,
+        spreads[label] = max(crossings) - min(crossings)
+        report.check(name, f"{label} lobe spread", spreads[label], expected,
                      "years")
+        networks[label] = crossing(
+            times, [float(row["global"]) for row in rows], 50.0)
+
+    # The comparison prose of the chapter states both spreads. Derive the
+    # two-significant-digit LaTeX strings from the stored curves and require
+    # them verbatim, so the sentence cannot drift from the stored run, as it
+    # once did after the weight change.
+    chapter = Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8")
+    for label, spread in spreads.items():
+        exponent = math.floor(math.log10(spread))
+        mantissa = round(spread / 10.0 ** exponent, 1)
+        if mantissa >= 10.0:
+            mantissa, exponent = mantissa / 10.0, exponent + 1
+        needle = f"{mantissa:.1f}\\cdot10^{{{exponent}}}"
+        report.check_contains(name, f"chapter states the {label} spread",
+                              chapter, needle)
+    for label, value in networks.items():
+        report.check_contains(name,
+                              f"chapter states the {label} network crossing",
+                              chapter, f"{value:.2f}")
 
     name = "19 refinement"
     rows = read_csv(base / "space_refinement.csv")
