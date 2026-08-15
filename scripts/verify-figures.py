@@ -334,6 +334,14 @@ def check_19_scheme(report):
                  max(spreads.values()), 3.902e-02)
     report.check(name, "every spread below 0.04 years",
                  1.0 if max(spreads.values()) < 0.04 else 0.0, 1.0)
+    # The chapter states the range of the absolute network crossing over
+    # the finite element runs of the table, 11.50 to 13.80 years.
+    crossings = [float(row["t50_network_years"]) for row in rows
+                 if row["model"] == "fem"]
+    report.check(name, "earliest network crossing over the runs",
+                 min(crossings), 11.5044, "years")
+    report.check(name, "latest network crossing over the runs",
+                 max(crossings), 13.8032, "years")
 
 
 def check_24_views(report):
@@ -699,6 +707,30 @@ def check_19_accuracy(report):
                  fem[8] - nodal, 1.605, "years")
     report.check(name, "coarsest FEM behind the resolved FEM",
                  fem[8] - fem[1], 0.0296, "years")
+
+    # The metric-support effect the comparison section describes: the same
+    # seed is 0.24% of the nodal average and 0.10% of the metric length of
+    # the finite element domain, while the vertex averages of the two
+    # models start equal; both finite element averages cross 50% together.
+    name = "19 metric_support"
+    nodal_rows = read_csv(base / "nodal_biomarkers.csv")
+    fem_rows = read_csv(base / "fem_biomarkers.csv")
+    metric_rows = read_csv(base / "fem_metric_mass.csv")
+    report.check(name, "nodal vertex average at t=0",
+                 float(nodal_rows[0]["global"]), 0.2410, "%")
+    report.check(name, "FEM vertex average at t=0",
+                 float(fem_rows[0]["global"]), 0.2410, "%")
+    report.check(name, "FEM metric average at t=0",
+                 float(metric_rows[0]["metric_global"]), 0.1018, "%")
+    report.check(name, "FEM metric average at t=0 equals seed hats "
+                       "over total length",
+                 float(metric_rows[0]["metric_global"]),
+                 100.0 * 0.1 * (10 + 13) / 2.0 / 1130.0, "%")
+    metric_times = [float(row["time"]) for row in metric_rows]
+    report.check(name, "FEM metric average crossing",
+                 crossing(metric_times,
+                          [float(row["metric_global"]) for row in metric_rows],
+                          50.0), 12.6792, "years")
 
 
 def check_25(report):

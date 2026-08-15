@@ -117,6 +117,34 @@ lobe membership mirrors `classify()` of the C++ test that computes the
 curves, and the plot script asserts the same 58 four-lobe vertex count the
 test enforces.
 
+## Why the two crossing times differ
+
+The network average crosses 50% at 11.11 years in the nodal model and at
+12.68 in the FEM. The report states only that the two discrete systems are
+not identical; the origin of the gap, verified on the stored files, is the
+metric support of the seed.
+
+In the nodal model a value prescribed at a vertex is a point value, one
+vertex out of 83: two entorhinal seeds at `c = 0.1` give a network average
+of `0.2410%`. In the FEM the same seed is the P1 hat of height 0.1 on the
+incident connections, which start at zero and have to be filled as well.
+The two entorhinal vertices have degrees 10 and 13, so on unit edges the
+seed carries a metric mass of `0.1 * (10 + 13) / 2 = 1.15` over a total
+length of 1130, that is `0.1018%` of the metric domain
+(`results/fem_metric_mass.csv`, first row, reproduced to four digits by
+this formula). The vertex averages of the two models start equal at
+`0.2410%`; the vertex concentrations of the FEM then rise more slowly,
+because part of the seed mass spreads into the connections, and both FEM
+averages cross 50% together: `12.6816` years for the vertex average, the
+biomarker of `biomarker_comparison`, and `12.6792` for the metric average.
+This is a difference between the two discrete systems, not an error of
+either, and it does not enter the lobe-separation question, which concerns
+the spread among the lobes rather than the absolute time. The
+conversion-rate figure of benchmark 20 plots the metric average for the
+FEM, which is why its FEM curves start below the nodal ones.
+`scripts/verify-figures.py` checks the three initial averages, the hat
+formula and the metric crossing.
+
 ## The operator handed to the solvers
 
 At one element per connection and unit metric length the diffusion matrix
