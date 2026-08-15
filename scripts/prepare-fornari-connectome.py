@@ -255,10 +255,24 @@ def main():
         weighted_degrees[source] += edge["connectivity"]
         weighted_degrees[target] += edge["connectivity"]
 
+    # Statistics of the retained fine connections themselves. The reference
+    # prints a fibre-length range of 11.3-136.8 mm: the lower bound and the
+    # mean are reproduced by the region-to-region connections above, the
+    # upper bound by the longest retained fine connection recorded here.
+    fine_lengths = [float(values["fiber_length_median"])
+                    for _, _, values in fine_edges]
+    fine_counts = [float(values["fiber_count_median"])
+                   for _, _, values in fine_edges]
+
     metadata = {
         "source": str(args.graphml),
         "minimum_occurrences": args.minimum_occurrences,
-        "fine_graph": {"vertices": len(nodes), "retained_edges": len(fine_edges)},
+        "fine_graph": {
+            "vertices": len(nodes),
+            "retained_edges": len(fine_edges),
+            "fibre_length_mm": summary(fine_lengths),
+            "fibre_number": summary(fine_counts),
+        },
         "aggregation": {
             "atlas": "FreeSurfer 83-region parcellation",
             "vertices": len(regions),
@@ -275,8 +289,11 @@ def main():
             "fine_edges": 37477,
             "coarse_vertices": 83,
             "coarse_edges": 1130,
+            "degree": {"minimum": 6, "maximum": 48},
             "fibre_number": 40.2,
+            "fibre_number_range": {"minimum": 1, "maximum": 596},
             "fibre_length_mm": 38.4,
+            "fibre_length_range_mm": {"minimum": 11.3, "maximum": 136.8},
             "connectivity_weight": {
                 "minimum": 0.01, "maximum": 35.32, "mean": 1.57
             },

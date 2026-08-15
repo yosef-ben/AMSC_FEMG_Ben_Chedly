@@ -206,6 +206,136 @@ def check_19_topology(report):
                  max(ratios), 4.252)
 
 
+def check_connectome_consistency(report):
+    """The graph the solvers read is the graph the report describes.
+
+    Recomputes, from nodes.csv and edges.csv, the statistics the connectome
+    table quotes against the reference (degree, fibre number, fibre length,
+    adjacency, weighted degree, with the regions at the extremes), the two
+    structural fractions the text quotes, the Fiedler value the Damkohler
+    section uses, and the correspondence between the weight file and the
+    finite element meshes: same 1130 connections in the same order, unit
+    metric length, and the stated number of cells. The longest retained fine
+    connection is read from the summary written by the preparation script.
+    """
+    name = "connectome consistency"
+    import numpy as np
+    nodes = read_csv(Path("data/connectome/fornari83/nodes.csv"))
+    edges = read_csv(Path("data/connectome/fornari83/edges.csv"))
+    names = {int(row["node_id"]): row["name"] for row in nodes}
+    hemisphere = {int(row["node_id"]): row["hemisphere"] for row in nodes}
+    size = len(nodes)
+    report.check(name, "vertices", float(size), 83.0)
+    report.check(name, "edges", float(len(edges)), 1130.0)
+
+    source = np.array([int(row["source"]) for row in edges])
+    target = np.array([int(row["target"]) for row in edges])
+    weight = np.array([float(row["connectivity_weight"]) for row in edges])
+    number = np.array([float(row["fibre_number"]) for row in edges])
+    length = np.array([float(row["fibre_length_mm"]) for row in edges])
+    pairs = {(min(s, t), max(s, t)) for s, t in zip(source, target)}
+    report.check(name, "simple graph (no loops, no repeated pairs)",
+                 1.0 if len(pairs) == len(edges)
+                 and np.all(source != target) else 0.0, 1.0)
+
+    degree = np.zeros(size, int)
+    weighted = np.zeros(size)
+    for s, t, w in zip(source, target, weight):
+        degree[s] += 1
+        degree[t] += 1
+        weighted[s] += w
+        weighted[t] += w
+    report.check(name, "degree range low", float(degree.min()), 6.0)
+    report.check(name, "degree range high", float(degree.max()), 48.0)
+    report.check(name, "fibre number mean", float(number.mean()), 40.1619)
+    report.check(name, "fibre number range", float(number.max()), 595.5)
+    report.check(name, "fibre length mean [mm]", float(length.mean()),
+                 38.4009)
+    report.check(name, "fibre length low [mm]", float(length.min()), 11.2867)
+    report.check(name, "fibre length high, region pairs [mm]",
+                 float(length.max()), 121.0235)
+    for label, found, expected in (
+            ("degree minimum region", names[int(degree.argmin())],
+             "ctx-rh-frontalpole"),
+            ("degree maximum region", names[int(degree.argmax())],
+             "Right-Caudate"),
+            ("longest mean-length pair",
+             " -- ".join(sorted((names[int(source[length.argmax()])],
+                                 names[int(target[length.argmax()])]))),
+             "ctx-lh-lateralorbitofrontal -- ctx-lh-precuneus")):
+        report.note(name, label, f"{found} (expected {expected})")
+        if found != expected:
+            report.failed += 1
+
+    summary = json.loads(
+        Path("data/connectome/fornari83/summary.json").read_text())
+    report.check(name, "longest retained fine connection [mm]",
+                 float(summary["fine_graph"]["fibre_length_mm"]["maximum"]),
+                 136.8333)
+
+    intra = sum(w for s, t, w in zip(source, target, weight)
+                if hemisphere[s] == hemisphere[t]) / weight.sum()
+    report.check(name, "weight fraction within a hemisphere", float(intra),
+                 0.984)
+    lobe_of = {int(row["node_id"]): row["region"]
+               for row in read_csv(BENCH / "21_fisher_kolmogorov_corti83"
+                                           "/results/reaction_coefficients.csv")}
+    lobes = ("frontal", "temporal", "parietal", "occipital")
+    inside = [w for s, t, w in zip(source, target, weight)
+              if lobe_of[s] in lobes and lobe_of[s] == lobe_of[t]
+              and hemisphere[s] == hemisphere[t]]
+    outside = [w for s, t, w in zip(source, target, weight)
+               if not (lobe_of[s] in lobes and lobe_of[s] == lobe_of[t]
+                       and hemisphere[s] == hemisphere[t])]
+    report.check(name, "intra-lobe block to elsewhere mean weight ratio",
+                 float(np.mean(inside) / np.mean(outside)), 3.921)
+
+    laplacian = np.zeros((size, size))
+    for s, t, w in zip(source, target, weight):
+        laplacian[s, s] += w
+        laplacian[t, t] += w
+        laplacian[s, t] -= w
+        laplacian[t, s] -= w
+    eigenvalues = np.linalg.eigvalsh(laplacian)
+    report.check(name, "Fiedler value of L = D - A", float(eigenvalues[1]),
+                 0.772254)
+
+    for cells in (1, 2, 4, 8):
+        lines = Path(f"data/connectome/fornari83/graph_fem_{cells}.txt") \
+            .read_text().split("\n")
+        header = lines[0].split()
+        rows = [line.split() for line in lines[1:] if line.strip()]
+        same = (int(header[0]) == size and int(header[1]) == len(edges)
+                and all(int(r[0]) == s and int(r[1]) == t
+                        for r, s, t in zip(rows, source, target))
+                and all(float(r[2]) == 1.0 and int(r[3]) == cells
+                        for r in rows))
+        report.check(name, f"graph_fem_{cells}: edge order of edges.csv, "
+                           f"unit length, {cells} cells",
+                     1.0 if same else 0.0, 1.0)
+
+
+def check_19_scheme(report):
+    """Lobe separation at unit scale under every stored discretization."""
+    name = "19 scheme_sensitivity"
+    rows = read_csv(BENCH / "19_fisher_kolmogorov_fornari83/results"
+                            "/scheme_sensitivity.csv")
+    spreads = {(row["model"], row["scheme"], float(row["dt"]),
+                int(row["cells_per_edge"])): float(row["lobe_spread_years"])
+               for row in rows}
+    report.check(name, "rows", float(len(rows)), 9.0)
+    report.check(name, "nodal spread", spreads[("nodal", "backward_euler",
+                                                0.4, 1)], 3.8703e-07)
+    report.check(name, "FEM semi-implicit spread, one cell",
+                 spreads[("fem", "corti_semi_implicit", 0.4, 1)], 7.576e-03)
+    report.check(name, "FEM backward Euler spread, dt 0.05, eight cells",
+                 spreads[("fem", "backward_euler", 0.05, 8)], 3.848e-02)
+    report.check(name, "largest spread over every discretization",
+                 max(spreads.values()), 3.902e-02)
+    report.check(name, "every spread below 0.04 years",
+                 1.0 if max(spreads.values()) < 0.04 else 0.0, 1.0)
+
+
 def check_24_views(report):
     """Data behind the four-view brain-network figure, after Fornari fig. 5.
 
@@ -334,6 +464,25 @@ def check_19(report):
         report.check_contains(name,
                               f"chapter states the {label} network crossing",
                               chapter, f"{value:.2f}")
+
+    # The reproduction-limits section states that the coincidence at unit
+    # scale does not depend on how the regions are grouped: all 83 regional
+    # curves cross within a stated spread. Recompute it from the stored
+    # per-vertex profiles.
+    for label, filename, expected in (
+            ("nodal", "nodal_profiles.csv", 6.404e-05),
+            ("FEM", "fem_profiles.csv", 0.1998)):
+        rows = read_csv(base / filename)
+        times = [float(row["time"]) for row in rows]
+        keys = [key for key in rows[0] if key.startswith("node_")]
+        vertex = [crossing(times, [100.0 * float(row[key]) for row in rows],
+                           50.0) for key in keys]
+        report.check(name, f"{label} 83-vertex crossing spread",
+                     max(vertex) - min(vertex), expected, "years")
+    report.check_contains(name, "chapter states the vertex-level spreads",
+                          chapter, "6.4\\cdot10^{-5}")
+    report.check_contains(name, "chapter states the FEM vertex spread",
+                          chapter, "$0.20$")
 
     name = "19 refinement"
     rows = read_csv(base / "space_refinement.csv")
@@ -516,6 +665,25 @@ def check_27(report):
     if not all("entorhinal" in name for _, name in earliest):
         report.failed += 1
 
+    # The staging renders and the diffusion-scaling curves come from the
+    # same model at the same scaling, so the tau lobe order behind the
+    # staged row must be the one benchmark 23 reports: temporal first,
+    # then occipital, parietal, and the weakly connected frontal lobe
+    # last. This pins the two figures to each other.
+    rows = read_csv(base / "tau_biomarkers.csv")
+    times = [float(row["time"]) for row in rows]
+    lobe_crossings = {
+        lobe: crossing(times, [float(row[lobe]) for row in rows], 50.0)
+        for lobe in ("temporal", "frontal", "parietal", "occipital")}
+    for lobe, expected in (("temporal", 12.782), ("occipital", 14.818),
+                           ("parietal", 15.331), ("frontal", 17.162)):
+        report.check(name, f"tau {lobe} lobe crossing at rho=0.005",
+                     lobe_crossings[lobe], expected, "years")
+    ordered = sorted(lobe_crossings, key=lobe_crossings.get)
+    report.check(name, "tau lobe order matches the diffusion scaling",
+                 1.0 if ordered == ["temporal", "occipital", "parietal",
+                                    "frontal"] else 0.0, 1.0)
+
 
 def check_19_accuracy(report):
     """The formulation gap the convergence section quantifies."""
@@ -604,11 +772,49 @@ def check_26(report):
                      expected, "years")
 
 
+def check_26_order(report):
+    """Group activation of the calibrated and uniform Corti variants."""
+    name = "26 activation_order"
+    rows = read_csv(BENCH / "26_connectome_progression/results"
+                            "/activation_order_groups.csv")
+    means = {(row["variant"], row["region"]):
+             float(row["mean_activation_years"]) for row in rows}
+    for (variant, region), expected in (
+            (("regional", "frontal"), 30.15),
+            (("regional", "occipital"), 43.00),
+            (("uniform", "occipital"), 35.00),
+            (("uniform", "frontal"), 36.20)):
+        report.check(name, f"{variant} {region} mean activation",
+                     means[(variant, region)], expected, "years")
+
+    groups = ("frontal", "temporal", "parietal", "insular", "limbic",
+              "occipital", "subcortical")
+    regional = {group: means[("regional", group)] for group in groups}
+    uniform = {group: means[("uniform", group)] for group in groups}
+    report.check(name, "occipital last with the regional rates",
+                 1.0 if max(regional, key=regional.get) == "occipital"
+                 else 0.0, 1.0)
+    report.check(name, "frontal first with the regional rates",
+                 1.0 if min(regional, key=regional.get) == "frontal"
+                 else 0.0, 1.0)
+    report.check(name, "frontal last with the uniform rate",
+                 1.0 if max(uniform, key=uniform.get) == "frontal"
+                 else 0.0, 1.0)
+    report.check(name, "regional spread",
+                 max(regional.values()) - min(regional.values()), 12.85,
+                 "years")
+    report.check(name, "uniform spread",
+                 max(uniform.values()) - min(uniform.values()), 2.95,
+                 "years")
+
+
 def main():
     report = Report()
     for check in (check_18, check_18_timestep, check_19, check_19_accuracy,
-                  check_19_topology, check_20, check_21, check_22, check_23,
-                  check_24_views, check_25, check_26, check_27):
+                  check_19_topology, check_connectome_consistency,
+                  check_19_scheme, check_20, check_21, check_22, check_23,
+                  check_24_views, check_25, check_26, check_26_order,
+                  check_27):
         try:
             check(report)
         except FileNotFoundError as error:

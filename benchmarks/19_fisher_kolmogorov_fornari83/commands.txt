@@ -27,3 +27,10 @@ python3 scripts/plot-fornari-connectome-topology.py \
   --nodes data/connectome/fornari83/nodes.csv \
   --edges data/connectome/fornari83/edges.csv \
   --output-dir benchmarks/19_fisher_kolmogorov_fornari83/results
+
+# Scheme sensitivity of the lobe separation at unit weight scale: the
+# semi-implicit scheme on the coarse and on the fine mesh, tabulated with
+# the baseline and the time-refinement runs above.
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/fornari83/scheme_cn_dt_0p4 0.5 40 1.0 cn
+./build-release/test_fisher_kolmogorov_fornari83 8 0.4 output/fisher_kolmogorov/fornari83/scheme_cn_cells_8_dt_0p4 0.5 40 1.0 cn
+python3 scripts/tabulate-fornari-scheme-sensitivity.py --output benchmarks/19_fisher_kolmogorov_fornari83/results/scheme_sensitivity.csv

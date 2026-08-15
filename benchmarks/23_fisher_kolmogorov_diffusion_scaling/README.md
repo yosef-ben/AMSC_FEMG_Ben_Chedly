@@ -73,10 +73,15 @@ reaction rate are unchanged. This is the quantitative statement that benchmark
 - **Benchmark 19** uses the literal `rho = 1`, giving `Da = 0.65`. The
   connectome homogenises faster than the reaction grows, so the four lobe
   curves must coincide. Its near-zero lobe separation is the correct solution
-  of the published equation, not a validation failure. Reproducing figure 7 of
-  the paper requires `Da` of order `10^2`, that is `rho` near `0.005`, so the
-  published figure cannot come from the connectivity-weighted Laplacian used
-  at unit scale.
+  of the equation as we reconstruct it, not a validation failure. A
+  separation of the magnitude of figure 7 of the paper is obtained at `Da` of
+  order `10^2`, that is `rho` near `0.005`, about two hundred times weaker
+  than the literal scale. The paper does not state the scale of its Laplacian
+  relative to the time unit (the adjacency is fibres per millimetre, alpha
+  and dt are per year), and neither its 83x83 matrix nor its code is
+  distributed; so this benchmark establishes what the separation depends on,
+  not which choice the paper made. See the report's "Limits of an exact
+  reproduction" for the full list of unspecified details.
 - **Benchmark 21** normalises the diffusivity as `D_e = w_e/max(w)`, that is
   `rho = 1/35.3221 = 0.028311`, and uses the seven Corti reaction means whose
   average over the 83 vertices is `0.1252`. Its Damkohler number is therefore

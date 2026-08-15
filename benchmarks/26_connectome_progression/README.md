@@ -3,20 +3,26 @@
 ## Goal
 
 Show the spreading itself, on the anatomy, rather than through an integrated
-biomarker, in the visual grammar the reference works use for that purpose.
+biomarker, in the visual grammar the reference works use for that purpose;
+and isolate, by a control run, whether the recruitment order comes from the
+regional biology or from the network.
 
-## The two figures
+## The three figures
 
-Neither figure enters the report: the staged story is told there by the
-seeding-pattern figure of benchmark 27, and the recruitment-order result the
-activation map carries, the correlations r = -0.841 with the local reaction
-rate and r = +0.065 with the graph distance, is quoted in the text of the
-deterministic-model section. Both images stay in this record, together with
-the ParaView output, as the anatomical views of the finite element solution.
+`results/activation_order` enters the report: it is the control experiment
+that isolates the role of the calibrated rates, described below. The other
+two stay in this record: the staged story is told in the report by the
+seeding-pattern figure of benchmark 27, and the recruitment-order
+correlations the activation map carries, r = -0.841 with the local reaction
+rate and r = +0.065 with the graph distance, are quoted in the text of the
+deterministic-model section. Both stay here, together with the ParaView
+output, as the anatomical views of the finite element solution.
 
 `results/anatomical_progression` is a **mid-sagittal section** at three stages.
 `results/activation_time` is a single image carrying the whole history: every
 degree of freedom coloured by the year its concentration reaches `0.5`.
+`results/activation_order` compares that activation picture with the control
+run in which the seven regional rates are replaced by their vertex mean.
 
 Both come from the deterministic Corti model of benchmark 21, refined to eight
 elements per connection, over a horizon of 60 years, and are read from the
@@ -96,6 +102,36 @@ surface.
 
 `10` of the `10170` degrees of freedom never reach `0.5` within the horizon;
 they take the late end of the ramp and are counted in the caption.
+
+## The control that isolates the biology
+
+The refined simulation is repeated with the seven regional rates replaced by
+their vertex mean, `0.1252` (the `uniform` mode of the executable): the
+reaction budget and the Damkohler number are unchanged, and the only anatomy
+left in the model is the connectivity. Mean group activation, in years, over
+the 83 anatomical vertices (`results/activation_order_groups.csv`):
+
+```text
+group        regional   uniform
+frontal         30.15     36.20   <- last with the uniform rate
+limbic          31.69     33.25
+temporal        33.86     34.07
+subcortical     35.91     35.55
+insular         36.00     35.00
+parietal        39.00     35.30
+occipital       43.00     35.00   <- last with the regional rates
+```
+
+With the calibrated rates the occipital group activates last, four clear
+years after every other group, which is the clinical tail of the staging,
+and the frontal group first, as in table 3 of Corti et al. With the uniform
+rate the total spread collapses from 12.9 to 3.0 years and the order becomes
+the connectivity's: the occipital group moves up and the frontal group,
+dragged by its weakly connected pole (weighted degree 2.05, the graph
+minimum), falls last. On this connectome the clinical order of the groups is
+therefore carried by the regional biology and not by the network. This is
+the report's figure-9-style demonstration; the per-vertex activation times
+of both variants are stored in `results/activation_order.csv`.
 
 ## Two deliberate choices
 

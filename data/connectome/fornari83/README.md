@@ -32,13 +32,27 @@ fine graph vertices:       1015
 fine graph edges:         37477
 FreeSurfer regions:          83
 region-to-region edges:     1130
-unweighted degree range:    6-48
+unweighted degree range:    6-48    (paper: 6-48, frontal pole to caudate)
 mean fibre number:          40.1619  (paper: 40.2)
+fibre number range:         1 - 595.5 (paper: 1 - 596)
 mean fibre length:          38.4009 mm (paper: 38.40 mm)
+fibre length range:         11.2867 - 121.0235 mm over region pairs
+                            (paper: 11.3 - 136.8 mm; see below)
 mean adjacency:             1.5702  (paper: 1.57)
 adjacency range:            0.0085 - 35.3221  (paper: 0.01 - 35.32)
+mean weighted degree:       42.7547 (paper: 42.8)
 weighted degree range:      2.0505 - 127.6435 (paper: 2.1 - 127.6)
 ```
+
+The upper bound of the published fibre-length range is the one value that
+is not a region-pair statistic here: the region-to-region connections reach
+a mean length of 121.02 mm, on the lateral orbitofrontal to precuneus pair
+the paper names as its longest, whereas 136.8 mm is the length of the
+longest retained fine connection, 136.83 mm in this dataset (190.2 mm
+without the occurrence threshold, so this bound also corroborates the
+threshold). Both printed bounds are therefore recovered, each at its own
+level of the graph; `summary.json` stores the fine-connection statistics
+next to the aggregated ones.
 
 `nodes.csv` contains the anatomical coordinates and labels. `edges.csv`
 contains the aggregated connectivity data. `summary.json` records the

@@ -359,6 +359,23 @@ int main(int argc, char *argv[]) {
 		fem.set_coefficients();
 		fem.assemble_matrices();
 
+		// At one element per connection and unit lengths the assembled
+		// diffusion matrix must be the graph Laplacian the nodal reference
+		// uses, entry by entry; the check ties the two models to the same
+		// operator and is reported with the run.
+		double laplacian_gap = -1.0;
+		if (cells_per_edge == 1) {
+			const femg::SparseMatrix difference =
+				fem.diffusion_matrix() - laplacian;
+			laplacian_gap = 0.0;
+			for (int k = 0; k < difference.outerSize(); ++k)
+				for (femg::SparseMatrix::InnerIterator it(difference, k); it;
+					++it)
+					laplacian_gap = std::max(laplacian_gap, std::abs(it.value()));
+			std::cout << "  max |K_D - L| at one element per connection: "
+				<< std::setprecision(3) << laplacian_gap << "\n";
+		}
+
 		std::ofstream fem_output(output_dir + "/fem_biomarkers.csv");
 		std::ofstream fem_profiles(output_dir + "/fem_profiles.csv");
 		std::ofstream fem_metric_mass(output_dir + "/fem_metric_mass.csv");

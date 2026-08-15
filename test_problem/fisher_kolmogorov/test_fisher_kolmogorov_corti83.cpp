@@ -222,6 +222,8 @@ int main(int argc, char *argv[]) {
 			: (argc >= 4 ? std::string(argv[3])
 			             : std::string("output/fisher_kolmogorov/corti83"));
 		if (argc >= 5) final_time = std::stod(argv[4]);
+		const bool uniform_rates =
+			argc >= 6 && std::string(argv[5]) == "uniform";
 		using clock = std::chrono::steady_clock;
 		const auto total_start = clock::now();
 
@@ -242,6 +244,15 @@ int main(int argc, char *argv[]) {
 				initial_condition[node.local_id] = seed_concentration;
 				++seed_count;
 			}
+		}
+		if (uniform_rates) {
+			// Control variant for the activation-order comparison: the seven
+			// regional rates are replaced by their vertex mean, so the only
+			// anatomy left in the model is the connectivity.
+			const double mean_rate =
+				std::accumulate(alpha.begin(), alpha.end(), 0.0)
+				/ static_cast<double>(alpha.size());
+			std::fill(alpha.begin(), alpha.end(), mean_rate);
 		}
 
 		femg::fisher_kolmogorov_problem problem(final_time, time_step);
@@ -311,7 +322,9 @@ int main(int argc, char *argv[]) {
 		if (!performance_mode) {
 			std::cout << "  seed vertices: " << seed_count << "\n"
 				<< "  diffusion scaling: D_e = w_e / max(w)\n"
-				<< "  reaction coefficients: deterministic means from Corti et al.\n";
+				<< (uniform_rates
+					? "  reaction coefficients: uniform vertex mean of the regional rates\n"
+					: "  reaction coefficients: deterministic means from Corti et al.\n");
 		}
 		const auto solve_start = clock::now();
 		problem.solve();

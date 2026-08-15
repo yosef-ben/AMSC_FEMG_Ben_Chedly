@@ -23,7 +23,7 @@
 %         in QuantumGraphs/corti.pdf.
 %
 %  Ogni numero riportato qui e' ricalcolato dai file di risultato con
-%  scripts/verify-figures.py (102 controlli, nessuno fallito).
+%  scripts/verify-figures.py (186 controlli, nessuno fallito).
 % =====================================================================
 
 % ---------------------------------------------------------------------
@@ -38,37 +38,12 @@
 %  Non serve leggere altro per l'introduzione: le tre motivazioni sono
 %  sovrapponibili.
 % ---------------------------------------------------------------------
-
 \section{Spreading of neurodegenerative diseases within the brain's connectome}
 
 We have validated our finite element library for the solution of graph-based differential problems on a sequence of elliptic and parabolic benchmarks. We now consider a more application-oriented test case. In particular, we study the Fisher–Kolmogorov equation on a brain connectome's topology. This problem provides a natural extension of the previous linear parabolic models, as it combines diffusion along the graph with a nonlinear reaction term. At the same time, it provides a meaningful test for assessing the scalability of our framework through graph reordering and parallel programming techniques, with the particularly interesting perspective of modeling the propagation of infectious misfolded proteins through the brain, a process that is responsible for neurodegenerative diseases. The goal of this section is therefore not to provide a detailed biological study, but to investigate how the developed solver can be extended from controlled benchmark problems to a realistic network-based diffusion-reaction model.
 
-Figure~\ref{fig:expected} anticipates the outcome. The top rows show the
-clinically expected progression of the two hallmark proteins of Alzheimer's
-disease, as drawn in figure 1 of~\cite{weickenmeier2019prion}; the bottom
-rows show the corresponding progressions computed on the reconstructed
-connectome with the solver of this work. The rest of the chapter builds the
-domain, states the model and verifies every ingredient behind this figure.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\textwidth]{images/seeding_patterns_expected.pdf}
-\caption{Expected against computed progression for the two hallmark
-proteins of Alzheimer's disease. First and third row: the clinical staging
-drawings of figure 1 of~\cite{weickenmeier2019prion}, medial view, adopted
-there from the neuropathological literature; tau above, amyloid-$\beta$
-below. Second and fourth row: the progressions computed in this chapter
-(Section~\ref{sec:staging}), sphere radius and blue intensity both growing
-with the local concentration, at the first instants at which the network
-mean reaches $10$, $40$ and $80$ percent. Tau, seeded at the entorhinal
-cortex, reaches the temporal neighbourhood first and the whole network
-last; amyloid-$\beta$, seeded on the four cortical lobes, descends towards
-the deep structures, which activate last.}
-\label{fig:expected}
-\end{figure}
-
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima di questa sottosezione
+%  DA LEGGERE prima di 4.1
 %    [W] par. 2.2 "Continuum model of prion-like spreading", p. 267:
 %        equazione (8), che e' la Fisher-Kolmogorov che risolviamo.
 %    [W] par. 2.3 "Computational model", p. 268: residuo (10) e matrice
@@ -80,13 +55,17 @@ the deep structures, which activate last.}
 %        lineari, T = 20, nstep = 200, alpha in {1,2,4}, d in {1,2,4}e-4,
 %        c0 = 0.1 nel nodo centrale. E' il paragrafo da cui abbiamo preso
 %        tutti i parametri, riga per riga.
+%        Nello stesso paragrafo, la frase sullo studio preliminare del
+%        passo temporale ("we had systematically varied the time step size
+%        between dt/4 and 4 dt...") e' l'unico riferimento allo studio che
+%        riproduciamo in Figura~\ref{fig:timestep}: nel paper non esiste
+%        una figura corrispondente.
 % ---------------------------------------------------------------------
 
 \subsection{One-dimensional sensitivity analysis}
 \label{sec:onedim}
 
 Prion diseases are characterized by a chain reaction in which misfolded proteins force native ones into a similar pathogenic structure. A physics-based reaction-diffusion model can explain the spreading and growth of these proteins in neurodegenerative diseases: the Fisher-Kolmogorov equation combined with an anisotropic diffusion model \cite{weickenmeier2019prion,cortiFisherKolmogorovGraphs,fornari2019prion}. Following the work described in \cite{weickenmeier2019prion}, we demonstrate the role of the individual model parameters through a one-dimensional sensitivity test, that we exploit also to validate the nonlinear solver before it touches a connectome. We solve
-
 \begin{equation}
 \frac{\partial c}{\partial t} - d\,\frac{\partial^2 c}{\partial x^2}
   - \alpha\,c\,(1-c) = 0,
@@ -99,7 +78,7 @@ with homogeneous Neumann boundary conditions,
 \]
 The initial concentration is zero at every mesh node except at the central node, where $c(0,0)=0.1$. The interval is discretized using 200 linear finite elements. Backward Euler is employed with $\Delta t = 0.1$ and the nonlinear problem arising at each time step is solved by Newton's method; this is the fully implicit scheme of Section~\ref{sec:formulation}. The sensitivity analysis combines the diffusion coefficients $d \in \{1.0, 2.0, 4.0\}\cdot10^{-4}$ with the reaction coefficients $\alpha \in \{1.0,2.0,4.0\}$. These are the choices made in~\cite{weickenmeier2019prion}, including the number of elements and the number of time steps.
 \noindent
-Figure~\ref{fig:sensitivity} presents the results using an activation-time representation. For every pair $(x,c)$, the colour denotes the first time at which the concentration at position $x$ reaches a prescribed level of $c$. The black curves are therefore contours of equal activation time.
+Fig.~\ref{fig:sensitivity} presents the results using an activation-time representation. For every pair $(x,c)$, the color denotes the first time at which the concentration at position $x$ reaches a prescribed level of $c$. The black curves are therefore contours of equal activation time.
 Increasing $\alpha$ accelerates the local conversion of healthy proteins, whereas increasing $d$ enhances their spatial propagation. Consequently, both parameters increase the propagation speed, although through different mechanisms. The results are in agreement with the ones in \cite{weickenmeier2019prion}.
 
 %The numerical fronts remain symmetric with respect to $x=0$: over
@@ -108,20 +87,10 @@ Increasing $\alpha$ accelerates the local conversion of healthy proteins, wherea
 % $[-6.34\cdot10^{-10}, 1.00]$, the negative value being numerical noise of the
 % same order.
 
-% ---------------------------------------------------------------------
-%  ANALOGA di Figura~\ref{fig:sensitivity}
-%    [W] Fig. 3, p. 269. Stessa griglia 3x3, stesso significato dei
-%        colori: per ogni coppia (x,c) il colore e' il primo istante in
-%        cui la concentrazione in x raggiunge il livello c.
-%    Da confrontare in particolare: la simmetria rispetto a x=0 e il
-%    fatto che aumentando alpha da sinistra a destra i contorni si
-%    addensano, mentre aumentando d dall'alto in basso si allargano.
-% ---------------------------------------------------------------------
-
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/sensitivity.pdf}
-\caption{\footnotesize Activation-time maps for the  one dimensional Fisher--Kolmogorov problem. The reaction coefficient increases from left to right, while the diffusion coefficient increases from top to bottom. For each pair $(x,c)$, the colour represents the first time at which the numerical concentration at $x$ reaches a particular level $c$; black curves denote equal activation times. All panels use the same time scale $t \in [0,20]$.}
+\caption{\footnotesize Activation-time maps for the  one dimensional Fisher--Kolmogorov problem. The reaction coefficient increases from left to right, while the diffusion coefficient increases from top to bottom. For each pair $(x,c)$, the color represents the first time at which the numerical concentration at $x$ reaches a particular level $c$; black curves denote equal activation times. All panels use the same time scale $t \in [0,20]$.}
 \label{fig:sensitivity}
 \end{figure}
 
@@ -136,22 +105,18 @@ From this sensitivity test we can also derive the main properties of prion-like 
 
 % ---------------------------------------------------------------------
 %  DA LEGGERE prima del paragrafo sul passo temporale
-%    [W] par. 2.4, p. 268, la frase: "In a preliminary convergence study,
-%        we had systematically varied the time step size between [dt/4,
-%        dt/2, dt, 2 dt, 3 dt, 4 dt] with dt = 0.1, for a growth of
-%        alpha = 2 and a spreading of d = 0.0002, and confirmed that the
-%        solution had converged for dt = 0.1, while we observed a spurious
-%        increase in spreading for larger time step sizes."
-%        E' l'unica fonte: il paper riporta lo studio a parole e non lo
-%        mostra, quindi il criterio non e' ricostruibile.
+%    [W] par. 2.4, p. 268, la frase gia' citata sopra. E' l'unica fonte:
+%        il paper riporta lo studio a parole e non lo mostra.
 %  ANALOGA di Figura~\ref{fig:timestep}
-%    NESSUNA figura in [W]. Il pannello (a) e' la controparte grafica
-%    dell'affermazione verbale sullo "spurious increase in spreading";
-%    il pannello (b) e' interamente nostro.
+%    NESSUNA figura in [W]. Il contenuto del pannello (a) corrisponde
+%    all'affermazione verbale "spurious increase in spreading for larger
+%    time step sizes"; il pannello (b) e' interamente nostro.
+%    Se serve un modello di stile per un pannello di convergenza,
+%    [W] Fig. 13, p. 277 e' l'unica figura di curve del paper.
 % ---------------------------------------------------------------------
 \noindent
 The reference reports a preliminary study in which the time step was varied from $\Delta t/4$ to $4\Delta t$, using $\Delta t = 0.1$ as the reference value, with $\alpha = 2.0$ and $d = 2\cdot10^{-4}$. The authors concluded that $\Delta t = 0.1$ was sufficiently small to obtain a converged solution, whereas larger time steps produced a spurious increase in spreading. That study is described in words only: neither the data nor a figure is given, so the used criterion behind the statement cannot be reconstructed. What we can do is to repeat the experiment in order to observe the spurious solutions obtained for larger time steps.\\
-We resort to the coordinate $x_{f}$ of the right front of the solutions as a diagnostic reference, defined as the point where the profile of the curve crosses $c = 0.5$. All the runs are compared at the common time $T = 19.2$, the largest time that is a whole multiple of every step tested: $\Delta t = \{0.025, 0.05, 0.1,0.2, 0.3,0.4\}$. Figure~\ref{fig:timestep} shows the outcome of the experiment. The qualitative observation of the reference is confirmed. Increasing the time step moves the front outward and at a certain point, the front disappears altogether: for $\Delta t \ge 0.2$ the interval is essentially full, so no $c = 0.5$ crossing exists at all. Large time steps do produce a spurious increase in numerical propagation, exactly as described.\\
+We resort to the coordinate $x_{f}$ of the right front of the solutions as a diagnostic reference, defined as the point where the profile of the curve crosses $c = 0.5$. All the runs are compared at the common time $T = 19.2$, the largest time that is a whole multiple of every step tested: $\Delta t = \{0.025, 0.05, 0.1,0.2, 0.3,0.4\}$. Fig.~\ref{fig:timestep} shows the outcome of the experiment. The qualitative observation of the reference is confirmed. Increasing the time step moves the front outward and at a certain point, the front disappears altogether: for $\Delta t \ge 0.2$ the interval is essentially full, so no $c = 0.5$ crossing exists at all. Large time steps do produce a spurious increase in numerical propagation, exactly as described.\\
 Quantitatively, the reading is more delicate. The three time steps that admit a front give:
 \[
 x_{f} = \{0.6889, \quad 0.7268, \quad 0.8145\}
@@ -170,8 +135,9 @@ $e_\infty = \max_{x\in\Omega} \bigl| c_{\Delta t} - c_{ref} \bigr|, e_2 = \left(
 \label{fig:timestep}
 \end{figure}
 
+
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima della sottosezione sul connettoma
+%  DA LEGGERE prima di 4.2
 %    [F] par. 3.1 "The connectivity-weighted graph", pp. 4-5: la
 %        costruzione del grafo dal Budapest Reference Connectome v3.0,
 %        la mappatura da 1015 a 83 nodi, e TUTTE le statistiche che
@@ -190,43 +156,19 @@ $e_\infty = \max_{x\in\Omega} \bigl| c_{\Delta t} - c_{ref} \bigr|, e_2 = \left(
 \subsection{The brain connectome as a metric graph}
 \label{sec:connectome}
 
-Having verified the nonlinear solver on a controlled one-dimensional problem,
-we move to the network on which the disease actually spreads.
-Following~\cite{fornari2019prion}, we represent the brain as a weighted undirected
-graph $\mathcal{G}=(\mathcal{V},\mathcal{E})$ whose vertices are anatomical
-regions and whose edges are the axonal bundles connecting them. The graph is
-extracted from the public Budapest Reference Connectome
-v3.0~\cite{szalkai2017budapest}, a parameterizable consensus over the
-tractography of healthy subjects of the Human Connectome Project; the number
-of subjects in which each connection occurs is recorded edge by edge, and its
-largest value in the file is $418$, the cohort size stated
-by~\cite{fornari2019prion}. We retain the connections occurring in at least
-five subjects and aggregate the $1015$ fine parcels into the $83$ regions of
-the FreeSurfer parcellation, merging parallel connections and removing the
-$7895$ connections internal to a region. The five-subject threshold is not
-declared in the reference; it is the only integer that reproduces the
-published fine graph of $1015$ vertices and $37\,477$ edges, four keeping
-$40\,895$ edges and six $34\,718$. Each fine connection is weighted by its
-fibre count divided by its fibre length, and parallel connections between the
-same two regions add, as conductances in parallel.
-
-The reconstruction is verified against the published values before any
-simulation is run, and Table~\ref{tab:connectome} collects the statistics of
-the reconstructed graph: the topology is recovered exactly, and every
-weighted statistic, rounded to the precision at which the reference prints
-it, coincides with the published value. The regions
-attaining the extremes match as well: the weighted degree runs from the
-frontal pole to the precentral gyrus, and the strongest connection and the
-largest fibre count sit on the superior parietal to precuneus pair, as the
-reference reports. One point of provenance must be stated. Although the
-reference describes the fibre quantities as cohort means, the published graph
-statistics are reproduced by the \emph{median} fibre-number and fibre-length
-fields of the public dataset; the mean fields give a mean fibre count of
-$62.13$ against the published $40.2$, and no statistic derived from them
-matches. We also downloaded and aggregated the official mean-combination
-graph with the same confidence threshold; it gives a mean adjacency of
-$2.4398$ and a mean weighted degree of $66.4339$, again far from the
-published values, so the median reconstruction is retained.
+Having verified the nonlinear solver on a controlled one-dimensional problem, we now move to the network on which the disease is assumed to spread, reflecting the prion-like hypothesis that misfolded proteins propagate through the brain's axonal fiber tracts. Following \cite{fornari2019prion}, we represent the brain as a weighted undirected graph $\mathcal{G}=(\mathcal{V},\mathcal{E})$ whose vertices are anatomical regions and whose edges are the axonal bundles connecting them. The graph is extracted from the public Budapest Reference Connectome v3.0 \cite{szalkai2017budapest}, which aggregates the tractography of $418$ healthy subjects of the Human Connectome Project. The downloaded fine-resolution graph contains $1015$ parcels and $71604$ connections. For each fine connection, the file records how many subjects exhibit that connection, together with aggregate statistics about its fiber count and length. As a first preprocessing step, we retain only fine connections occurring in at least five subjects. This reduces the number of edges from $71604$ to $37477$, while leaving all $1015$ parcels in the graph. The five-subject threshold is not explicitly stated in~\cite{fornari2019prion}; rather, it is inferred from the public dataset as the unique integer threshold reproducing the $37477$ fine edges reported in the reference. For comparison, thresholds of four and six subjects yield $40895$ and $34718$ edges, respectively.\\
+The resulting fine graph is then mapped onto the $83$ anatomical regions of the FreeSurfer parcellation, as in~\cite{fornari2019prion}. Several fine parcels therefore collapse onto the same anatomical region. Among the $37477$ retained fine connections, $7895$ connect parcels belonging to the same final region and consequently become internal to an aggregated node. The remaining $29582$ connections join distinct regions, but many connect different fine parcels
+belonging to the same pair of anatomical regions. Such parallel connections are merged, resulting in the final graph with $83$ vertices and $1130$ edges.\\
+Each retained fine connection $f$ is assigned the weight $w_f =
+\frac{n_f}{<\ell_f>}$, where $n_f$ and $<\ell_f>$ \footnote{<($\cdot$)> identifies an average over the fibers belonging to the same fine connection.} denote its statistically aggregated values of fiber count and length, respectively. When several fine connections join the same pair of anatomical regions $i$ and $j$, their contributions are summed:
+\[
+A_{ij}
+=
+\sum_{f\in\mathcal{E}_{ij}}
+\frac{n_f}{<\ell_f>}.
+\]
+Thus, an edge of the $83$-region graph generally represents the aggregate contribution of several finer parcel-to-parcel connections, i.e. a bundle. Before any simulation is performed, the reconstructed connectome is verified against the graph statistics reported in~\cite{fornari2019prion}. The topology is recovered exactly and the weighted statistics agree with the published values. Our results are reported in Table \ref{tab:connectome}\footnote{An important point concerns the provenance of the quantities related to the fibers. Although \cite{fornari2019prion} describes the edge weights in terms of fiber quantities averaged over the cohort, the published graph statistics are reproduced by using the \emph{median} fiber-count and length fields of the public dataset. Specifically, the reconstruction uses $w_f = \frac{n_f^{\mathrm{median}}} {(<\ell_f>)^{\mathrm{median}}}$, followed by summation over parallel fine connections. In contrast, the corresponding mean fields do not reproduce the published values. We therefore
+retain the median-based reconstruction, while treating this choice as a data-driven reconstruction of the published graph rather than as a statement about the undocumented implementation used in the reference.}. The graph the solvers read is this one and not a variant of it: the finite element meshes list the $1130$ connections in the order of the weight file with unit metric length, and at one element per connection the assembled diffusion matrix reproduces the graph Laplacian $L = D - A$ built from the same weights entry by entry, the check being printed with every run.
 
 \begin{table}[htbp]
 \centering
@@ -239,30 +181,42 @@ aggregated vertices / edges         & $83$ / $1130$ \\
 degree range                        & $6$--$48$ \\
 mean fibre number                   & $40.16$ \\
 mean fibre length                   & $38.40$ mm \\
-mean adjacency $\bar{A}_{IJ}$       & $1.5702$ \\
+mean adjacency $\bar{A}_{ij}$       & $1.5702$ \\
 adjacency range                     & $0.0085$--$35.3221$ \\
-mean weighted degree $\bar{D}_{II}$ & $42.7547$ \\
+mean weighted degree $\bar{D}_{ii}$ & $42.7547$ \\
 weighted degree range               & $2.0505$--$127.6435$ \\
 \hline
 \end{tabular}
-\caption{Statistics of the reconstructed $83$-region connectome. The topology
-coincides with the one published in~\cite{fornari2019prion}, and every weighted
-statistic, rounded to the precision at which the reference prints it,
-reproduces the published value, so the reconstruction is verifiable against
-the source. The graph uses the median fibre fields of the public file, the
-only ones that reproduce the published values, although the reference
-describes the quantities as cohort means.}
+\caption{ \footnotesize Statistics of the reconstructed $83$-region connectome. The degree of a region is the number of regions it connects to and its weighted degree $D_{ii}=\sum_{j} A_{ij}$ the total connectivity it carries. The fibre number of a connection is the number of fibre tracks that tractography reconstructs between its two regions, as a median over the cohort, and the fibre length their mean length. The adjacency $A_{ij}$ weighs each fine bundle by its
+fibre count over its fibre length, so that many short fibres make a strong connection and adds the bundles running in parallel between the same two regions. Rounded to the precision at which~\cite{fornari2019prion} prints them, all values coincide with the published ones, so the reconstruction is verifiable against the source; the weights use the median fibre fields of the public file, the only ones that reproduce the published values, although the reference describes the quantities as cohort means.}
 \label{tab:connectome}
 \end{table}
+\noindent
+The definition of the connectivity weight has an important consequence for the resulting network. Since each fine-edge contribution is proportional to fibre count and inversely proportional to fibre length, connections supported by many short fibres receive larger weights, whereas long-range connections are penalized. After aggregation, this effect is inherited by the regional adjacency $A_{ij}$ through the sum of all fine connections joining the same pair of regions. At the level of the anatomical groups used later in this chapter, the total connectivity between the frontal and parietal groups is $174.8$ and that between the parietal and occipital groups is $189.7$. In contrast, the total frontal--temporal connectivity is only $0.85$, distributed over $14$ region-to-region connections, none of which exceeds $0.19$. The weighted network is therefore dominated by relatively strong short- and intermediate-range connections rather than by long-range bundles. Fig. \ref{fig:views}, \ref{fig:regions} and \ref{fig:connectogram} show the resulting computational domain.\\
+Fig.~\ref{fig:views} presents connections coloured and sized by their fibre number. The $83$ vertices are placed at their anatomical coordinates and coloured according to the seven anatomical groups used in the subsequent analysis in Fig. \ref{fig:regions}, while Fig.~\ref{fig:connectogram} shows the connectivity structure in the form used in~\cite{cortiFisherKolmogorovGraphs}.
 
-One property of the weighting deserves attention here, because it reappears in
-the regional results. The weight of an edge is the fibre count divided by the
-fibre length, so it penalizes long-range bundles. Summed over pairs of
-anatomical groups, the connectivity between the frontal and the parietal group
-reaches $174.8$ and between the parietal and the occipital group $189.7$,
-while the frontal-to-temporal entry is $0.85$, distributed over $14$
-connections none of which exceeds $0.19$. The short association fibres dominate the weighted
-graph.
+% ---------------------------------------------------------------------
+%  ANALOGA di Figura~\ref{fig:views}
+%    [F] Fig. 5, p. 5, riprodotta elemento per elemento: stessa
+%        disposizione due per due delle viste (sagittale, coronale,
+%        longitudinale e un'obliqua non etichettata), superficie
+%        traslucida, sfere uniformi ai nodi, connessioni rettilinee con
+%        colore E spessore crescenti col numero di fibre, barra
+%        arcobaleno etichettata solo min/max.
+%    Due differenze da dichiarare, e sono gia' nella didascalia: le
+%    coordinate dei nodi e la superficie vengono dal viewer pubblico di
+%    Budapest, non dal modello MRI di [F]; e [F] non dichiara la legge
+%    colore/spessore, quindi la rampa a radice quadrata e' una nostra
+%    scelta, dichiarata: quasi tutte le connessioni sottili e blu, pochi
+%    fasci corti caldi e spessi, con la fascia intermedia leggibile.
+% ---------------------------------------------------------------------
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{images/connectome_views.pdf}
+\caption{ \footnotesize The connectome as a brain network: sagittal, coronal, longitudinal and oblique views of the $83$ vertices and $1130$ connections with and without the translucent pial surface. Colour and thickness of a connection both grow with its fibre number, on a square-root ramp from $1$ to $595.5$. The vertex coordinates and the surface are the ones distributed with the public Budapest Reference Connectome viewer, not the MRI-based brain model of the reference \cite{fornari2019prion}.}
+\label{fig:views}
+\end{figure}
 
 % ---------------------------------------------------------------------
 %  ANALOGA di Figura~\ref{fig:regions}
@@ -277,68 +231,11 @@ graph.
 %        [C] e il rendering da [F].
 % ---------------------------------------------------------------------
 
-Figure~\ref{fig:regions} shows the resulting domain, with the vertices at their
-anatomical coordinates coloured by the seven anatomical groups used later in
-this chapter, in the three anatomical projections.
-
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/connectome_regions.pdf}
-\caption{The $83$-region connectome, seen through the pial surface in the
-sagittal, coronal and axial projections. Top: vertices coloured by anatomical
-group, the colours of figure 2 of~\cite{cortiFisherKolmogorovGraphs}. Bottom:
-connections coloured and sized by their connectivity weight, on a square-root
-ramp between the smallest and the largest value, stated here because no
-mapping is declared in the references; the distribution is strongly skewed,
-and the square root keeps the mid-range readable while the short association
-bundles keep the warm colours. The surface is the
-same file used for the ParaView output and shares the coordinate frame of the
-vertices; nothing is rescaled to make the two agree. The MRI and tractography
-panels of the corresponding figure in~\cite{cortiFisherKolmogorovGraphs} are not reproduced,
-since neither dataset is available and the graph is taken from a public
-consensus connectome rather than reconstructed from patient images.}
+\caption{\footnotesize The $83$-region connectome, seen through the brain surface in the sagittal, coronal and axial projections. Top: vertices coloured by anatomical group. Bottom: connections coloured by connectivity weight, on a square-root ramp.}
 \label{fig:regions}
-\end{figure}
-
-% ---------------------------------------------------------------------
-%  ANALOGA di Figura~\ref{fig:views}
-%    [F] Fig. 5, p. 5, riprodotta elemento per elemento: stessa
-%        disposizione due per due delle viste (sagittale, coronale,
-%        longitudinale e un'obliqua non etichettata), superficie
-%        traslucida, sfere uniformi ai nodi, connessioni rettilinee con
-%        colore E spessore crescenti col numero di fibre, barra
-%        arcobaleno etichettata solo min/max.
-%    Due differenze da dichiarare, e sono gia' nella didascalia: le
-%    coordinate dei nodi e la superficie vengono dal viewer pubblico di
-%    Budapest, non dal modello MRI di [F]; e [F] non dichiara la legge
-%    colore/spessore, quindi la rampa lineare e' una nostra scelta,
-%    dichiarata. Con la rampa lineare l'aspetto coincide: quasi tutte le
-%    connessioni sottili e blu, pochi fasci corti caldi e spessi.
-% ---------------------------------------------------------------------
-
-Figure~\ref{fig:views} presents the same graph in the composition of the brain
-network figure of~\cite{fornari2019prion}: four views, the connections coloured and
-sized by their fibre number, and the vertices as uniform spheres. The
-distribution of fibre counts is strongly skewed, and on the square-root ramp
-used here the strongest short association bundles, the superior parietal to
-precuneus pair above all, carry the warm colours while the mid-range stays
-distinguishable; the printed figure of the reference shows the same broad
-spread of warm edges.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.92\textwidth]{images/connectome_views.pdf}
-\caption{The connectome as a brain network, after figure 5
-of~\cite{fornari2019prion}: sagittal, coronal, longitudinal and oblique views of
-the $83$ vertices and $1130$ connections. The three labelled views sit inside
-the translucent pial surface; the oblique view shows the graph alone, as in
-the reference.
-Colour and thickness of a connection both grow with the square root of its
-fibre number, between $1$ and $595.5$; the reference does not state its
-mapping, so the square-root ramp is a choice made here and stated. The vertex coordinates and the
-surface are the ones distributed with the public Budapest Reference
-Connectome viewer, not the MRI-based brain model of the reference.}
-\label{fig:views}
 \end{figure}
 
 % ---------------------------------------------------------------------
@@ -352,20 +249,10 @@ Connectome viewer, not the MRI-based brain model of the reference.}
 %    informazione in forma quantitativa.
 % ---------------------------------------------------------------------
 
-Figure~\ref{fig:connectogram} shows the connectivity structure in the form used
-in~\cite{cortiFisherKolmogorovGraphs}, with the same threshold of $5\%$ of the strongest
-connection, together with the connectivity summed over each pair of anatomical
-groups.
-
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/connectome_connectogram.pdf}
-\caption{Connectivity of the reconstructed graph. Left: the connections above
-$5\%$ of the strongest one, on a circular layout grouped by anatomical group,
-with the threshold and the colouring of~\cite{cortiFisherKolmogorovGraphs}: each
-connection is drawn as a gradient between the colours of the two groups it
-joins, and thickness grows with the weight. Right: connectivity summed over
-each pair of groups.}
+\caption{\footnotesize Connectivity of the reconstructed graph. Left: the connections with a weight above $5\%$ of the strongest one, on a circular layout grouped by anatomical group, following \cite{cortiFisherKolmogorovGraphs}. Right: connectivity summed over each pair of groups.}
 \label{fig:connectogram}
 \end{figure}
 
@@ -383,80 +270,22 @@ each pair of groups.}
 %    disegnano lo zero in blu; noi usiamo una scala logaritmica e mettiamo
 %    lo zero fuori scala. Il motivo e' misurato ed e' scritto nel testo.
 % ---------------------------------------------------------------------
-
-Figure~\ref{fig:topology} summarizes the connectivity of the reconstructed
-graph through the degree of its vertices in the non-weighted skeleton, their
-degree in the weighted graph and the (weighted) adjacency matrix. The number
-of connections per region varies between $6$ and $48$, consistently
-with~\cite{fornari2019prion}, which identifies the frontal pole, at the anterior
-tip of the hemisphere, and the caudate, one of the deep subcortical nuclei,
-among the least and most connected regions, respectively. Weighting
-substantially changes this picture. The weighted degree spans
-$2.05 \le D_{II} \le 127.64$, with a mean of $42.75$, in agreement with the
-values reported in the reference. The minimum occurs at the frontal pole and
-the maximum at the precentral gyrus, on the upper surface of the hemisphere,
-showing that a region with many connections does not necessarily have the
-largest total connectivity weight.
-
-The adjacency matrix in panel~(c) reflects the same organization described
-in~\cite{fornari2019prion}. The two dense diagonal blocks correspond to
-connections within the two hemispheres, whereas the off-diagonal blocks are
-much sparser and contain the interhemispheric connections. Within each
-hemisphere block, the warmest cells gather in clusters along the diagonal:
-they are the connections internal to the four cortical lobes, frontal,
-parietal, occipital and temporal in the row order of the matrix, eight
-clusters in all across the two hemispheres, as in the reference, each
-bounded by a thin dashed box; the mean
-adjacency inside a lobe is between roughly two and four times the mean of
-its hemisphere block. The coloured strips along the four sides identify the
-seven anatomical groups used later in the analysis and locate these
-clusters. The non-zero adjacency values span
-$0.0085 \le A_{IJ} \le 35.3221$, with a mean of $1.5702$, reproducing the
-published range and mean to the reported precision. The most important
-feature of panel~(c) is not the identity of a single strong or weak
-connection, but the pronounced heterogeneity of the network: most pairs of
-regions are either disconnected or only weakly connected, whereas a
-comparatively small number of connections carry much larger weights. Together
-with the heterogeneous weighted degree in panel~(b), this reveals the
-presence of strongly connected hubs embedded in a much more weakly connected
-network. This structure is directly relevant to disease spreading. In the
-network model of~\cite{fornari2019prion}, highly connected regions are expected
-to become effective hubs for the propagation of misfolded proteins. Thus,
-Figure~\ref{fig:topology} already provides a structural explanation for the
-heterogeneous vulnerability explored later in
-Section~\ref{sec:vulnerability}: the disease does not propagate over a
-uniform network, but through a small number of preferentially connected
-pathways and hubs.
-
-Panel~(c) uses a base-$10$ logarithmic colour scale to make this
-heterogeneity visible. The $2260$ non-zero entries span $3.621$ decades, with
-$77.3\%$ of them below $5\%$ of the maximum; on a linear scale, most
-connections would therefore collapse into a narrow colour range. Missing
-connections are shown separately in grey and are not part of the logarithmic
-scale. Rows and columns retain the solver ordering, without permutation or
-clustering, allowing a direct comparison with Fig.~6
-of~\cite{fornari2019prion}.
+\noindent
+Fig.~\ref{fig:topology} summarizes the connectivity of the reconstructed
+graph through the degree of its vertices in the non-weighted skeleton, their degree in the weighted graph and the (weighted) adjacency matrix. The number of connections per region varies between $6$ and $48$, consistently with~\cite{fornari2019prion}, which identifies the frontal pole, at the anterior tip of the hemisphere and the caudate, one of the deep subcortical nuclei, among the least and most connected regions, respectively. Weighting substantially changes this picture. The weighted degree spans $2.05 \le D_{ii} \le 127.64$, with a mean of $42.75$, in agreement with the values reported in the reference. The minimum occurs at the frontal pole and the maximum at the precentral gyrus, on the upper surface of the hemisphere, showing that a region with many connections does not necessarily have the largest total connectivity weight.\\
+The adjacency matrix in panel~(c) reflects the same organization described in~\cite{fornari2019prion}. The two dense diagonal blocks correspond to connections within the two hemispheres, whereas the off-diagonal blocks are much sparser and contain the interhemispheric connections. There are strong connections also within
+the four lobes, indicated through the eight red regions (dashed boxes) along the diagonal of the matrix (4 lobes $\times$ 2 hemispheres). The coloured strips along the four sides identify the seven anatomical groups used later in the analysis. The non-zero adjacency values span $0.0085 \le A_{ij} \le 35.3221$, with a mean of $1.5702$, reproducing the published range and mean to the reported precision. The most important feature of panel~(c) is not the identity of a single strong or weak connection, but the pronounced heterogeneity of the network: most pairs of regions are either disconnected or only weakly connected, whereas a comparatively small number of connections carry much larger weights. Together with the heterogeneous weighted degree in panel~(b), this reveals the presence of strongly connected hubs embedded in a much more weakly connected network. This structure is directly relevant to disease spreading. In the network model of~\cite{fornari2019prion}, highly connected regions are expected
+to become effective hubs for the propagation of misfolded proteins: the disease does not propagate over a uniform network, but through a small number of preferentially connected pathways and hubs.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/connectome_topology.pdf}
-\caption{Connectivity diagnostics of the reconstructed graph, following
-Fig.~6 of~\cite{fornari2019prion}. (a) Non-weighted degree and
-(b) connectivity-weighted degree, with sphere size and colour encoding the
-corresponding quantity; each panel is normalized to its own range.
-(c) Weighted adjacency matrix $A_{IJ}$ displayed on a base-$10$ logarithmic
-scale over the complete non-zero range. Missing connections are shown
-separately in grey, while the coloured strips identify the seven anatomical
-groups used in the subsequent analysis and the thin dashed boxes bound the
-eight intra-lobe clusters along the diagonal. Rows and columns follow the solver
-ordering, with rows displayed from the bottom: right hemisphere $0$--$40$,
-left hemisphere $41$--$81$, and brainstem $82$.}
+\caption{\footnotesize (a) Non-weighted degree and (b) connectivity-weighted degree; each panel is normalized to its own range. (c) Weighted adjacency matrix $A_{ij}$ displayed on a base-$10$ logarithmic scale over the complete non-zero range. A logarithmic colour scale is used to make both weak and strong connections visible within the same panel. Missing connections are shown separately in grey and are not included in the logarithmic scale, while the coloured strips identify the seven anatomical groups used in the subsequent analysis. Rows and columns follow the solver ordering, with rows displayed from the bottom: right hemisphere $0$--$40$, left hemisphere $41$--$81$ and brainstem $82$.}
 \label{fig:topology}
 \end{figure}
 
-
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima del confronto col modello di rete
+%  DA LEGGERE prima di 4.3
 %    [F] par. 3.3 "The network model", p. 5: equazione (3.2), il modello
 %        nodale con N incognite. E' il modello di riferimento con cui ci
 %        confrontiamo, e va letto con attenzione perche' la differenza
@@ -476,96 +305,35 @@ left hemisphere $41$--$81$, and brainstem $82$.}
 \subsection{Network model and metric-graph formulation}
 \label{sec:formulation}
 
-% Nota: quando i capitoli introduttivi avranno i loro \label, sostituire
-% "the first part of this work" con i \ref corrispondenti: la formulazione
-% debole del problema parabolico (eq. 4-5), il sistema semi-discreto con i
-% blocchi di massa e rigidezza (eq. 6-7), il Teorema 2.1 (stiffness =
-% Laplaciano del grafo esteso) e il theta-metodo del sistema completamente
-% discreto (eq. 8).
-
-We solve the Fisher--Kolmogorov equation posed on the (metric) graph
-presented in the previous section; on every edge $e$:
+We solve the Fisher--Kolmogorov equation posed on the (metric) graph presented in the previous section;  on every edge $e$:
 \begin{equation}
 \partial_t c(s,t) - \partial_s\!\left[D_e\,\partial_s c(s,t)\right]
   = \alpha(s)\,c(s,t)\,[1-c(s,t)].
 \label{eq:fk}
 \end{equation}
-The edge diffusivity $D_e$ is the connectivity weight of the connection and
-$\alpha$ is the conversion rate. Up to the nonlinear right-hand side, this
-is the same parabolic problem studied in the first part of this work, whose
-P1 discretization applies verbatim, with the mass matrix $M$ and the
-weighted stiffness matrix $K_D$; the only new ingredient is the nonlinear
-reaction term. The references solve a simpler system, with one unknown per
-node and no spatial structure inside the connections:
-\begin{equation}
-\frac{\mathrm{d}c_I}{\mathrm{d}t}
-  = -\sum_{J=1}^{N} L_{IJ}\,c_J + \alpha\,c_I\,[1-c_I],
-  \qquad I = 1,\dots,N,
-\label{eq:nodal}
-\end{equation}
-where $L = D - A$ is the connectivity-weighted graph Laplacian of
-Section~\ref{sec:connectome}; this is equation (3.2)
-of~\cite{fornari2019prion} and the starting point
-of~\cite{cortiFisherKolmogorovGraphs}. We will refer to it as the nodal
-model. It serves as the term of comparison next to our finite element
-solution, it stands in for it only in the one regime where
-Section~\ref{sec:boundary} shows the present discretization to be
-unreliable, and both systems are run with the code of this work.
-
-The two systems are related exactly,
-and the relation is a corollary of the theory of the first part of this
-work, which identifies the stiffness matrix with the Laplace matrix of the
-extended graph: at one element per connection and unit metric lengths the
-extended graph is the connectome itself, so $K_D$ coincides with $L$, entry
-by entry, and \eqref{eq:nodal} is the finite element system with the
-consistent mass matrix replaced by the identity and the reaction evaluated
-at the vertices.\footnote{A diagonal-mass counterpart of the finite element
-system, not its row-sum lumped version: at unit edge lengths the lumped
-diagonal would be $\mathrm{deg}_I/2$, not $1$.} The differences are
-therefore two, and only two. The consistent mass gives a value prescribed
-at a vertex a metric support over the incident connections. Refinement adds
-degrees of freedom inside the connections, which the nodal model cannot
-represent. Section~\ref{sec:comparison} measures both.
-
-Each reproduced experiment uses the time scheme and way of treating the
-nonlinear term of its own reference. Table~\ref{tab:integrators} summarizes
-the two schemes.
-
-% ---------------------------------------------------------------------
-%  DA LEGGERE sugli schemi temporali della tabella
-%    [C] par. 2.1 "Discrete formulation", p. 3, equazione (4): lo schema
-%        semi-implicito; la formula completa dell'update resta nel README
-%        del benchmark 21 e nel codice. La parte delicata e' che il
-%        fattore di saturazione viene ESTRAPOLATO (la retta per le ultime
-%        due soluzioni prolungata a meta' passo, dove lo schema e'
-%        centrato), mentre il primo fattore e' centrato nel tempo.
-%    [W] par. 2.3, p. 268, equazioni (10) e (11): il residuo e la matrice
-%        tangente dello schema completamente implicito con Newton.
-%  Nel testo i due schemi sono chiamati "fully implicit" e "semi-implicit"
-%  come nelle colonne della tabella; gli ordini sono verificati sulla
-%  logistica esatta nel record dei benchmark
-%  (test_fisher_kolmogorov_logistic).
-% ---------------------------------------------------------------------
+Up to the nonlinear right-hand side, this is the same parabolic problem studied in the first part of this work. The only new ingredient is the nonlinear reaction term. The references solve a simpler system, with one unknown per node and no spatial structure inside the connections. We will refer to the models of the references \cite{cortiFisherKolmogorovGraphs, fornari2019prion} as the \textit{nodal models}, that serve as the term of comparison next to our finite element solution. Each reproduced experiment uses the time scheme and way of treating the nonlinear term of its own reference. Table~\ref{tab:integrators} summarizes the two schemes.
 
 \begin{table}[htbp]
 \centering
 \setlength{\tabcolsep}{3.5pt}
+
 \begin{tabular}{lll}
 \hline
- & Fully implicit~\cite{weickenmeier2019prion,fornari2019prion}
- & Semi-implicit~\cite{cortiFisherKolmogorovGraphs} \\
+& Fully implicit~\cite{weickenmeier2019prion,fornari2019prion}
+& Semi-implicit~\cite{cortiFisherKolmogorovGraphs} \\
 \hline
+
 Time discretization
 & Backward Euler ($\theta = 1$)
 & Crank--Nicolson ($\theta = 1/2$) \\
 
 Nonlinear term
 & implicit, at $t^{n+1}$
-& saturation frozen at $\mathbf{C}^\star$ \\
+& semi-implicit, second-order extrapolation \\
 
 Initialization
-& $\mathbf{C}^{0}$
-& $\mathbf{C}^{-1} = \mathbf{C}^{0}$ \\
+& $\mathbf{c}^{0}$
+& $\mathbf{c}^{-1} = \mathbf{c}^{0}, \mathbf{c}^{0}$ \\
 
 Solve per step
 & Newton iteration
@@ -575,29 +343,14 @@ Order in time
 & first
 & second \\
 
-Used in (sections)
-& \ref{sec:onedim}, \ref{sec:comparison}--\ref{sec:vulnerability}
-& \ref{sec:corti}--\ref{sec:performance} \\
 \hline
 \end{tabular}
-\caption{The time discretization strategies adopted by the references, as
-implemented in this work; both are the $\theta$-method of the first part of
-this work plus a treatment of the nonlinearity. The extrapolation
-$\mathbf{C}^\star = \tfrac{3}{2}\mathbf{C}^{n} - \tfrac{1}{2}\mathbf{C}^{n-1}$
-is the straight line through the two previous solutions prolonged to the
-midpoint of the step, where the Crank--Nicolson scheme is centred: the
-prediction is second-order accurate, so each step costs a single linear
-solve without losing the order. The matrix carrying the frozen factor must
-however be rebuilt and refactorized at every step, the dominant cost
-measured in Section~\ref{sec:performance}. Both orders are verified against
-the exact logistic solution in the benchmark record.}
+
+\caption{\footnotesize The time discretization strategies adopted by the references, as implemented in this work. Both are based on the $\theta$-method, combined with a different treatment of the nonlinear reaction term. In the semi-implicit scheme, each time step requires only a linear solve. The resulting matrix must however be rebuilt and refactorized at every step.}
+
 \label{tab:integrators}
 \end{table}
 
-
-
-
-% ---------------------------------------------------------------------
 %  DA LEGGERE prima della sottosezione sul Damkohler
 %    [F] par. 4 "Biomarker models", p. 6, prime righe: la definizione di
 %        biomarker abnormality.
@@ -622,101 +375,114 @@ the exact logistic solution in the benchmark record.}
 \subsection{Comparison with the network model}
 \label{sec:comparison}
 
-We reproduce the baseline simulation of~\cite{fornari2019prion}: conversion rate
-$\alpha=0.5$, misfolded protein seeded in the entorhinal cortex at $c_0=0.1$,
-all other regions healthy, and $100$ implicit steps of $\Delta t = 0.4$ years.
-Following the reference, the evolution is summarized by a biomarker: for a
-group of regions $\mathcal{I}$, the abnormality is the concentration averaged
+We reproduce the baseline simulation of~\cite{fornari2019prion}: conversion rate $\alpha=0.5$, misfolded protein seeded in the entorhinal cortex at $c_0=0.1$, all other regions healthy and $100$ implicit steps of $\Delta t = 0.4$ years. Following the reference, the evolution is summarized by a biomarker: for a group of regions $\mathcal{I}$, the abnormality is the concentration averaged
 over its vertices and expressed as a percentage,
 \begin{equation}
 C_{\mathcal{I}}(t)
   = \frac{100}{|\mathcal{I}|}\sum_{I \in \mathcal{I}} c_I(t),
 \label{eq:biomarker}
 \end{equation}
-evaluated for the four cortical lobes and for the network as a whole. The
-reference defines its biomarker as the plain sum of the concentrations, its
-equation (4.1); the normalization used here changes the units to a
-percentage and nothing else.
-
-Both solutions remain in the physical interval and approach the stable
-state $c=1$; the finite element solution shows a transient undershoot of
-order $10^{-4}$, traced below to the coarse mesh. The biomarker curves have
-the expected sigmoid shape. The $50$-percent crossing of the network average
-occurs at $11.11$ years for the nodal model and at $12.68$ years for the
-finite element one; the difference is the metric-support effect described in
-Section~\ref{sec:formulation}.
-
-The activation sequence, however, is not reproduced. \cite{fornari2019prion} report
-a separation of roughly five years between the temporal and the occipital lobe;
-our four lobe curves cross the $50$-percent level within $3.9\cdot10^{-7}$
-years of each other in the nodal model and $8.4\cdot10^{-3}$ years in the
-finite element model. Since our nodal model is \eqref{eq:nodal} implemented
-literally, the discrepancy cannot be a defect of the spatial discretization,
-and Section~\ref{sec:damkohler} is devoted to explaining it.
+evaluated for the four cortical lobes and for the network as a whole. The biomarker curves have the expected sigmoid shape. The $50$-percent crossing of the network average occurs at $11.11$ years for the nodal model and at $12.68$ years for the finite element one; the difference is the metric-support effect described in Section~\ref{sec:reproduction}. The activation sequence, however, is not reproduced. \cite{fornari2019prion} report
+a separation of roughly five years between the temporal and the occipital lobe; our four lobe curves cross the $50$-percent level within $3.9\cdot10^{-7}$ years of each other in the nodal model and $8.4\cdot10^{-3}$ years in the finite element model. Section~\ref{sec:damkohler} is devoted to explaining this discrepancy.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/biomarker_comparison.pdf}
-\caption{Biomarker abnormality of the four lobes and of the network, for the
+\caption{\footnotesize Biomarker abnormality of the four lobes and of the network, for the
 nodal reference and for the metric-graph finite element model, at $\alpha=0.5$
 with $100$ steps of $\Delta t = 0.4$ years. Since the four regional curves
-nearly coincide, the lower panels report each curve minus the network average;
-no rescaling is applied to the upper panels.}
+nearly coincide, the lower panels report each curve minus the network average.}
 \label{fig:biomarker}
 \end{figure}
 
 % ---------------------------------------------------------------------
-%  DA LEGGERE prima della sottosezione sul Damkohler.1
-%    Nessuna lettura nei tre paper: nessuno dei tre riporta uno studio di
-%    raffinamento in spazio o in tempo su connettoma. E' interamente
-%    nostro, ed e' esattamente il tipo di contributo che ci si aspetta da
-%    un lavoro di metodi numerici applicato a un modello preso dalla
-%    letteratura. Vale la pena dirlo nel testo.
-%    Se serve un termine di paragone sul ruolo di Delta t, l'unico e'
-%    [W] par. 2.4, p. 268, gia' letto per la Sezione 4.1.
+%  DA LEGGERE prima della sottosottosezione sui limiti della riproduzione
+%    [F] par. 3.1, p. 5: dataset, parcellazione, pesi A_IJ = n_IJ/l_IJ
+%        "averaged over all 418 brains", e le statistiche stampate.
+%    [F] par. 3.2, p. 5, eq. (3.1): L = D - A con D_II = somma_J A_IJ.
+%        L'operatore e' specificato; NON lo e' la sua scala rispetto al
+%        tempo: A_IJ e' fibre/mm, alpha e Delta t sono per anno.
+%    [F] par. 3.3, eq. (3.2) e ultima frase: "implicit or explicit time
+%        integration schemes", senza dire quale.
+%    [F] par. 4.1, p. 6: alpha = 0.5, seme "in the entorhinal cortex"
+%        c0 = 0.1, "implicit time integration scheme", 100 x 0.4 anni,
+%        eq. (4.1) biomarcatore = somma; l'asse di fig. 7 e' in percento.
+%    [F] "Data accessibility", p. 11: "does not contain any additional
+%        data": ne' la matrice 83x83 ne' il codice.
+%    Lo studio di raffinamento (spazio e tempo) resta nel record del
+%    benchmark 19: qui se ne cita solo la sensibilita' dei tempi assoluti
+%    a Delta t, che serve al discorso.
 % ---------------------------------------------------------------------
 
-\subsubsection{Convergence}
-\label{sec:convergence}
+\subsubsection{Limits of an exact reproduction}
+\label{sec:reproduction}
 
-None of the reference works reports a refinement study on the connectome, so we
-carry one out before drawing any conclusion from the comparison above. The
-spatial study keeps $\Delta t = 0.4$ and refines each connection into $1$, $2$,
-$4$ and $8$ elements. The maximum deviation of the biomarker curves from the
-finest run decreases as
-\[
-0.4992\%, \quad 0.1287\%, \quad 0.0246\%, \quad 0,
-\]
-over $83$, $1213$, $3473$ and $7993$ degrees of freedom. The small negative
-transient disappears from two elements per connection onwards, confirming that
-it is a coarse-mesh artefact and not a failure of the nonlinear solver.
+Before explaining the discrepancy it is worth stating precisely what can and
+what cannot be claimed about it. First, the graph. Section~\ref{sec:connectome}
+shows that the reconstructed connectome reproduces the topology and the
+weighted statistics published by the reference, degree, adjacency and
+weighted degree with their means, ranges and the regions attaining the
+extremes, and that the operator handed to both solvers is the Laplacian of
+that graph. A gross difference in the reconstruction of the connectome is
+therefore an unlikely explanation for the different lobe dynamics. This does
+not allow us to state that our adjacency matrix coincides entry by entry
+with the one the authors used: the $83 \times 83$ matrix and the code of the
+reference are not available, and the published statistics constrain the
+matrix without determining it. Second, the discretization. The gap between
+the two crossing times above, $11.11$ against $12.68$ years, is a difference
+between the two discrete systems and not an error of either: in the nodal
+model a value prescribed at a vertex is a point value, whereas in the finite
+element system the consistent mass matrix gives it a metric support over the
+incident connections and the reaction is integrated along them. Absolute
+crossing times are moreover sensitive to the time step at the level of a
+year, halving $\Delta t$ repeatedly moving the network crossing from $11.50$
+years at $\Delta t = 0.8$ to $13.71$ years at $\Delta t = 0.05$, in our
+simulation as in the reference, which uses the same step with an implicit
+scheme; absolute times are therefore not compared between the two works.
+The refinement study behind these numbers is kept in the benchmark record:
+the connectome problem has no exact solution, so it measures the
+sensitivity of the results to the discretization rather than proving
+convergence.
 
-The temporal study uses eight elements per connection and the steps
-$\Delta t = 0.8, 0.4, 0.2, 0.1, 0.05$; successive differences between biomarker
-curves give the observed rates $1.0556$, $1.0262$ and $1.0127$, converging to
-the first order expected of the fully implicit scheme.
+Third, what the published description allows us to reconstruct. The
+reference specifies the dataset and the parcellation, the edge weight as the
+ratio of fibre number to fibre length, the operator $L = D - A$ with
+$D_{II} = \sum_{J} A_{IJ}$, the conversion rate $\alpha = 0.5$, the seed at
+$c_0 = 0.1$ in the entorhinal cortex, an implicit time integration with
+$100$ steps of $\Delta t = 0.4$ years, and the biomarker as the sum of the
+nodal concentrations. It does not specify which implicit scheme is used; how
+the $1015$-node graph is aggregated to $83$ regions, in particular how
+parallel and intra-region connections are treated and whether mean or
+median fibre fields enter the weights, Section~\ref{sec:connectome}
+recording that the printed statistics are reproduced by the median fields;
+which of the $83$ regions form each lobe; the normalization that turns the
+summed biomarker into the percentage of its figure; and the effective scale
+of the transport term relative to the time scale of the dynamics. On this
+last point the paper is not fully explicit: the adjacency is defined as a
+fibre count divided by a fibre length in millimetres, while the dynamics is
+expressed in years, so the relation between the structural weights and the
+time unit is a possible point of ambiguity, which we resolve by the most
+literal reading, taking the weights as they are. Where a choice was needed
+we made the most literal one throughout, and the resulting graph reproduces
+every published statistic at printed precision.
 
-We retain $\Delta t = 0.4$ in the comparison above in order to match the
-discretization of the reference, but the study just described moves the network
-crossing time from $11.50$ years at $\Delta t = 0.8$ to $13.71$ years at
-$\Delta t = 0.05$. The absolute crossing times therefore carry a
-time-discretization error of order one year, in our simulation as well as in
-the reference, which uses the same step with a first-order scheme. Agreement of
-absolute times between the two works should be read with that in mind.
-
-The refinement study also quantifies what the metric-graph formulation buys.
-Taking the spatially resolved solution at eight elements per connection as
-the reference, the network crossing time of the coarsest finite element
-mesh is early by $0.030$ years, an error the refinement path above reduces
-further at first order; the crossing time of the nodal model is early by
-$1.61$ years, and no refinement available to that model can reduce it,
-because the gap comes from its formulation, the identity mass and the
-pointwise reaction, not from a mesh. If the metric graph is accepted as the
-model of the network, the discretization error of the finite element
-formulation is controllable and its resolved limit is well defined, whereas
-the nodal model carries a fixed modeling offset. This is a statement about
-the two discrete systems, not about the disease: no clinical accuracy is
-implied, since no patient data enters either computation.
+With the model and the parameters reconstructed in this way, the Laplacian
+built from the weights $n_{IJ}/l_{IJ}$, $\alpha = 0.5$, the entorhinal seed
+and the declared time discretization, we do not recover the marked
+inter-lobe separation shown by the reference. Two alternative explanations
+are excluded or strongly weakened by tests already at hand. The
+near-synchronization is not a consequence of how the regions are grouped
+into lobes: at this scale all $83$ regional curves cross the $50$-percent
+level within $6.4\cdot10^{-5}$ years of each other in the nodal model and
+within $0.20$ years in the finite element one, so no assignment of regions
+to lobes can separate the lobe curves by years. Nor is it recovered by
+reasonable changes of the discretization: with the semi-implicit scheme in
+place of the fully implicit one, with the time step halved four times from
+$0.8$ to $0.05$ years and with eight elements per connection, the four lobe
+curves cross within $0.04$ years of each other in every combination
+(benchmark record), the changes moving the absolute times but not the
+separation. Section~\ref{sec:damkohler} shows which quantity the separation
+does respond to.
 
 
 % ---------------------------------------------------------------------
@@ -743,10 +509,10 @@ Section~\ref{sec:comparison} ended on a disagreement: the reference reports
 lobes activating years apart, while our curves coincide. This section shows
 that one dimensionless number controls the separation.
 
-Consider \eqref{eq:nodal} with the connectivity weights scaled by a uniform
-factor $\rho > 0$, so that the Laplacian becomes $\rho L$ and $\rho = 1$
-recovers the published model; in the metric-graph formulation the same
-factor multiplies every edge diffusivity $D_e$. Two rates then compete.
+Consider the nodal model with the connectivity weights scaled by a uniform
+factor $\rho > 0$, so that its graph Laplacian $L = D - A$ becomes $\rho L$
+and $\rho = 1$ recovers the published model; in the metric-graph
+formulation the same factor multiplies every edge diffusivity $D_e$. Two rates then compete.
 Linearised around a small concentration, the reaction grows every regional
 value at the rate $\alpha$. Diffusion damps every contrast between regions;
 expanding on the eigenvectors of $L$, the slowest, longest-lived contrast
@@ -769,18 +535,32 @@ seed survive up to saturation, and the curves separate. For the
 reconstructed connectome, $\lambda_2 = 0.7723$, computed from the same edge
 weights the solver uses.
 
-At the parameters of the reference, $\rho = 1$ and $\alpha = 0.5$, we obtain
-$\mathrm{Da} = 0.65$. The connectome homogenizes faster than the reaction
-develops, and coincident lobe curves are the correct solution of
-\eqref{eq:nodal} at unit weight scale, not a numerical artefact.
+At the parameters as we reconstruct them, $\rho = 1$ and $\alpha = 0.5$, we
+obtain $\mathrm{Da} = 0.65$. The connectome homogenizes faster than the
+reaction develops, and coincident lobe curves are the correct solution of
+the nodal model at that scale, not a numerical artefact.
 Figure~\ref{fig:damkohler} quantifies this by sweeping $\rho$: the lobe
 separation grows from $3.9\cdot10^{-7}$ years at $\mathrm{Da}=0.65$ to $6.99$
 years at $\mathrm{Da}=647$, seven decades of variation with the topology, the
-seed and the conversion rate held fixed. Recovering the separation reported
-in~\cite{fornari2019prion} requires $\mathrm{Da}$ of order $10^{2}$, that is $\rho$
-close to $0.005$. We conclude that the published figure cannot be produced by
-the connectivity-weighted Laplacian used at unit scale, whatever reconstruction
-of the weights is adopted.
+seed and the conversion rate held fixed. Weakening the network transport
+progressively restores a multi-year separation between the lobes, and a
+separation comparable to the one shown in~\cite{fornari2019prion} is
+reached at $\mathrm{Da}$ of order $10^{2}$, that is at $\rho$ close to
+$0.005$, about two hundred times weaker than the literal scale.
+
+The result must be read for what it is. The sensitivity analysis shows that
+the inter-lobe separation is strongly controlled by the relative scale of
+network transport and reaction, whereas Section~\ref{sec:reproduction}
+shows that it does not respond to the grouping of the regions or to the
+discretization; the sweep therefore identifies the mechanism controlling
+the discrepancy. It does not establish which effective scaling was used in
+the original implementation: the matrix and the code of the reference are
+not available, and the relation between its structural weights and its time
+unit is the one point its description leaves not fully explicit. Taken
+together with the agreement of the reconstructed graph with every published
+statistic, the discrepancy is most naturally located in this effective
+scaling of the transport term rather than in the connectome itself, but we
+do not claim more than that.
 
 \begin{figure}[htbp]
 \centering
@@ -826,8 +606,7 @@ matter of resolving the front.
 The cause is the consistent mass matrix. Its off-diagonal entries are positive,
 so the semi-discrete system does not satisfy a discrete maximum principle;
 while diffusion dominates, the diffusion matrix compensates, and once the
-reaction dominates nothing does. As observed in Section~\ref{sec:formulation},
-the nodal model \eqref{eq:nodal} and the Hadamard product used
+reaction dominates nothing does. The nodal model and the Hadamard product used
 in~\cite{cortiFisherKolmogorovGraphs} carry a diagonal mass with the reaction
 evaluated at the vertices, so no positive off-diagonal mass entry exists to
 violate the maximum principle, which is why they remain bounded at every
@@ -877,13 +656,14 @@ progression runs the other way, downwards, with the deep structures last
 vertices at $c_0=0.1$, the seed used throughout this chapter, and the $58$
 vertices of the four cortical lobes at the same level.
 
-The two computed progressions are the ones shown below their clinical
-counterparts in Figure~\ref{fig:expected}, the figure that opens this
-chapter, in the construction of figure 1 of~\cite{fornari2019prion}: three
-stages, selected as the first instants at which the network mean reaches
-$10$, $40$ and $80$ percent. The solution shown is the nodal network model
-at $\rho = 0.005$, the scaling Section~\ref{sec:damkohler} identifies with
-the separation the reference publishes; at this scaling the consistent-mass
+Figure~\ref{fig:expected} shows the two computed progressions below their
+clinical counterparts, the staging drawings of figure 1
+of~\cite{weickenmeier2019prion}, in the construction of figure 1
+of~\cite{fornari2019prion}: three stages, selected as the first instants at
+which the network mean reaches $10$, $40$ and $80$ percent. The solution
+shown is the nodal network model
+at $\rho = 0.005$, the scaling at which Section~\ref{sec:damkohler} obtains
+a separation of the magnitude the reference publishes; at this scaling the consistent-mass
 finite element formulation leaves the physical range
 (Section~\ref{sec:boundary}), while the nodal solution remains in $[0,1]$
 throughout, and the figure script verifies it.
@@ -898,8 +678,43 @@ $5.6$, the limbic belt at $6.3$, and the subcortical nuclei last at $7.7$
 years, three years behind the cortex, which is the downward sequence the
 literature describes. The one caveat carries over from
 Section~\ref{sec:damkohler}: within the late tau stages the ordering of the
-remaining lobes reflects the connectivity of the graph, the weakly connected
-frontal pole last, and not the clinical sequence.
+remaining lobes reflects the connectivity of the graph and not the clinical
+sequence. Behind the staged renders the four lobes cross the $50$-percent
+level in the order temporal, occipital, parietal, frontal, the same order
+as in Figure~\ref{fig:damkohler}; the reference reports temporal, frontal,
+parietal, occipital. In our simulations the frontal group is last because
+of the weak connectivity of the frontal pole, the least connected region of
+the graph, a property the reference also reports; whether the same holds
+for the matrix used there cannot be checked for the reasons given in
+Section~\ref{sec:reproduction}. With a uniform conversion rate,
+connectivity is the only anatomy our model carries, so this is the order it
+produces on this graph. The clinical order emerges once the biology that
+carries it enters the coefficients: with the regional rates of
+Section~\ref{sec:corti}, calibrated by that reference on patient data, the
+frontal group is among the first and the occipital group is last
+(Table~\ref{tab:corti} and Figure~\ref{fig:activationorder}), and
+Section~\ref{sec:corti} shows the recruitment to be set by those rates
+rather than by propagation.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{images/seeding_patterns_expected.pdf}
+\caption{\footnotesize Expected against computed progression for the two
+hallmark proteins of Alzheimer's disease. First and third row: the clinical
+staging drawings of figure 1 of~\cite{weickenmeier2019prion}, medial view,
+adopted there from the neuropathological literature; tau above,
+amyloid-$\beta$ below. Second and fourth row: the progressions computed in
+this section, sphere radius and blue intensity both growing with the local
+concentration, at the first instants at which the network mean reaches
+$10$, $40$ and $80$ percent; nodal model at $\rho = 0.005$. Tau, seeded at
+the entorhinal cortex, reaches the temporal neighbourhood first and the
+whole network last; amyloid-$\beta$, seeded on the four cortical lobes,
+descends towards the deep structures, which activate last. The three stages
+resolve the origin, the direction and the endpoint of each progression; the
+relative order of the remaining cortical lobes is a property of the
+connectivity, discussed in the text.}
+\label{fig:expected}
+\end{figure}
 
 % ---------------------------------------------------------------------
 %  DA LEGGERE prima della sottosezione sul tasso di conversione
@@ -942,7 +757,9 @@ $\mathbf{1}^{\!\top} M \mathbf{C}/\mathbf{1}^{\!\top} M \mathbf{1}$ by
 $8.0\cdot10^{-16}$.
 
 The nodal and finite element curves start from different global averages, for
-the reason given in Section~\ref{sec:formulation}. No amplitude rescaling is
+the reason given in Section~\ref{sec:reproduction}: a value prescribed at a
+vertex acquires a metric support over the incident connections in the
+finite element domain. No amplitude rescaling is
 applied to hide this difference, since it is a property of the two models and
 not an error of either.
 
@@ -985,7 +802,7 @@ The network enters the model only through $L$, so it is natural to ask which
 regions are the most dangerous places for the disease to start. Following the
 infection-time study of~\cite{fornari2019prion} we seed each of the $83$ regions in
 turn and record the time at which the network biomarker reaches $95\%$. The
-sweep runs on the nodal system \eqref{eq:nodal}, because one of its two
+sweep runs on the nodal model, because one of its two
 scalings lies beyond the validity boundary of Section~\ref{sec:boundary}. The
 reference performs this experiment with the Heterodimer model rather than with
 Fisher--Kolmogorov, so the absolute times are not comparable and we compare only
@@ -1152,9 +969,51 @@ graph eccentricity from the seed is $2$, every region lying within two
 connections of the entorhinal and hippocampal seed. The recruitment order is
 set by the regional conversion rates, $0.1801$ in the frontal group against
 $0.0545$ in the occipital one, not by propagation, which is the conclusion
-of Section~\ref{sec:damkohler} reached independently. The activation map and
-the staged concentration sections drawn from this run are kept in the
-benchmark record.
+of Section~\ref{sec:damkohler} reached independently.
+
+The role of the calibrated rates is then isolated by a control experiment,
+in the construction of the infection-time figure of~\cite{fornari2019prion}.
+The same refined simulation is repeated with the seven regional rates
+replaced by their vertex mean, $0.1252$: the reaction budget and the
+Damk\"ohler number are unchanged, and the only anatomy left in the model is
+the connectivity. Figure~\ref{fig:activationorder} colours every vertex by
+its activation time, the first stored year at which the concentration
+reaches $0.5$, for the two variants. With the calibrated rates the mean
+group activation runs from $30.2$ years in the frontal group, first as in
+table 3 of the reference, to $43.0$ years in the occipital group, last by
+four clear years, which is the clinical tail of the staging. With the
+uniform rate the picture inverts into the connectivity's order: the total
+spread collapses from $12.9$ to $3.0$ years, the occipital group moves up
+to $35.0$ years, and the frontal group, dragged by its weakly connected
+pole, activates last at $36.2$ years. On this connectome the clinical order
+of the groups is therefore carried by the regional biology and not by the
+network, which is the conclusion of Section~\ref{sec:damkohler} reached
+from the opposite side. The staged concentration sections of this run
+remain in the benchmark record.
+
+% ---------------------------------------------------------------------
+%  ANALOGA di Figura~\ref{fig:activationorder}
+%    [F] Fig. 9, p. 8: vertici colorati per tempo di attivazione; la
+%    costruzione riusa quella convenzione. Il pannello (c), il controllo
+%    a tasso uniforme che isola il ruolo dei tassi regionali, non ha
+%    corrispondente in letteratura ed e' il punto della figura.
+% ---------------------------------------------------------------------
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/activation_order.pdf}
+\caption{\footnotesize Activation order of the deterministic model, in the
+construction of figure 9 of~\cite{fornari2019prion}: every vertex is
+coloured by its activation time, the first stored year at which $c$ reaches
+$0.5$. (a) the $83$ regional histories of the calibrated run; (b) the
+anatomy under the calibrated regional rates: the occipital group, palest,
+activates last, four years after every other group; (c) the control variant
+with the rates replaced by their vertex mean, on the same colour scale: the
+spread collapses and the order becomes the connectivity's, with the frontal
+group last. The reaction budget and the Damk\"ohler number are identical in
+the two variants.}
+\label{fig:activationorder}
+\end{figure}
 
 
 % ---------------------------------------------------------------------

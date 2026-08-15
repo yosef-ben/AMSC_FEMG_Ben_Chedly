@@ -1,0 +1,15 @@
+variant,region,mean_activation_years
+regional,frontal,30.15
+regional,temporal,33.8571428571
+regional,parietal,39
+regional,insular,36
+regional,limbic,31.6875
+regional,occipital,43
+regional,subcortical,35.9090909091
+uniform,frontal,36.2
+uniform,temporal,34.0714285714
+uniform,parietal,35.3
+uniform,insular,35
+uniform,limbic,33.25
+uniform,occipital,35
+uniform,subcortical,35.5454545455

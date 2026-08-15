@@ -117,6 +117,50 @@ lobe membership mirrors `classify()` of the C++ test that computes the
 curves, and the plot script asserts the same 58 four-lobe vertex count the
 test enforces.
 
+## The operator handed to the solvers
+
+At one element per connection and unit metric length the diffusion matrix
+the FEM assembles must be the graph Laplacian `L = D - A` the nodal reference
+builds from the same `edges.csv`. The executable now compares the two entry
+by entry and prints the result with every one-element run:
+
+```text
+max |K_D - L| at one element per connection: 0
+```
+
+The four FEM meshes `graph_fem_{1,2,4,8}.txt` list the 1130 connections in
+the order of `edges.csv`, with unit length and the stated number of cells;
+`scripts/verify-figures.py` checks this, together with the published
+statistics of the graph, on every run.
+
+## Scheme sensitivity of the lobe separation
+
+The comparison with the paper is made at the literal weight scale, where the
+four lobe curves coincide. `results/scheme_sensitivity.csv`, written by
+`scripts/tabulate-fornari-scheme-sensitivity.py` from the stored biomarker
+files, records that the coincidence survives every discretization we ran:
+
+```text
+model  scheme               dt    cells  lobe spread [yr]  t50 network  final range
+nodal  backward Euler       0.4   1      3.87e-07          11.11        [0.999998, 0.999998]
+FEM    backward Euler       0.4   1      8.38e-03          12.68        [0.999996, 0.999997]
+FEM    semi-implicit CN     0.4   1      7.58e-03          13.77        [0.999997, 0.999998]
+FEM    semi-implicit CN     0.4   8      3.90e-02          13.80        [0.999968, 1.00015]
+FEM    backward Euler       0.8   8      2.97e-02          11.50        [0.999995, 0.999995]
+FEM    backward Euler       0.4   8      3.40e-02          12.71        [0.999996, 0.999997]
+FEM    backward Euler       0.2   8      3.66e-02          13.29        [0.999997, 0.999997]
+FEM    backward Euler       0.1   8      3.78e-02          13.57        [0.999998, 0.999998]
+FEM    backward Euler       0.05  8      3.85e-02          13.71        [0.999998, 0.999998]
+```
+
+Changing the scheme, halving the step four times and refining the mesh
+move the absolute crossing time by up to two years but leave the lobe
+separation below 0.04 years in every combination; the published separation
+of about five years is not recovered by any of them. The semi-implicit run
+on the eight-element mesh ends 1.5e-4 above one, the small overshoot of the
+consistent-mass discretization documented in benchmark 23, and is kept in
+the table with its range rather than dropped.
+
 ## Discretization study
 
 The spatial study keeps `dt=0.4` and compares 1, 2, 4, and 8 P1 elements per

@@ -30,6 +30,7 @@ disagree. Run it from the project root:
 | `25/seeding_vulnerability` | `plot-fisher-seeding-vulnerability.py` | `seeding_vulnerability_rho_*.csv`, `seeding_curves_rho_*.npz` | `study-fisher-seeding-vulnerability.py` driving `test_fisher_kolmogorov_fornari83` |
 | `26/anatomical_progression` | `plot-connectome-progression.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
 | `26/activation_time` | `plot-connectome-activation.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
+| `26/activation_order` | `plot-corti-activation-order.py` | `corti83_refined/solution_*.vtp`, `corti83_uniform/solution_*.vtp` | `test_fisher_kolmogorov_corti83`, regional and `uniform` variants |
 | `27/seeding_patterns` | `plot-connectome-staging.py` | `staging/{tau,amyloid}_nodal/nodal_profiles.csv` | `test_fisher_kolmogorov_fornari83` |
 | `27/seeding_patterns_expected` | `plot-connectome-staging.py` | as above, plus `27/reference/weickenmeier_fig1_{tau,amyloid}.png` | as above; the reference strips are cut from the article PDF by `extract-weickenmeier-staging.py` |
 

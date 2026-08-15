@@ -12,3 +12,12 @@ python3 scripts/plot-connectome-progression.py \
 python3 scripts/plot-connectome-activation.py \
   --solution-dir output/fisher_kolmogorov/corti83_refined \
   --output benchmarks/26_connectome_progression/results/activation_time.png
+
+# Control variant for the activation-order comparison: the seven regional
+# rates replaced by their vertex mean, everything else unchanged.
+./build-release/test_fisher_kolmogorov_corti83 \
+  data/connectome/fornari83/graph_fem_8.txt -- \
+  output/fisher_kolmogorov/corti83_uniform 60 uniform
+
+python3 scripts/plot-corti-activation-order.py \
+  --output-dir benchmarks/26_connectome_progression/results
