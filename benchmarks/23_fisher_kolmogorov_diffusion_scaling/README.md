@@ -58,6 +58,9 @@ crossing time among the temporal, frontal, parietal and occipital lobes.
 | 0.2 | 3.24 | 0.0080 | bounded |
 | 0.1 | 6.47 | 0.1317 | bounded |
 | 0.05 | 12.95 | 0.6529 | bounded |
+| 0.04 | 16.19 | 0.9210 | leaves [0,1] |
+| 0.03 | 21.58 | 1.3204 | leaves [0,1] |
+| 0.025 | 25.90 | 1.5986 | leaves [0,1] |
 | 0.02 | 32.37 | 1.9586 | leaves [0,1] |
 | 0.01 | 64.75 | 3.1600 | leaves [0,1] |
 | 0.005 | 129.49 | 4.3801 | leaves [0,1] |
@@ -98,8 +101,10 @@ lies in `[0,1]`. The violation of the physical range grows with `Da` well
 before the failure: the transient undershoot is `-1.3e-4` at `Da = 0.65`
 (the stored biomarkers of benchmark 19) and already `[-0.17, 1.04]` at
 `Da = 12.9` (`results/fem_transient_rho_0p05.csv`), from which the solution
-still recovers. Beyond `Da` of about 13, that is `rho <= 0.02` at `alpha = 0.5`,
-it no longer recovers and diverges:
+still recovers. The solution is bounded up to `rho = 0.05` (`Da = 12.9`) and
+unbounded from `rho = 0.04` (`Da = 16.2`) onwards, the three scalings 0.04,
+0.03 and 0.025 having been added to locate the boundary; beyond it the
+solution no longer recovers and diverges:
 
 ```text
 rho = 0.005, one element per edge, Corti scheme:

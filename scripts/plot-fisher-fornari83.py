@@ -153,22 +153,10 @@ def main():
 
         deviation.axhline(0.0, color="0.6", linewidth=0.9,
                           linestyle=(0, (4, 3)), zorder=1)
-        # The four regional curves coincide to within the line width. Saying
-        # so on the figure stops the reader from hunting for a plotting
-        # fault; the reason is quantified in benchmark 23.
-        crossings = [crossing_time(data["time"], data[key], args.threshold)
-                     for key in REGIONAL_CURVES]
-        spread = max(crossings) - min(crossings)
-        # Panel (a) hosts the anatomical inset in the upper-left corner, so
-        # its annotation moves below the inset.
-        absolute.annotate(
-            f"all four lobes cross {args.threshold:g}%"
-            "\n" f"within {spread:.1e} years",
-            xy=(0.05, 0.80 if column else 0.335), xycoords="axes fraction",
-            fontsize=8.5, fontweight="bold", color="0.35")
-        absolute.text(0.05, 0.955, title.lower(),
-                      transform=absolute.transAxes, fontsize=9.5,
-                      fontweight="bold", color="0.35", va="top")
+        # No text is drawn inside the panels: which panel is which model,
+        # and the fact that the four regional curves coincide to within the
+        # line width, are stated in the caption of the report; the spread
+        # itself is written to activation_times.csv and checked there.
         absolute.set_xlim(0.0, 25.0)
         absolute.set_ylim(0.0, 102.0)
         absolute.set_yticks([0, args.threshold, 100])
@@ -187,8 +175,10 @@ def main():
     # One colour column serves the whole figure, in the empty lower-right
     # corner of panel (a): the four lobes and the dashed network average.
     entries = [*REGIONAL_CURVES.values(), ("network average", "0.25")]
+    # Placed at 14 years so that the longest label, "network average",
+    # ends well inside the frame of the panel.
     for slot, (label, colour) in enumerate(entries):
-        figure_style.label_series(axes[0, 0], 15.6, 38.0 - 7.6 * slot,
+        figure_style.label_series(axes[0, 0], 14.0, 38.0 - 7.6 * slot,
                                   label, colour, fontsize=9)
 
     axes[0, 0].set_ylabel("biomarker abnormality [%]", labelpad=2)

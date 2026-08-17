@@ -87,16 +87,18 @@ def main():
                   rf"Da $= {damkohler[index]:.1f}$",
                   transform=axes.transAxes, fontsize=9,
                   fontweight="bold", color="0.35", va="top")
-        axes.set_xlim(0, 40)
+        # The first 25 of the simulated years, the window of the biomarker
+        # comparison figure; the curves have saturated by then.
+        axes.set_xlim(0, 25)
         axes.set_ylim(0, 102)
-        axes.set_xticks([0, 20, 40])
+        axes.set_xticks([0, 5, 10, 15, 20, 25])
         axes.set_yticks([0, 50, 100])
         figure_style.xname(axes, "t [yr]", y=-0.135, fontsize=9)
         if column == 0:
             axes.set_ylabel("biomarker abnormality [%]", labelpad=2)
             # Colour and line style to lobe, once for the whole figure.
             for slot, (lobe, (colour, _)) in enumerate(LOBE_STYLE.items()):
-                figure_style.label_series(axes, 25.5, 42.0 - 10.5 * slot,
+                figure_style.label_series(axes, 16.5, 42.0 - 10.5 * slot,
                                           lobe, colour, fontsize=8.5)
         else:
             axes.set_yticklabels([])
@@ -107,33 +109,31 @@ def main():
     axes = figure.add_subplot(grid[1, :])
     unbounded_max = damkohler[~bounded].min() if (~bounded).any() else None
     if unbounded_max is not None:
+        # The shading starts at the first scaling of the sweep at which the
+        # finite element solution leaves [0,1]; what it means is stated in
+        # the caption of the report, not inside the panel.
         axes.axvspan(unbounded_max, damkohler.max() * 1.6, color="#D62728",
                      alpha=0.07, zorder=0)
-        axes.text(unbounded_max * 1.2, 2.0e-7,
-                  "metric-graph FEM leaves [0,1]\n"
-                  "(consistent mass, both schemes)",
-                  fontsize=8.5, color="#8B1A1A", va="bottom")
 
+    # Grey band: the separation of figure 7 of Fornari et al., described in
+    # the caption.
     axes.axhspan(FORNARI_SPREAD_YEARS * 0.85, FORNARI_SPREAD_YEARS * 1.15,
                  color="0.55", alpha=0.16, zorder=0)
-    axes.text(0.46, FORNARI_SPREAD_YEARS * 0.55,
-              "separation reported by Fornari et al., figure 7",
-              fontsize=8.5, color="0.25", va="top", ha="left")
 
     axes.plot(damkohler, spread, color="#333333", linewidth=1.6,
               marker="o", markersize=5, zorder=3)
 
+    # Two dashed lines mark the settings used in the chapter, the comparison
+    # with Fornari et al. (rho = 1) and the deterministic model of Corti et
+    # al. (rho = 1/max w with its mean rate); no labels, the caption names
+    # them.
     alpha_21 = mean_reaction_coefficient(args.benchmark_21_coefficients)
-    for label, scaling, alpha, colour in (
-            ("benchmark 19\n" + rf"$\rho=1$, $\alpha={summary['alpha']:g}$",
-             1.0, summary["alpha"], "#1F77B4"),
-            ("benchmark 21\n" + rf"$\rho=1/\max(w)$, $\bar\alpha={alpha_21:.3f}$",
-             summary["benchmark_21_scaling"], alpha_21, "#FF7F0E")):
+    for scaling, alpha, colour in (
+            (1.0, summary["alpha"], "#1F77B4"),
+            (summary["benchmark_21_scaling"], alpha_21, "#FF7F0E")):
         value = alpha / (scaling * summary["fiedler_value"])
         axes.axvline(value, color=colour, linewidth=1.4, linestyle="--",
                      zorder=2)
-        axes.text(value * 1.08, 30.0, label, fontsize=8.5, color=colour,
-                  va="top")
 
     axes.set_xscale("log")
     axes.set_yscale("log")

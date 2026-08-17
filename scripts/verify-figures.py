@@ -588,8 +588,31 @@ def check_23(report):
         report.check(name, f"Da at rho={scaling:g}", float(row["damkohler"]),
                      summary["alpha"] / (scaling * summary["fiedler_value"]))
     bounded = [float(row["diffusion_scaling"]) for row in rows
-               if row["fem_corti_crank_nicolson"] == "bounded"]
+               if row["fem_corti_crank_nicolson"] == "bounded"
+               and row["fem_backward_euler"] == "bounded"]
+    unbounded = [float(row["diffusion_scaling"]) for row in rows
+                 if row["fem_corti_crank_nicolson"] == "unbounded"
+                 and row["fem_backward_euler"] == "unbounded"]
+    report.check(name, "sweep rows", float(len(rows)), 13.0)
+    # The validity boundary the report states: bounded up to rho = 0.05
+    # (Da = 12.9), unbounded from rho = 0.04 (Da = 16.2) onwards, with the
+    # two schemes agreeing at every scaling.
     report.check(name, "smallest bounded scaling", min(bounded), 0.05)
+    report.check(name, "largest unbounded scaling", max(unbounded), 0.04)
+    report.check(name, "every row classified alike by both schemes",
+                 float(len(bounded) + len(unbounded)), float(len(rows)))
+    damkohler = {float(row["diffusion_scaling"]): float(row["damkohler"])
+                 for row in rows}
+    report.check(name, "Da of the last bounded scaling", damkohler[0.05],
+                 12.949)
+    report.check(name, "Da of the first unbounded scaling", damkohler[0.04],
+                 16.186)
+    spread = {float(row["diffusion_scaling"]): float(row["lobe_spread_years"])
+              for row in rows}
+    report.check(name, "lobe spread at rho=1", spread[1.0], 3.8703e-07,
+                 "years")
+    report.check(name, "lobe spread at rho=0.001", spread[0.001], 6.9863,
+                 "years")
 
     # The transient extremes the validity-boundary discussion quotes: the
     # violation grows with Da before the failure, and at Da = 12.9 the

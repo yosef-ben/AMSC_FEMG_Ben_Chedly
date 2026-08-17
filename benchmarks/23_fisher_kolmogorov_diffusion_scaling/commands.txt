@@ -1,9 +1,12 @@
 cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release --target test_fisher_kolmogorov_fornari83
 
+# The three scalings 0.04, 0.03 and 0.025 locate the validity boundary of
+# the FEM between rho = 0.05 (bounded) and rho = 0.04 (unbounded).
 python3 scripts/study-fisher-diffusion-scaling.py \
   --executable build-release/test_fisher_kolmogorov_fornari83 \
-  --output-dir output/fisher_kolmogorov/diffusion_scaling
+  --output-dir output/fisher_kolmogorov/diffusion_scaling \
+  --scalings 1.0 0.5 0.2 0.1 0.05 0.04 0.03 0.025 0.02 0.01 0.005 0.002 0.001
 
 python3 scripts/plot-fisher-diffusion-scaling.py \
   output/fisher_kolmogorov/diffusion_scaling \
