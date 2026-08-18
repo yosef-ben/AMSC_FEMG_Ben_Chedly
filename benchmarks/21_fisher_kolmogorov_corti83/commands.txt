@@ -3,3 +3,15 @@ cmake --build build-release --target test_fisher_kolmogorov_corti83
 ./build-release/test_fisher_kolmogorov_corti83
 python3 scripts/plot-fisher-kolmogorov-regions.py output/fisher_kolmogorov/corti83/regional_averages.csv --output output/fisher_kolmogorov/corti83/regional_averages.png
 python3 scripts/plot-fisher-kolmogorov-regions.py output/fisher_kolmogorov/corti83/regional_averages.csv --output output/fisher_kolmogorov/corti83/regional_averages.pdf
+
+# Dependence of the regional ranking on the undeclared scale of the weights:
+# the same model at six multipliers of the w/max(w) normalization (35.3221 is
+# the literal scale of the Fornari comparison, 1 the run above), tabulated
+# against table 3 of Corti et al.
+for s in 35.3221 10 3 1 0.3 0.1; do
+  ./build-release/test_fisher_kolmogorov_corti83 \
+    data/connectome/fornari83/graph_fem_4.txt -- \
+    output/fisher_kolmogorov/corti83_scale/s_$s 20 regional $s
+done
+python3 scripts/tabulate-corti-weight-scale.py \
+  --output benchmarks/21_fisher_kolmogorov_corti83/results/weight_scale_sensitivity.csv

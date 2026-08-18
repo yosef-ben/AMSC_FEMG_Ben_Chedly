@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 
-"""Report figure for the Fisher-Kolmogorov diffusion-scaling study."""
+"""Report figure for the Fisher-Kolmogorov diffusion-scaling study.
+
+Two layouts are written from the same stored sweep. ``--layout curves`` is
+the report figure: the lobe biomarkers at three transport scalings. The
+default ``--layout full`` adds the spread-against-Damkohler panel with the
+Fornari setting, the published separation and the scalings at which the
+finite element solution leaves [0,1]; it stays in the benchmark record.
+"""
 
 import argparse
 import csv
@@ -38,6 +45,8 @@ def arguments():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--panels", type=float, nargs=3,
                         default=[1.0, 0.05, 0.005])
+    parser.add_argument("--layout", choices=("full", "curves"),
+                        default="full")
     parser.add_argument("--benchmark-21-coefficients", type=Path,
                         default=Path("benchmarks/21_fisher_kolmogorov_corti83"
                                      "/results/reaction_coefficients.csv"))
@@ -66,9 +75,13 @@ def main():
                         for r in rows])
 
     figure_style.apply()
-    figure = plt.figure(figsize=(9.8, 7.2))
-    grid = figure.add_gridspec(2, 3, height_ratios=[1.0, 1.2], hspace=0.46,
-                               wspace=0.24)
+    if args.layout == "curves":
+        figure = plt.figure(figsize=(9.8, 3.4))
+        grid = figure.add_gridspec(1, 3, wspace=0.24)
+    else:
+        figure = plt.figure(figsize=(9.8, 7.2))
+        grid = figure.add_gridspec(2, 3, height_ratios=[1.0, 1.2],
+                                   hspace=0.46, wspace=0.24)
 
     for column, scaling in enumerate(args.panels):
         axes = figure.add_subplot(grid[0, column])
@@ -106,6 +119,13 @@ def main():
                   transform=axes.transAxes, fontsize=10.5,
                   fontweight="bold", style="italic", va="bottom")
 
+    if args.layout == "curves":
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        figure.savefig(args.output, dpi=200, bbox_inches="tight")
+        figure.savefig(args.output.with_suffix(".pdf"), bbox_inches="tight")
+        print(f"Written {args.output} and its PDF (curves layout)")
+        return
+
     axes = figure.add_subplot(grid[1, :])
     unbounded_max = damkohler[~bounded].min() if (~bounded).any() else None
     if unbounded_max is not None:
@@ -123,17 +143,11 @@ def main():
     axes.plot(damkohler, spread, color="#333333", linewidth=1.6,
               marker="o", markersize=5, zorder=3)
 
-    # Two dashed lines mark the settings used in the chapter, the comparison
-    # with Fornari et al. (rho = 1) and the deterministic model of Corti et
-    # al. (rho = 1/max w with its mean rate); no labels, the caption names
-    # them.
-    alpha_21 = mean_reaction_coefficient(args.benchmark_21_coefficients)
-    for scaling, alpha, colour in (
-            (1.0, summary["alpha"], "#1F77B4"),
-            (summary["benchmark_21_scaling"], alpha_21, "#FF7F0E")):
-        value = alpha / (scaling * summary["fiedler_value"])
-        axes.axvline(value, color=colour, linewidth=1.4, linestyle="--",
-                     zorder=2)
+    # One dashed line marks the setting of the comparison with Fornari et
+    # al. (rho = 1); the deterministic model of Corti et al. is placed on
+    # this curve in its own section, not here.
+    axes.axvline(summary["alpha"] / summary["fiedler_value"], color="#1F77B4",
+                 linewidth=1.4, linestyle="--", zorder=2)
 
     axes.set_xscale("log")
     axes.set_yscale("log")

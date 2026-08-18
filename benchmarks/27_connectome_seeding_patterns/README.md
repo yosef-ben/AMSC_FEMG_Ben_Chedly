@@ -12,13 +12,16 @@ nuclei last (Weickenmeier et al., section 2.7, after Jucker and Walker).
 
 ## Setup
 
-Both rows solve the nodal network model with `alpha = 0.5`, `dt = 0.4` years
-and `rho = 0.005`, the scaling benchmark 23 identifies as reproducing the
-lobe separation published by Fornari et al. (`Da` of order one hundred). The
-nodal model is used deliberately: at this scaling the consistent-mass
-metric-graph FEM leaves the physical range and diverges, which is the
-validity boundary documented in benchmark 23, while the nodal solution stays
-in `[0,1]` throughout, and the plot script asserts it.
+Both rows solve the metric-graph FEM with the lumped mass and the fully
+implicit scheme (`be_lumped`), at one element per connection, with
+`alpha = 0.5`, `dt = 0.4` years and `rho = 0.005`, the scaling at which
+benchmark 23 obtains a separation of the magnitude published by Fornari et
+al. (`Da` of order one hundred). The lumped mass is used because at this
+scaling the consistent-mass FEM leaves the physical range and diverges, the
+validity boundary documented in benchmark 23; the lumped solution stays in
+`[0,1]` throughout and the plot script asserts it. The earlier nodal-model
+version of this figure gave the same qualitative picture with stages at
+10.4, 14.8, 18.8 and 0.8, 4.4, 8.8 years.
 
 Seeding, at `c0 = 0.1`:
 
@@ -32,22 +35,25 @@ which the network mean reaches 10, 40 and 80 percent.
 ## Results
 
 ```text
-tau      stages at 10.4, 14.8, 18.8 years
-amyloid  stages at  0.8,  4.4,  8.8 years
+tau      stages at 15.2, 21.6, 27.6 years
+amyloid  stages at  0.8,  4.8, 11.2 years
 
 amyloid-beta, mean group activation (first crossing of c = 0.5):
-temporal 4.46, occipital 4.48, parietal 4.80, frontal 4.86,
-insular 5.60, limbic 6.33, subcortical 7.75 years
+temporal 4.4, parietal 4.4, occipital 4.4, frontal 4.4,
+insular 9.6, limbic 9.78, subcortical 12.98 years
+
+tau, lobe 50-percent crossings: temporal 16.50, occipital 21.65,
+parietal 22.95, frontal 25.87 years
 ```
 
 The amyloid ordering is the expected one: the four seeded neocortical lobes
-activate first and nearly together, then the insula, the limbic belt, and the
-subcortical nuclei last, more than three years behind the cortex. For tau the
-first activated vertices are the entorhinal seeds and the spreading reaches
-the temporal neighbourhood before the rest of the cortex, as in the Braak
-sequence; the ordering of the late lobes differs from the clinical one for
-the reason recorded in benchmark 23, the weak connectivity of the frontal
-pole.
+activate first and together, then the insula, the limbic belt, and the
+subcortical nuclei last, more than eight years behind the cortex. For tau
+the first activated vertices are the two entorhinal seeds and the spreading
+reaches the temporal neighbourhood before the rest of the cortex, as in the
+Braak sequence; the ordering of the late lobes differs from the clinical one
+for the reason recorded in benchmark 23, the weak connectivity of the
+frontal pole.
 
 ## Expected-against-obtained composite
 

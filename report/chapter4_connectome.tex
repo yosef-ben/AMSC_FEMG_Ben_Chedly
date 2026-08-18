@@ -395,15 +395,14 @@ C_{\mathcal{I}}(t)
   = \frac{100}{|\mathcal{I}|}\sum_{I \in \mathcal{I}} c_I(t),
 \label{eq:biomarker}
 \end{equation}
-evaluated for the four cortical lobes and for the network as a whole. The simulation is run both with the nodal model, the formulation of the reference implemented literally, and with the finite element model, here at one element per connection, so that the two systems share the same $83$ unknowns and the same diffusion matrix and differ in the formulation alone; refined meshes enter with the sensitivity checks of the next section and the applications of Section~\ref{sec:corti}. The biomarker curves have the expected sigmoid shape in both. The $50$-percent crossing of the network average occurs at $11.11$ years for the nodal model and at $12.68$ years for the finite element model. The shift is expected: in the nodal model the domain consists of the $83$ vertices only, whereas in the finite element model the connections are part of the domain as well, and they are initially uninfected. The same seed, $c_0 = 0.1$ on the two entorhinal vertices, must therefore also fill the metric space between the vertices before the vertex concentrations rise, and the finite element curve lags behind by about $1.5$ years. The two formulations describe different discrete systems, so their absolute crossing times are not expected to coincide. The activation sequence, however, is not reproduced by either: \cite{fornari2019prion} report
-a separation of roughly five years between the temporal and the occipital lobe; our four lobe curves cross the $50$-percent level within $3.9\cdot10^{-7}$ years of each other in the nodal model and $8.4\cdot10^{-3}$ years in the finite element model. The following section examines this discrepancy.
+evaluated for the four cortical lobes and for the network as a whole. The simulation is run both with the nodal model, the formulation of the reference implemented literally and with the finite element model, here at one element per connection, so that the two systems share the same $83$ unknowns and the same diffusion matrix and differ in the formulation alone; refined meshes enter with the sensitivity checks of the next section and the applications of Section~\ref{sec:corti}. The biomarker curves have the expected sigmoid shape in both. The $50$-percent crossing of the network average occurs at $11.11$ years for the nodal model and at $12.68$ years for the finite element model. The shift is expected: in the nodal model the domain consists of the $83$ vertices only, whereas in the finite element model the connections are part of the domain as well and they are initially uninfected. The same seed, $c_0 = 0.1$ on the two entorhinal vertices, must therefore also fill the metric space between the vertices before their concentrations rise, and the finite element curve shifts to the right by about $1.5$ years. The two formulations describe different discrete systems, so their absolute crossing times are not expected to coincide. The activation sequence, however, is not reproduced by either: \cite{fornari2019prion} report a separation of roughly five years between the temporal and the occipital lobe; our four lobe curves cross the $50$-percent level within $3.9\cdot10^{-7}$ years of each other in the nodal model and $8.4\cdot10^{-3}$ years in the finite element model. The following section examines this discrepancy.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/biomarker_comparison.pdf}
 \caption{\footnotesize Biomarker abnormality of the four lobes and of the network, at $\alpha=0.5$
 with $100$ steps of $\Delta t = 0.4$ years: (a) nodal reference, (b) metric-graph
-finite element model, with the four lobes in the colours of the inset. In both
+finite element model (one element per connection), with the four lobes in the colours of the inset. In both
 models the biomarker is the average of the concentrations at the $83$ anatomical
 vertices, so the two curves start from the same value; the simulation runs to
 $40$ years and the first $25$ are shown, the curves having saturated by then.
@@ -437,110 +436,92 @@ average.}
 %    la tabella di sensibilita' allo schema restano nel record del
 %    benchmark 19; qui se ne cita solo cio' che serve al discorso.
 %  ANALOGA di Figura~\ref{fig:damkohler}
-%    NESSUNA. E' una figura originale. I pannelli superiori usano la
-%    stessa convenzione grafica di [F] Fig. 7, p. 7, cosi' che il
-%    lettore possa confrontarli, ma il pannello inferiore non ha
-%    corrispondente in letteratura.
+%    NESSUNA. E' una figura originale. I pannelli usano la stessa
+%    convenzione grafica di [F] Fig. 7, p. 7, cosi' che il lettore possa
+%    confrontarli; il pannello dello spread contro Da resta nel record
+%    del benchmark 23.
 % ---------------------------------------------------------------------
 
 \subsection{What controls the regional separation}
 \label{sec:damkohler}
 
-Before explaining the discrepancy, it is useful to state precisely what can and cannot be concluded from the comparison.
-
-First, the graph. Section~\ref{sec:connectome} shows that the reconstructed graph reproduces the reported topology and global weighted statistics, and the operator handed to both solvers is the Laplacian of that graph: the finite element meshes list the $1130$ connections in the order of the weight file with unit metric length, and at one element per connection, where the extended graph is the connectome itself, the assembled diffusion matrix reproduces $L=D-A$ built from the same weights entry by entry, a check printed with every run. A substantial difference in the connectome reconstruction is therefore an unlikely explanation for the different lobe dynamics. However, the exact graph-construction pipeline and the original $83\times83$ adjacency matrix are not available. Some preprocessing choices had to be inferred from the published data, so local differences in individual edge weights cannot be completely excluded.
-
-Second, the discrepancy is not caused by the numerical discretization or by the definition of the lobes. The near-synchronization is already present at the level of the $83$ individual regional curves: at unit weight scale they all cross the $50\%$ level within $6.4\cdot10^{-5}$ years of one another in the nodal model and within $0.20$ years in the finite element formulation, so no grouping of the regions into lobes can separate the lobe curves by years. Nor is the separation recovered by reasonable changes of the discretization: using the semi-implicit scheme instead of the fully implicit one, reducing the time step from $0.8$ to $0.05$ years and refining to eight elements per connection leaves the four lobe crossing times within $0.04$ years of one another in every tested combination. These changes move the absolute timing of the curves, the network crossing of the finite element runs ranging from $11.50$ to $13.80$ years, but not their near-synchronization.
-
-Third, what the published description allows us to reconstruct. It specifies the dataset and parcellation, the edge weights $A_{IJ}=n_{IJ}/l_{IJ}$, the graph Laplacian $L=D-A$, the conversion rate $\alpha=0.5$, the entorhinal seed $c_0=0.1$, and an implicit integration with $100$ time steps of $\Delta t=0.4$ years. Some implementation details remain unspecified, including the precise implicit scheme, the complete graph-aggregation procedure and the effective temporal scaling associated with the transport term: the weights are defined through fibre counts and fibre lengths, whereas the dynamics is expressed in years, and the link between the two is not made fully explicit. In our reconstruction, we adopt the most literal interpretation of the published formulation and use the reconstructed connectivity weights directly. With the model and parameters reconstructed in this way, we do not recover the marked inter-lobe separation shown in the reference.
-
-This leaves the relative strength of network transport and local reaction as the main quantity to investigate. As shown below, changing this balance strongly affects the temporal separation between the lobes. The analysis therefore identifies the mechanism to which the discrepancy is sensitive, although the exact implementation used in the reference cannot be recovered without the original code and adjacency matrix.
-
-Consider the nodal model with the connectivity weights multiplied by a uniform factor $\rho>0$, so that the graph Laplacian becomes $\rho L$. In the metric-graph formulation the same factor multiplies every edge diffusivity $D_e$. The choice $\rho=1$ corresponds to the literal unit-scale interpretation of the published weights adopted in our reconstruction. Linearizing the Fisher--Kolmogorov dynamics around small concentrations gives
+Before explaining the discrepancy, it is useful to make some observations.\\
+First, the graph. Although the reconstructed connectome reproduces the topology and global statistics reported in the reference, local differences in individual edge weights remain entirely possible, since part of the preprocessing pipeline had to be inferred from the public data rather than reproduced from a documented procedure. After validating our reconstruction against the published statistics, we retained this inferred preprocessing, which does not guarantee an entry-by-entry match with the adjacency matrix used in the reference.
+\\
+Second, the discrepancy is not caused by the numerical discretization (as seen in the previous section) or by the definition of the lobes. In particular, the near-synchronization is already present at the level of the $83$ individual regions: the biomarker concentrations all cross the $50\%$ level within $6.4\cdot10^{-5}$ years in the nodal model and within $0.20$ years in the finite element formulation, so no grouping of the nodes into lobes can separate the lobe curves by years. Nor is the reference's separation recovered by reasonable changes of the discretization rules: using the semi-implicit scheme in time instead of the fully implicit one, reducing the time step from $0.8$ to $0.05$ years and refining to eight spatial elements per connection leaves the four lobe crossing times within $0.04$ years of one another in every tested combination reported in the repository. These changes move the absolute timing of the curves, but not their near-synchronization.\\
+Third, some implementation details remain unspecified: not only the complete graph-aggregation procedure, but also the precise implicit scheme adopted and the effective temporal scaling associated with the diffusion term. The reference defines the connectivity weights as
 \[
-\dot{\mathbf c} = -\rho L\mathbf c+\alpha\mathbf c.
+A_{IJ}=\frac{n_{IJ}}{<l_{IJ}>},
 \]
-Expanding the solution in the eigenvectors of $L$, diffusion damps the non-uniform components at rates $\rho\lambda_k$, while the reaction drives the local concentrations towards growth and eventual saturation on the characteristic time scale $1/\alpha$. The slowest decaying spatial contrast is associated with the Fiedler value $\lambda_2$, so the corresponding homogenization time scale is
+where the fibre count ($n_{IJ}$) is dimensionless and the fibre length ($l_{IJ}$) is measured in millimetres. Therefore, if these quantities are interpreted dimensionally,
 \[
-\tau_{\mathrm{diff}} \sim \frac{1}{\rho\lambda_2},
+[A_{IJ}] = \mathrm{mm}^{-1}.
 \]
-whereas the reaction time scale is
+On the other hand, the evolution equation is expressed in years, so that
 \[
-\tau_{\mathrm{react}} \sim \frac{1}{\alpha}.
+\left[\frac{dc}{dt}\right]=\mathrm{yr}^{-1}.
 \]
-Their ratio defines the Damk\"ohler number
+The reaction term is dimensionally consistent because the conversion rate satisfies
+\[
+[\alpha]=\mathrm{yr}^{-1}.
+\]
+For the transport term, however, dimensional consistency would require an additional coefficient, say $\rho$, such that
+\[
+\frac{dc}{dt} + \rho Lc =
+\alpha\,c(1-c),
+\]
+with
+\[
+[\rho]=\frac{\mathrm{mm}}{\mathrm{yr}},
+\]
+so that $[\rho L]=\mathrm{yr}^{-1}$. In this interpretation, $\rho$ would set the temporal scale of transport on the network, analogously to how $\alpha$ sets the time scale of the reaction. Such a transport coefficient is not introduced explicitly in the published formulation. We therefore adopt the most literal interpretation of the reference and use the reconstructed connectivity weights directly, while treating their effective temporal scaling as a possible source of ambiguity. With the model and parameters reconstructed in this way, we do not recover the marked inter-lobe separation shown in the reference. This leaves the relative strength of network transport and local reaction as the main quantity to investigate. As shown below, changing this balance strongly affects the temporal separation between the lobes. This analysis therefore identifies the mechanism with which the discrepancy is observed, although the exact implementation used in the reference cannot be recovered without the original code and adjacency matrix.\\
+To see what controls the separation, consider the two processes in the model separately. Diffusion alone evens the concentrations out: any difference between regions is smoothed away, quickly where the regions are strongly connected and slowly where the network is weakly connected. How fast is set by the eigenvalues of $L$,
+$0 = \lambda_1 < \lambda_2 \le \dots$: each eigenvalue is the rate at which one pattern of differences disappears and the smallest non-zero one, $\lambda_2$, is the rate of the slowest, longest-lived difference, associated with the weakest division of the network into two parts. Once that difference is gone, all of them are, so the network homogenizes on the time
+scale
+\[
+\tau_{\mathrm{diffusion}} \sim \frac{1}{\rho\lambda_2}.
+\]
+Reaction alone makes the concentration grow at every vertex on the time scale
+\[
+\tau_{\mathrm{reaction}} \sim \frac{1}{\alpha}.
+\]
+\noindent
+The two processes compete and their ratio defines the
+Damk\"ohler number
 \begin{equation}
 \mathrm{Da}
-  = \frac{\tau_{\mathrm{diff}}}{\tau_{\mathrm{react}}}
+  = \frac{\tau_{\mathrm{diffusion}}}{\tau_{\mathrm{reaction}}}
   = \frac{\alpha}{\rho\,\lambda_2}.
 \label{eq:damkohler}
 \end{equation}
-When $\mathrm{Da}\ll1$, diffusion suppresses spatial contrasts faster than reaction drives the system towards saturation, and strong regional synchronization is expected. When $\mathrm{Da}\gg1$, contrasts persist for a substantial fraction of the reaction time and regional curves can remain separated.
-
-For the reconstructed connectome, $\lambda_2=0.7723$, computed from the same weights used by the solver. With $\rho=1$ and $\alpha=0.5$, we obtain
-\[
-\mathrm{Da}=0.65,
-\]
-which lies in the transport-dominated regime and is consistent with the near-coincident regional curves observed in our simulations.
-
-Figure~\ref{fig:damkohler} quantifies this dependence by sweeping $\rho$ while keeping the topology, seed and conversion rate fixed. The separation between the earliest and latest lobe increases from $3.9\cdot10^{-7}$ years at $\mathrm{Da}=0.65$ to $6.99$ years at $\mathrm{Da}=647$. A separation comparable to that shown in~\cite{fornari2019prion} is obtained only when the effective transport strength is substantially reduced relative to reaction, with $\mathrm{Da}$ of order $10^2$, corresponding in our reconstruction to $\rho$ of order $5\cdot10^{-3}$. The sweep therefore identifies the relative transport--reaction scale as the quantity controlling the inter-lobe separation. It does not establish which effective scaling was used in the original implementation of the reference.
+When $\mathrm{Da}\ll1$, strong regional synchronization is expected. For the reconstructed connectome, $\lambda_2=0.7723$. With $\rho=1$ and $\alpha=0.5$, we obtain $\mathrm{Da}=0.65$, which lies in the transport-dominated regime and is consistent with the near-coincident regional curves observed in our simulations\footnote{We notice that $Da$ is a property of the graph and of the parameters, not of the discretization: $\lambda_2$ belongs to the connectome Laplacian, which the finite element diffusion matrix reproduces exactly at one element per connection.}. Figure~\ref{fig:damkohler} quantifies this dependence by sweeping $\rho$ while keeping the topology, seed and conversion rate fixed. The separation between the earliest and latest lobe increases from $3.9\cdot10^{-7}$ years at $\mathrm{Da}=0.65$ to $6.99$ years at $\mathrm{Da}=647$. A separation comparable to that shown in~\cite{fornari2019prion} is obtained only when the effective transport strength is substantially reduced relative to reaction. The sweep therefore identifies the relative transport-reaction scale as the quantity controlling the inter-lobe separation. This study does not establish which effective scaling was used in the original implementation of the reference.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diffusion_scaling.pdf}
-\caption{\footnotesize Regional separation as a function of the Damk\"ohler number
-\eqref{eq:damkohler}. The results are those of the nodal model, the formulation of the references, which remains bounded over the whole sweep; the finite element model agrees with it wherever it stays within $[0,1]$. (a)--(c) Lobe biomarkers at three transport scalings, $\rho = 1$, $0.05$ and $0.005$, over the first $25$ of the simulated years, in the colours of figure 7 of~\cite{fornari2019prion}; the dashed grey curve is the network average. (d) Years between the first and the last lobe to reach $50\%$, against $\mathrm{Da}$, one point per scaling. The blue dashed line is the setting of the comparison with~\cite{fornari2019prion} ($\rho = 1$, $\mathrm{Da} = 0.65$), the orange one the setting of Section~\ref{sec:corti} ($\rho = 1/\max w$, $\mathrm{Da} = 5.73$); the grey band is the separation of about five years shown in figure 7 of~\cite{fornari2019prion}; in the shaded region, from $\mathrm{Da} = 16.2$ onwards, the finite element solution leaves $[0,1]$ (Section~\ref{sec:boundary}), which is why the sweep is run with the nodal model.}
+ \caption{\footnotesize Regional separation as a function of the Damk\"ohler number \eqref{eq:damkohler}. The results are those of the nodal model, the formulation of the references. (a)--(c) Lobe biomarkers at three transport scalings, $\rho = 1$, $0.05$ and $0.005$, over the first $25$ of the simulated years; the dashed grey curve is the network average.}
 \label{fig:damkohler}
 \end{figure}
 
-This interpretation also reconciles two results of this chapter that would otherwise appear contradictory. In Section~\ref{sec:corti}, the diffusivity is normalized as
-\[
-D_e=\frac{w_e}{\max_e w_e},
-\]
-which, for the same underlying edge weights, corresponds to a uniform scaling $\rho=1/\max_e w_e=0.0283$. Together with the regional reaction rates, whose average over the $83$ vertices is $0.1252$, this gives $\mathrm{Da}=5.73$. The larger Damk\"ohler number places the model in a regime where spatial contrasts persist more strongly, explaining why the regional curves separate much more clearly than in the unit-scale configuration considered above.
-
-\subsubsection{A validity boundary for the discretization}
+\subsubsection{A validity boundary and its stabilization}
 \label{sec:boundary}
 
-The same sweep bounds the finite element formulation, and the boundary
-deserves a precise statement. The violation of the physical range grows with
-$\mathrm{Da}$ well before the failure: the transient undershoot of the
-finite element solution is $-1.3\cdot10^{-4}$ at $\mathrm{Da}=0.65$ and
-already $[-0.17, 1.04]$ at $\mathrm{Da}=12.9$, from which the solution still
-recovers and converges to the healthy-to-infected plateau. The solution is
-bounded up to $\mathrm{Da}=12.9$, that is $\rho = 0.05$ at $\alpha=0.5$, and
-from $\mathrm{Da}=16.2$, that is $\rho = 0.04$, onwards it no longer
-recovers and diverges: at $\rho = 0.005$ the nodal reference stays within
-$[0.99985, 1]$ while the finite element solution reaches $[-507, 523]$. The
-boundary therefore lies between $\mathrm{Da}=13$ and $16$, and it separates
-recoverable from unrecoverable violations of the maximum principle, not
-violation from compliance.
-The failure occurs identically with the fully implicit and with the
-semi-implicit scheme, so it is not a failure of the Newton solver. It
-persists at $1$, $2$, $4$ and $8$ elements per connection, so it is not a
-matter of resolving the front.
+The same sweep was also run with the finite element model, at one element per connection and with the fully implicit scheme, and it shows where the discretization of the first part of this work is reliable. Up to $\mathrm{Da}=12.9$, that is $\rho = 0.05$ at $\alpha=0.5$, the solution ends within $[0,1]$: the concentrations leave the physical range during the transient, by $-1.3\cdot10^{-4}$ at $\mathrm{Da}=0.65$ and down to $-0.08$ and up to $1.02$ at $\mathrm{Da}=12.9$, but they recover. From $\mathrm{Da}=16.2$, that is $\rho = 0.04$, the next scaling tested, they no longer recover, and at $\mathrm{Da}=129$ the Newton iteration fails at $t=15.6$ years with concentrations at $-0.41$ and $1.17$; the semi-implicit scheme behaves in the same way, and left running it diverges to $[-507, 523]$. The threshold lies between $\mathrm{Da}=13$ and $16$ and it does not move with the mesh, since the same failure occurs at $2$, $4$ and $8$ elements per connection.\\
+The cause is the mass matrix. In the fully discrete system of Section 2.3, the reaction enters as
+\[
+M\,\frac{\mathbf{c}^{n+1}-\mathbf{c}^{n}}{\Delta t} + H\,\mathbf{c}^{n+1} = \mathbf{R}(\mathbf{c}^{n+1}),
+\qquad
+R_i(\mathbf{c}) = \sum_{e}\int_e \alpha\, c_h (1-c_h)\,\varphi_i\,\mathrm{d}s,
+\]
+with $M$ and $H$ the mass and stiffness matrices of Section 2.2. $M$ is the \emph{consistent} mass matrix, the one obtained by integrating $\varphi_i\varphi_j$ exactly, with entries $h/3$ on the diagonal and $h/6$ between neighbouring nodes. Consider the reaction-dominated limit, in which $H$ is negligible: the update is $\mathbf{c}^{n+1}-\mathbf{c}^{n} = \Delta t\, M^{-1}\mathbf{R}$, and $M^{-1}$ has negative off-diagonal entries. The reaction computed at an infected node is therefore distributed to its neighbours with the opposite sign, and a healthy node next to an infected one can be pushed below zero; once below zero, the logistic term $c(1-c)$ is negative and pushes further down. While diffusion dominates, $H$, whose off-diagonal entries are non-positive, smooths this out; when the reaction dominates nothing does. The one-dimensional problem of Section~\ref{sec:onedim} shows the same defect independently of the connectome: with the sharp single-node datum at $\alpha=2$ and $d=10^{-4}$, refining the time step makes the undershoot grow, from $-1.5\cdot10^{-13}$ at $\Delta t = 0.1$ to $-9.1\cdot10^{-4}$ at $\Delta t = 0.025$.\\
+The standard remedy is mass lumping: $M$ is replaced by the diagonal matrix of its row sums, $h/2$ per node and cell, and the reaction integral is evaluated by the vertex rule, $R_i = M_{ii}\,\alpha_i c_i(1-c_i)$, so that the reaction at a node acts on that node alone. This is the same treatment of the reaction as in the nodal model of the references, which is why that model stays bounded at every scaling. We added the lumped mass to the library as an option and Figure~\ref{fig:stabilization} compares the two choices under identical conditions: with the consistent mass the envelope of the vertex concentrations leaves $[0,1]$ at $\mathrm{Da}=12.9$ and the run breaks down at $\mathrm{Da}=129$; with the lumped mass it stays within $[0,1]$ at every scaling of the sweep, with both time schemes and also at four elements per connection where the consistent mass had diverged, and the lobes separate as $\mathrm{Da}$ grows. At the literal scale the two masses agree, the network crossing moving from $12.68$ to $12.72$ years, and both keep the four lobes together. In the rest of the chapter the finite element model is therefore run with the consistent mass where the transport is strong, $\mathrm{Da} \le 5.73$, and with the lumped mass where it is weak, in the seeding and vulnerability experiments below; every result from here on is a finite element result.
 
-The cause is the consistent mass matrix. Its off-diagonal entries are positive,
-so the semi-discrete system does not satisfy a discrete maximum principle;
-while diffusion dominates, the diffusion matrix compensates, and once the
-reaction dominates nothing does. The nodal model and the Hadamard product used
-in~\cite{cortiFisherKolmogorovGraphs} carry a diagonal mass with the reaction
-evaluated at the vertices, so no positive off-diagonal mass entry exists to
-violate the maximum principle, which is why they remain bounded at every
-scaling tested.
-The defect is a property of the discretization, not of the connectome: on
-the one-dimensional problem of Section~\ref{sec:onedim}, with the sharp
-single-node datum at $\alpha=2$ and $d=10^{-4}$, refining the time step
-makes the undershoot grow rather than shrink, from $-1.5\cdot10^{-13}$ at
-$\Delta t = 0.1$ to $-9.1\cdot10^{-4}$ at $\Delta t = 0.025$. Introducing an
-optional lumped mass matrix is therefore the natural way to extend the
-present formulation into the reaction-dominated regime, and we leave it as
-the immediate continuation of this work. Every finite element result of this
-chapter sits at $\mathrm{Da} \le 5.73$, well inside the reliable region;
-where a larger $\mathrm{Da}$ is required, in Sections~\ref{sec:staging}
-and~\ref{sec:vulnerability}, the nodal system takes over, and the text says
-so there.
-
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/stabilization.pdf}
+\caption{\footnotesize Instability of the consistent-mass discretization and its cure by mass lumping, at one element per connection with the fully implicit scheme, $\Delta t = 0.4$ years and the entorhinal seed, at three transport scalings. Top row: consistent mass; bottom row: lumped mass. Each panel shows the four lobe biomarkers, in the colours of figure 7 of~\cite{fornari2019prion}, and, shaded, the envelope of the $83$ vertex concentrations, from the smallest to the largest; the dashed lines mark $0$ and $100$ percent. With the consistent mass the envelope stays within the physical range at $\mathrm{Da}=0.65$ (a), leaves it and recovers at $\mathrm{Da}=12.9$ (b), and at $\mathrm{Da}=129$ (c) the Newton iteration fails at $t = 15.6$ years, where the run stops. With the lumped mass the envelope stays within $[0,1]$ in every panel (d)--(f) and the lobes separate as the transport weakens. Nothing is clipped; the axes are the same in every panel.}
+\label{fig:stabilization}
+\end{figure}
 
 % ---------------------------------------------------------------------
 %  DA LEGGERE prima della sottosezione sui pattern di semina
@@ -577,39 +558,38 @@ Figure~\ref{fig:expected} shows the two computed progressions below their
 clinical counterparts, the staging drawings of figure 1
 of~\cite{weickenmeier2019prion}, in the construction of figure 1
 of~\cite{fornari2019prion}: three stages, selected as the first instants at
-which the network mean reaches $10$, $40$ and $80$ percent. The solution
-shown is the nodal network model
-at $\rho = 0.005$, the scaling at which Section~\ref{sec:damkohler} obtains
-a separation of the magnitude the reference publishes; at this scaling the consistent-mass
-finite element formulation leaves the physical range
-(Section~\ref{sec:boundary}), while the nodal solution remains in $[0,1]$
-throughout, and the figure script verifies it.
+which the network mean reaches $10$, $40$ and $80$ percent. The solution is
+the finite element one with the lumped mass and the fully implicit scheme, at
+$\rho = 0.005$, the scaling at which Section~\ref{sec:damkohler} obtains a
+separation of the magnitude the reference publishes; the solution remains in
+$[0,1]$ throughout and the figure script verifies it.
 
 Both expected patterns are recovered. The tau row starts from a single dark
-sphere at the entorhinal cortex, reaches the temporal neighbourhood first
-and involves the whole network last, over $10.4$, $14.8$ and $18.8$ years.
+sphere at the entorhinal cortex, the first two vertices to reach $c=0.5$
+being the two entorhinal cortices, reaches the temporal neighbourhood first
+and involves the whole network last, over $15.2$, $21.6$ and $27.6$ years.
 The amyloid row starts from a faint uniform cortical mantle and descends:
 averaging the first crossings of $c=0.5$ over each anatomical group, the
-four seeded lobes activate between $4.5$ and $4.9$ years, the insula at
-$5.6$, the limbic belt at $6.3$, and the subcortical nuclei last at $7.7$
-years, three years behind the cortex, which is the downward sequence the
+four seeded lobes activate together at $4.4$ years, the insula at $9.6$, the
+limbic belt at $9.8$ and the subcortical nuclei last at $13.0$ years, more
+than eight years behind the cortex, which is the downward sequence the
 literature describes. The one caveat carries over from
 Section~\ref{sec:damkohler}: within the late tau stages the ordering of the
 remaining lobes reflects the connectivity of the graph and not the clinical
 sequence. Behind the staged renders the four lobes cross the $50$-percent
-level in the order temporal, occipital, parietal, frontal, the same order
-as in Figure~\ref{fig:damkohler}; the reference reports temporal, frontal,
-parietal, occipital. In our simulations the frontal group is last because
-of the weak connectivity of the frontal pole, the least connected region of
-the graph, a property the reference also reports; whether the same holds
-for the matrix used there cannot be checked for the reasons given in
-Section~\ref{sec:damkohler}. With a uniform conversion rate,
-connectivity is the only anatomy our model carries, so this is the order it
-produces on this graph. The clinical order emerges once the biology that
-carries it enters the coefficients: with the regional rates of
-Section~\ref{sec:corti}, calibrated by that reference on patient data, the
-frontal group is among the first and the occipital group is last
-(Table~\ref{tab:corti} and Figure~\ref{fig:activationorder}), and
+level in the order temporal, occipital, parietal, frontal, at $16.5$, $21.7$,
+$23.0$ and $25.9$ years, the same order as in Figure~\ref{fig:damkohler};
+the reference reports temporal, frontal, parietal, occipital. In our
+simulations the frontal group is last because of the weak connectivity of
+the frontal pole, the least connected region of the graph, a property the
+reference also reports; whether the same holds for the matrix used there
+cannot be checked for the reasons given in Section~\ref{sec:damkohler}. With
+a uniform conversion rate, connectivity is the only anatomy our model
+carries, so this is the order it produces on this graph. The clinical order
+emerges once the biology that carries it enters the coefficients: with the
+regional rates of Section~\ref{sec:corti}, calibrated by that reference on
+patient data, the frontal group is among the first and the occipital group is
+last (Table~\ref{tab:corti} and Figure~\ref{fig:activationorder}) and
 Section~\ref{sec:corti} shows the recruitment to be set by those rates
 rather than by propagation.
 
@@ -623,7 +603,8 @@ adopted there from the neuropathological literature; tau above,
 amyloid-$\beta$ below. Second and fourth row: the progressions computed in
 this section, sphere radius and blue intensity both growing with the local
 concentration, at the first instants at which the network mean reaches
-$10$, $40$ and $80$ percent; nodal model at $\rho = 0.005$. Tau, seeded at
+$10$, $40$ and $80$ percent; finite element model with the lumped mass at
+$\rho = 0.005$. Tau, seeded at
 the entorhinal cortex, reaches the temporal neighbourhood first and the
 whole network last; amyloid-$\beta$, seeded on the four cortical lobes,
 descends towards the deep structures, which activate last. The three stages
@@ -719,16 +700,17 @@ The network enters the model only through $L$, so it is natural to ask which
 regions are the most dangerous places for the disease to start. Following the
 infection-time study of~\cite{fornari2019prion} we seed each of the $83$ regions in
 turn and record the time at which the network biomarker reaches $95\%$. The
-sweep runs on the nodal model, because one of its two
-scalings lies beyond the validity boundary of Section~\ref{sec:boundary}. The
+sweep runs with the finite element model with the lumped mass, at
+$\rho = 1$ and at $\rho = 0.02$, the latter beyond the boundary of the
+consistent mass. The
 reference performs this experiment with the Heterodimer model rather than with
 Fisher--Kolmogorov, so the absolute times are not comparable and we compare only
 the ranking, which depends on the network rather than on the kinetics.
 
-At $\rho = 1$ the infection times span $0.02$ years, which is the homogenization
-effect quantified in Section~\ref{sec:damkohler}; at $\rho=0.02$ they span four
-years and the ordering becomes measurable. Three observations of the reference
-survive at both scalings.
+At $\rho = 1$ the infection times span $3.9$ years and at $\rho=0.02$
+$11.2$ years, the transport being weaker in the second case, and the
+ordering is the same at both scalings. Three observations of the reference
+are recovered.
 
 The fastest seeds are subcortical hubs: we obtain the two caudate nuclei
 followed by the two thalami, where the reference reports the putamen and the
@@ -738,7 +720,7 @@ The slowest seeds are the frontal and temporal poles; the frontal pole has the
 smallest weighted degree of the entire graph, $2.05$. Finally, and most
 interestingly, the entorhinal cortex, the region where the pathology is first
 observed clinically and the seed used throughout this chapter, ranks $76$th and
-$80$th of $83$ at $\rho=1$ and $78$th and $81$st at $\rho=0.02$: it is one of
+$79$th of $83$ at $\rho=1$ and $79$th and $82$nd at $\rho=0.02$: it is one of
 the least efficient possible starting points. The reference draws from the same
 observation the argument that this is part of why the early stages of the
 disease are so hard to detect, and it is recovered here from an independent
@@ -756,10 +738,10 @@ slows the growth of the network average.
 the $83$ regions is seeded in turn. (a) the resulting network biomarker curves
 and (b) the same quantity on the anatomy, both at $\rho=0.02$; (c) infection
 time against the weighted degree of the seeded region; (d) the delay of every
-seed behind the fastest one, at both scalings, on a logarithmic axis. The
-anatomy is not shown at $\rho=1$: there the $83$ infection times differ by
-$0.02$ years, and colouring the regions by that quantity would paint them all
-the same.}
+seed behind the fastest one, at both scalings, on a logarithmic axis. Finite
+element model with the lumped mass, fully implicit scheme; the anatomy is
+drawn at $\rho=0.02$, where the infection times span $11.2$ years against
+$3.9$ at $\rho=1$.}
 \label{fig:vulnerability}
 \end{figure}
 
@@ -800,7 +782,7 @@ calibrate the reaction coefficient region by region against two PET
 acquisitions. Their formulation is the nodal one, an unknown per vertex and
 the discrete Laplacian, as in~\cite{fornari2019prion}. Neither the patient
 graph nor the PET images are available to us, so we take their mathematical
-model, their time discretization and their estimated mean parameters, and we
+model, their time discretization and their estimated mean parameters and
 solve them with the metric-graph finite element library of this work on the
 $83$-region connectome, with the connections refined into several elements;
 we state clearly that we do not reproduce the clinical trajectory of their
@@ -812,9 +794,14 @@ takes the mean values estimated in table 1 of the reference: $0.1801$ in the
 frontal lobe, $0.1421$ temporal, $0.0627$ parietal, $0.1005$ insular, $0.1351$
 limbic, $0.0545$ occipital and $0.1147$ in the subcortical nuclei. The nodal
 values are interpolated linearly along each connection. The diffusivity is the
-normalized connectivity $D_e = w_e/\max_e w_e$; the reference does not state a
-normalization, and Section~\ref{sec:damkohler} shows that this choice is what
-places the simulation in the regime where regional curves separate.
+normalized connectivity $D_e = w_e/\max_e w_e$, a choice of ours, since the
+reference does not state the scale of its weights. In the terms of
+Section~\ref{sec:damkohler} it is a uniform scaling $\rho = 1/\max_e w_e =
+0.0283$, which together with the mean of the regional rates over the $83$
+vertices, $0.1252$, gives $\mathrm{Da} = 5.73$: the simulation sits on the
+other side of the crossover from the unit-scale comparison of
+Section~\ref{sec:comparison}, which is why its regional curves separate
+clearly while those coincided.
 
 The time discretization is the semi-implicit scheme
 of Table~\ref{tab:integrators}, which is the one the reference adopts. We use

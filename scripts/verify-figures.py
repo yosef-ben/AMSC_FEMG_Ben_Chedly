@@ -554,6 +554,30 @@ def check_21(report):
     spearman = 1 - 6 * squared / (len(corti) * (len(corti) ** 2 - 1))
     report.check(name, "rank correlation", spearman, 0.9643)
 
+    # The report states that the ordering does not rest on the chosen
+    # normalization: over six weight scales the agreement stays between 18
+    # and 21 of 21, occipital last and frontal/limbic first at every scale.
+    name = "21 weight_scale"
+    rows = read_csv(BENCH / "21_fisher_kolmogorov_corti83/results"
+                            "/weight_scale_sensitivity.csv")
+    report.check(name, "scales tested", float(len(rows)), 6.0)
+    agreements = [int(row["agreeing_pairs_of_21"]) for row in rows]
+    report.check(name, "smallest agreement", float(min(agreements)), 18.0)
+    report.check(name, "largest agreement", float(max(agreements)), 21.0)
+    damkohler = [float(row["damkohler"]) for row in rows]
+    report.check(name, "smallest Da (literal scale)", min(damkohler), 0.1621)
+    report.check(name, "largest Da", max(damkohler), 57.27)
+    rankings = [row["ranking_at_final_time"].split(" > ") for row in rows]
+    report.check(name, "occipital last at every scale",
+                 1.0 if all(r[-1] == "occipital" for r in rankings) else 0.0,
+                 1.0)
+    report.check(name, "frontal and limbic first two at every scale",
+                 1.0 if all(set(r[:2]) == {"frontal", "limbic"}
+                            for r in rankings) else 0.0, 1.0)
+    unit = next(row for row in rows if row["weight_scale"] == "1")
+    report.check(name, "scale 1 agreement equals the stored run",
+                 float(unit["agreeing_pairs_of_21"]), float(concordant))
+
 
 def check_22(report):
     """Degrees of freedom, nonzeros and per-step cost of the baseline."""
@@ -614,6 +638,31 @@ def check_23(report):
     report.check(name, "lobe spread at rho=0.001", spread[0.001], 6.9863,
                  "years")
 
+    # The stabilized variant the report describes: with the lumped mass the
+    # finite element solution stays within [0,1] at every scaling, with both
+    # schemes and at four elements per connection where the consistent mass
+    # diverged; at the literal scale it agrees with the consistent mass.
+    name = "23 fem_lumped"
+    lumped = read_csv(base / "fem_lumped_sweep.csv")
+    report.check(name, "runs", float(len(lumped)), 28.0)
+    report.check(name, "smallest transient minimum",
+                 min(float(row["transient_min"]) for row in lumped), 0.0)
+    report.check(name, "largest transient maximum",
+                 max(float(row["transient_max"]) for row in lumped), 1.0)
+    report.check(name, "every run within [0,1]",
+                 1.0 if all(-1e-12 <= float(row["transient_min"])
+                            and float(row["transient_max"]) <= 1.0 + 1e-12
+                            for row in lumped) else 0.0, 1.0)
+    unit = next(row for row in lumped if row["diffusion_scaling"] == "1.0"
+                and row["scheme"] == "be_lumped")
+    report.check(name, "lumped BE network crossing at rho=1",
+                 float(unit["t50_network_years"]), 12.7215, "years")
+    report.check(name, "lumped BE lobe spread at rho=1",
+                 float(unit["lobe_spread_years"]), 2.679e-02, "years")
+    refined = [row for row in lumped if row["cells_per_edge"] == "4"]
+    report.check(name, "four-element runs at rho=0.005", float(len(refined)),
+                 2.0)
+
     # The transient extremes the validity-boundary discussion quotes: the
     # violation grows with Da before the failure, and at Da = 12.9 the
     # solution leaves [0,1] and still recovers.
@@ -630,6 +679,36 @@ def check_23(report):
                  float(rows[-1]["min"]), 0.999424)
 
 
+def check_23_stabilization(report):
+    """The instability figure: consistent against lumped mass, same runs."""
+    name = "23 stabilization"
+    rows = read_csv(BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
+                            "/stabilization_summary.csv")
+    table = {(row["scheme"], row["diffusion_scaling"]): row for row in rows}
+    report.check(name, "runs", float(len(rows)), 6.0)
+    report.check(name, "consistent, rho=1: minimum",
+                 float(table[("be", "1.0")]["min_concentration"]), -1.337e-4)
+    report.check(name, "consistent, rho=0.05: minimum",
+                 float(table[("be", "0.05")]["min_concentration"]), -0.0798)
+    report.check(name, "consistent, rho=0.05: maximum",
+                 float(table[("be", "0.05")]["max_concentration"]), 1.0206)
+    report.check(name, "consistent, rho=0.005: minimum",
+                 float(table[("be", "0.005")]["min_concentration"]), -0.4139)
+    report.check(name, "consistent, rho=0.005: maximum",
+                 float(table[("be", "0.005")]["max_concentration"]), 1.1712)
+    report.check(name, "consistent, rho=0.005: run stops at",
+                 float(table[("be", "0.005")]["last_stored_time"]), 15.6,
+                 "years")
+    for scaling in ("1.0", "0.05", "0.005"):
+        row = table[("be_lumped", scaling)]
+        report.check(name, f"lumped, rho={scaling}: within [0,1]",
+                     1.0 if float(row["min_concentration"]) >= -1e-12
+                     and float(row["max_concentration"]) <= 1.0 + 1e-12
+                     else 0.0, 1.0)
+        report.check(name, f"lumped, rho={scaling}: reaches T=40",
+                     float(row["last_stored_time"]), 40.0, "years")
+
+
 def check_27(report):
     """Stage times and expected orderings of the two clinical seedings."""
     name = "27 seeding_patterns"
@@ -638,8 +717,9 @@ def check_27(report):
     group = {int(row["node_id"]): row["region"]
              for row in read_csv(BENCH / "21_fisher_kolmogorov_corti83"
                                          "/results/reaction_coefficients.csv")}
-    expected_stages = {"tau": (10.4, 14.8, 18.8),
-                       "amyloid": (0.8, 4.4, 8.8)}
+    # Lumped-mass finite element runs at rho = 0.005 (benchmark 27).
+    expected_stages = {"tau": (15.2, 21.6, 27.6),
+                       "amyloid": (0.8, 4.8, 11.2)}
     for case in ("tau", "amyloid"):
         rows = read_csv(base / f"{case}_profiles.csv")
         times = np.array([float(row["time"]) for row in rows])
@@ -667,9 +747,11 @@ def check_27(report):
         activation.setdefault(group[k], []).append(first)
     mean_activation = {g: sum(v) / len(v) for g, v in activation.items()}
     report.check(name, "amyloid subcortical mean activation",
-                 mean_activation["subcortical"], 7.75, "years")
+                 mean_activation["subcortical"], 12.98, "years")
     report.check(name, "amyloid limbic mean activation",
-                 mean_activation["limbic"], 6.33, "years")
+                 mean_activation["limbic"], 9.78, "years")
+    report.check(name, "amyloid insular mean activation",
+                 mean_activation["insular"], 9.6, "years")
     latest_cortical = max(mean_activation[g] for g in
                           ("frontal", "temporal", "parietal", "occipital"))
     report.check(name, "subcortical last, after every cortical lobe",
@@ -706,8 +788,8 @@ def check_27(report):
     lobe_crossings = {
         lobe: crossing(times, [float(row[lobe]) for row in rows], 50.0)
         for lobe in ("temporal", "frontal", "parietal", "occipital")}
-    for lobe, expected in (("temporal", 12.782), ("occipital", 14.818),
-                           ("parietal", 15.331), ("frontal", 17.162)):
+    for lobe, expected in (("temporal", 16.50), ("occipital", 21.65),
+                           ("parietal", 22.95), ("frontal", 25.87)):
         report.check(name, f"tau {lobe} lobe crossing at rho=0.005",
                      lobe_crossings[lobe], expected, "years")
     ordered = sorted(lobe_crossings, key=lobe_crossings.get)
@@ -760,9 +842,10 @@ def check_25(report):
     """Extremes and spans of the seeding study."""
     name = "25 seeding_vulnerability"
     base = BENCH / "25_connectome_seeding_vulnerability/results"
+    # Lumped-mass finite element runs (fully implicit), see benchmark 25.
     for scaling, span, fastest, slowest in (
-            (1, 0.0207, "Right-Caudate", "ctx-rh-frontalpole"),
-            (0.02, 4.178, "Right-Caudate", "ctx-rh-temporalpole")):
+            (1, 3.9136, "Right-Caudate", "ctx-rh-frontalpole"),
+            (0.02, 11.180, "Right-Caudate", "ctx-rh-temporalpole")):
         rows = read_csv(base / f"seeding_vulnerability_rho_{scaling:g}.csv")
         values = [float(row["infection_time_years"]) for row in rows]
         report.check(name, f"span at rho={scaling:g}",
@@ -868,8 +951,8 @@ def main():
     for check in (check_18, check_18_timestep, check_19, check_19_accuracy,
                   check_19_topology, check_connectome_consistency,
                   check_19_scheme, check_20, check_21, check_22, check_23,
-                  check_24_views, check_25, check_26, check_26_order,
-                  check_27):
+                  check_23_stabilization, check_24_views, check_25, check_26,
+                  check_26_order, check_27):
         try:
             check(report)
         except FileNotFoundError as error:

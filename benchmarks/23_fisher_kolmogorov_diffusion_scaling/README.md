@@ -122,15 +122,47 @@ the front.
 
 The cause is the consistent P1 mass matrix. Its off-diagonal entries are
 positive, so the semi-discrete system does not satisfy a discrete maximum
-principle; while diffusion dominates, the diffusion matrix compensates, but
-once the reaction dominates nothing does. The standard remedy is a diagonal
-mass. The nodal model of Fornari et al. and the Hadamard product in equation
-(4) of Corti et al. both carry one, the identity, with the reaction evaluated
-at the vertices; the row-sum lumped mass, whose diagonal is deg/2 at unit
-edge lengths, differs from it by a per-vertex rescaling of time, and either
-choice removes the positive off-diagonal entries that break the maximum
-principle. Adding an optional lumped mass matrix to
-`fisher_kolmogorov_problem` is the natural follow-up and would extend the FEM
+principle: the reaction at one node, multiplied by the inverse of the mass
+matrix, can drive a neighbouring node below zero. While diffusion dominates,
+the diffusion matrix, an M-matrix, compensates; once the reaction dominates
+nothing does, and Newton then converges to the wrong branch of the logistic
+term. The standard remedy is a diagonal mass, and it is available in
+`fisher_kolmogorov_problem` through `set_mass_lumping(true)`: the row-sum
+lumped mass (`h/2` per node and cell) with the reaction and the reaction
+weight matrix evaluated by the vertex rule, so that the reaction at a node
+acts on that node alone. The nodal model of Fornari et al. and the Hadamard
+product in equation (4) of Corti et al. are of the same kind, with the
+identity as mass; the lumped mass differs from it by the per-vertex factor
+`deg/2` at unit edge lengths, a rescaling of time vertex by vertex.
+
+## The lumped variant over the sweep
+
+`results/fem_lumped_sweep.csv`, written by
+`scripts/tabulate-fem-lumped-sweep.py` from the stored biomarker files,
+records the mass-lumped FEM at every scaling of the sweep with both schemes,
+plus the four-element case at `rho = 0.005` where the consistent mass diverged
+(`test_fisher_kolmogorov_fornari83 ... be_lumped | cn_lumped`):
+
+```text
+rho     Da      lumped BE: range over time   spread   lumped CN: range   spread
+1.0     0.65    [0, 1]                       0.027    [0, 1]             0.028
+0.05    12.95   [0, 1]                       5.09     [0, 1]             5.86
+0.04    16.19   [0, 1]                       5.54     [0, 1]             6.36
+0.005   129.5   [0, 1]                       9.37     [0, 1]             10.58
+0.001   647.5   [0, 1]                       12.11    [0, 1]             13.62
+0.005, four elements per edge: [0, 1] with both schemes (consistent mass: [-507, 523])
+```
+
+Every one of the 28 runs stays within `[0, 1]` to machine precision over the
+whole transient. At the literal scale the lumped and the consistent mass
+agree, network crossing 12.72 against 12.68 years, and both keep the four
+lobes together (spreads 0.027 and 0.008 years); at large `Da` the lumped
+formulation separates the lobes more than the nodal model does, because its
+mass `deg/2` slows the diffusion at the well-connected vertices relative to
+the identity mass, a difference between two diagonal-mass discretizations
+and not a defect of either. The comparisons of the report keep the
+consistent mass, the formulation of the first part of the work, which is
+valid at every `Da <= 5.73` used there; the lumped option is the extension
 into the reaction-dominated regime.
 
 Benchmarks 19 and 21 are unaffected: both sit at `Da <= 6`, well inside the
@@ -145,12 +177,28 @@ Run the commands in `commands.txt` from the project root.
 ```text
 results/diffusion_scaling.csv           sweep table, including FEM status
 results/diffusion_scaling_summary.json  spectral quantities and reference scalings
-results/diffusion_scaling.png/.pdf      report-ready figure
+results/diffusion_scaling.png/.pdf      report figure: biomarkers at three scalings
+results/diffusion_scaling_spread.png/.pdf  record figure: the same, plus spread against Da
+results/stabilization.png/.pdf         report figure: consistent against lumped mass, three scalings
+results/stabilization_summary.csv      the extremes and the stopping time behind that figure
+results/fem_lumped_sweep.csv           the lumped FEM over the whole sweep
 ```
 
-The figure shows the lobe biomarkers at three representative scalings on top,
-and the measured spread against the Damkohler number below, with the two
-earlier benchmarks and the separation reported by Fornari et al. marked. The
+`stabilization` shows, under identical conditions (one element per
+connection, fully implicit scheme, dt = 0.4, T = 40, entorhinal seed), the
+consistent-mass FEM above and the lumped-mass FEM below at rho = 1, 0.05 and
+0.005, with the envelope of the 83 vertex concentrations shaded: with the
+consistent mass the envelope leaves [0,1] at Da = 12.9 (-0.08, 1.02) and the
+Newton iteration fails at t = 15.6 years at Da = 129 (-0.41, 1.17), where the
+run stops; with the lumped mass every panel stays within [0,1] and the lobes
+separate as Da grows.
+
+The report figure shows the lobe biomarkers at three representative
+scalings. The record figure adds the measured spread against the Damkohler
+number, with the setting of benchmark 19 and the separation reported by
+Fornari et al. marked and the scalings at which the FEM leaves [0,1] shaded;
+the report quotes the spread values in the text instead (benchmark 21 is
+placed on the same curve in its own section of the report). The
 lobe colours follow figure 7 of the paper; every pair of them separates by at
 least `10.8` in OKLab under protan, deutan and tritan simulation, and the line
 styles repeat the identity so it never rests on colour alone.

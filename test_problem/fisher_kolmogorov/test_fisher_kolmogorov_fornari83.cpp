@@ -231,10 +231,17 @@ int main(int argc, char *argv[]) {
 		// "be":    Backward Euler with Newton, as in Fornari et al.
 		// "cn":    the semi-implicit Crank-Nicolson scheme of Corti et al.
 		// "nodal": nodal reference only, without the metric-graph FEM.
-		const std::string scheme = (argc >= 8) ? argv[7] : "be";
+		// A "_lumped" suffix runs the FEM with the row-sum lumped mass and
+		// the vertex-rule reaction, the stabilized variant of benchmark 23.
+		std::string scheme = (argc >= 8) ? argv[7] : "be";
+		bool lumped = false;
+		if (scheme.size() > 7 && scheme.substr(scheme.size() - 7) == "_lumped") {
+			lumped = true;
+			scheme = scheme.substr(0, scheme.size() - 7);
+		}
 		if (scheme != "be" && scheme != "cn" && scheme != "nodal")
 			throw std::invalid_argument(
-				"The time scheme must be be, cn or nodal.");
+				"The time scheme must be be, cn, nodal, be_lumped or cn_lumped.");
 		// Seeding: absent or negative keeps the entorhinal seeding of the
 		// paper (the tau pattern); a vertex index seeds that vertex alone;
 		// the keyword "neocortex" seeds every vertex of the four cortical
@@ -349,6 +356,7 @@ int main(int argc, char *argv[]) {
 		fem.set_time_scheme(scheme == "cn"
 			? femg::fisher_kolmogorov_problem::TimeScheme::corti_semi_implicit
 			: femg::fisher_kolmogorov_problem::TimeScheme::backward_euler);
+		fem.set_mass_lumping(lumped);
 		// Weakly diffusive graphs need a damped Newton solve with more than
 		// the default number of iterations; see benchmark 23.
 		fem.set_newton_parameters(1.0e-11, 200);
@@ -417,6 +425,7 @@ int main(int argc, char *argv[]) {
 			<< "  entorhinal seeds: " << seeds << "\n"
 			<< "  alpha: " << alpha << "\n"
 			<< "  diffusion scaling: " << diffusion_scaling << "\n"
+			<< "  mass matrix: " << (lumped ? "lumped" : "consistent") << "\n"
 			<< "  cells per edge: " << cells_per_edge
 			<< ", DoFs: " << fem.number_of_dofs() << "\n"
 			<< "  dt: " << dt << ", T: " << final_time << "\n"

@@ -8,9 +8,14 @@ python3 scripts/study-fisher-diffusion-scaling.py \
   --output-dir output/fisher_kolmogorov/diffusion_scaling \
   --scalings 1.0 0.5 0.2 0.1 0.05 0.04 0.03 0.025 0.02 0.01 0.005 0.002 0.001
 
+# Report figure: the lobe biomarkers at three scalings.
+python3 scripts/plot-fisher-diffusion-scaling.py \
+  output/fisher_kolmogorov/diffusion_scaling --layout curves \
+  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.png
+# Record figure: the same three panels plus the spread against Da.
 python3 scripts/plot-fisher-diffusion-scaling.py \
   output/fisher_kolmogorov/diffusion_scaling \
-  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.png
+  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling_spread.png
 
 cp output/fisher_kolmogorov/diffusion_scaling/diffusion_scaling.csv \
    output/fisher_kolmogorov/diffusion_scaling/diffusion_scaling_summary.json \
@@ -24,3 +29,30 @@ cp output/fisher_kolmogorov/staging/tau/fem_biomarkers.csv benchmarks/23_fisher_
 # Single runs behind the FEM validity statement.
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/scratch 0.5 40 0.005 cn
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/scratch 0.5 40 0.005 be
+
+# Stabilized variant: the mass-lumped FEM (row-sum mass, vertex-rule
+# reaction) over the whole sweep with both schemes, plus the four-element
+# case at rho = 0.005 where the consistent mass diverged.
+for rho in 1.0 0.5 0.2 0.1 0.05 0.04 0.03 0.025 0.02 0.01 0.005 0.002 0.001; do
+  for scheme in be_lumped cn_lumped; do
+    ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 \
+      output/fisher_kolmogorov/lumped/rho_${rho}_${scheme} 0.5 120 $rho $scheme
+  done
+done
+for scheme in be_lumped cn_lumped; do
+  ./build-release/test_fisher_kolmogorov_fornari83 4 0.4 \
+    output/fisher_kolmogorov/lumped/rho_0.005_cells4_${scheme} 0.5 120 0.005 $scheme
+done
+python3 scripts/tabulate-fem-lumped-sweep.py \
+  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/fem_lumped_sweep.csv
+
+# Instability of the consistent mass and its cure, same mesh, scheme and
+# parameters: fully implicit scheme, one element per connection, T = 40.
+for rho in 1.0 0.05 0.005; do
+  for scheme in be be_lumped; do
+    ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 \
+      output/fisher_kolmogorov/stabilization/rho_${rho}_${scheme} 0.5 40 $rho $scheme
+  done
+done
+python3 scripts/plot-fisher-stabilization.py \
+  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/stabilization.png

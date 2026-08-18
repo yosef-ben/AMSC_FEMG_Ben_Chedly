@@ -23,15 +23,16 @@ disagree. Run it from the project root:
 | `20/alpha_sensitivity` | `plot-fisher-alpha-sensitivity.py` | `fornari83_alpha/alpha_*/` | `test_fisher_kolmogorov_fornari83` |
 | `21/regional_averages` | `plot-fisher-kolmogorov-regions.py` | `regional_averages.csv` | `test_fisher_kolmogorov_corti83` |
 | `22/sequential_performance` | `plot-fisher-sequential-performance.py` | `sequential_performance.csv` | `run-fisher-sequential-performance.py` driving `test_fisher_kolmogorov_corti83` |
-| `23/diffusion_scaling` | `plot-fisher-diffusion-scaling.py` | `diffusion_scaling.csv`, `curves.npz` | `study-fisher-diffusion-scaling.py` driving `test_fisher_kolmogorov_fornari83` |
+| `23/diffusion_scaling` (report, three biomarker panels) and `23/diffusion_scaling_spread` (record, with the spread panel) | `plot-fisher-diffusion-scaling.py` | `diffusion_scaling.csv`, `curves.npz` | `study-fisher-diffusion-scaling.py` driving `test_fisher_kolmogorov_fornari83` |
+| `23/stabilization` | `plot-fisher-stabilization.py` | `stabilization/rho_*_{be,be_lumped}/fem_biomarkers.csv`, summary in `stabilization_summary.csv` | `test_fisher_kolmogorov_fornari83`, consistent and lumped mass |
 | `24/connectome_regions` | `plot-connectome-regions.py` | `data/connectome/fornari83/{nodes,edges}.csv`, `21/results/reaction_coefficients.csv` | `prepare-fornari-connectome.py`, `test_fisher_kolmogorov_corti83` |
 | `24/connectome_connectogram` | `plot-connectome-regions.py` | as above | as above |
 | `24/connectome_views` | `plot-connectome-views.py` | `data/connectome/fornari83/{nodes,edges}.csv` | `prepare-fornari-connectome.py` |
-| `25/seeding_vulnerability` | `plot-fisher-seeding-vulnerability.py` | `seeding_vulnerability_rho_*.csv`, `seeding_curves_rho_*.npz` | `study-fisher-seeding-vulnerability.py` driving `test_fisher_kolmogorov_fornari83` |
+| `25/seeding_vulnerability` | `plot-fisher-seeding-vulnerability.py` | `seeding_vulnerability_rho_*.csv`, `seeding_curves_rho_*.npz` | `study-fisher-seeding-vulnerability.py --scheme be_lumped` driving `test_fisher_kolmogorov_fornari83` (lumped-mass FEM) |
 | `26/anatomical_progression` | `plot-connectome-progression.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
 | `26/activation_time` | `plot-connectome-activation.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
 | `26/activation_order` | `plot-corti-activation-order.py` | `corti83_refined/solution_*.vtp`, `corti83_uniform/solution_*.vtp` | `test_fisher_kolmogorov_corti83`, regional and `uniform` variants |
-| `27/seeding_patterns` | `plot-connectome-staging.py` | `staging/{tau,amyloid}_nodal/nodal_profiles.csv` | `test_fisher_kolmogorov_fornari83` |
+| `27/seeding_patterns` | `plot-connectome-staging.py` | `staging/{tau,amyloid}_lumped/fem_profiles.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped` scheme |
 | `27/seeding_patterns_expected` | `plot-connectome-staging.py` | as above, plus `27/reference/weickenmeier_fig1_{tau,amyloid}.png` | as above; the reference strips are cut from the article PDF by `extract-weickenmeier-staging.py` |
 
 ## Rules the figures follow

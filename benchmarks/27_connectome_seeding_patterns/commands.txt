@@ -13,12 +13,12 @@ python3 scripts/extract-weickenmeier-staging.py \
   --output-dir benchmarks/27_connectome_seeding_patterns/reference
 
 python3 scripts/plot-connectome-staging.py \
-  --tau output/fisher_kolmogorov/staging/tau_nodal/nodal_profiles.csv \
-  --amyloid output/fisher_kolmogorov/staging/amyloid_nodal/nodal_profiles.csv \
+  --tau output/fisher_kolmogorov/staging/tau_lumped/fem_profiles.csv \
+  --amyloid output/fisher_kolmogorov/staging/amyloid_lumped/fem_profiles.csv \
   --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
   --output-dir benchmarks/27_connectome_seeding_patterns/results
 
-cp output/fisher_kolmogorov/staging/tau_nodal/nodal_profiles.csv benchmarks/27_connectome_seeding_patterns/results/tau_profiles.csv
-cp output/fisher_kolmogorov/staging/tau_nodal/nodal_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/tau_biomarkers.csv
-cp output/fisher_kolmogorov/staging/amyloid_nodal/nodal_profiles.csv benchmarks/27_connectome_seeding_patterns/results/amyloid_profiles.csv
-cp output/fisher_kolmogorov/staging/amyloid_nodal/nodal_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/amyloid_biomarkers.csv
+cp output/fisher_kolmogorov/staging/tau_lumped/fem_profiles.csv benchmarks/27_connectome_seeding_patterns/results/tau_profiles.csv
+cp output/fisher_kolmogorov/staging/tau_lumped/fem_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/tau_biomarkers.csv
+cp output/fisher_kolmogorov/staging/amyloid_lumped/fem_profiles.csv benchmarks/27_connectome_seeding_patterns/results/amyloid_profiles.csv
+cp output/fisher_kolmogorov/staging/amyloid_lumped/fem_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/amyloid_biomarkers.csv

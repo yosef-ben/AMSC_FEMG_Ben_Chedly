@@ -66,6 +66,10 @@ void fisher_kolmogorov_problem::set_time_scheme(TimeScheme scheme) {
 	time_scheme_ = scheme;
 }
 
+void fisher_kolmogorov_problem::set_mass_lumping(bool enabled) {
+	mass_lumping_ = enabled;
+}
+
 void fisher_kolmogorov_problem::set_newton_parameters(
 	double tolerance,
 	std::size_t max_iterations) {
@@ -244,10 +248,16 @@ void fisher_kolmogorov_problem::assemble_matrices() {
 			const auto i1 = static_cast<Eigen::Index>(
 				edge_local_node_to_dof(edge, cell + 1));
 
-			mass_triplets.emplace_back(i0, i0, h / 3.0);
-			mass_triplets.emplace_back(i0, i1, h / 6.0);
-			mass_triplets.emplace_back(i1, i0, h / 6.0);
-			mass_triplets.emplace_back(i1, i1, h / 3.0);
+			if (mass_lumping_) {
+				// Row sums of the consistent cell mass: h/2 on each node.
+				mass_triplets.emplace_back(i0, i0, h / 2.0);
+				mass_triplets.emplace_back(i1, i1, h / 2.0);
+			} else {
+				mass_triplets.emplace_back(i0, i0, h / 3.0);
+				mass_triplets.emplace_back(i0, i1, h / 6.0);
+				mass_triplets.emplace_back(i1, i0, h / 6.0);
+				mass_triplets.emplace_back(i1, i1, h / 3.0);
+			}
 
 			diffusion_triplets.emplace_back(i0, i0, diffusion / h);
 			diffusion_triplets.emplace_back(i0, i1, -diffusion / h);
@@ -301,6 +311,13 @@ Vector fisher_kolmogorov_problem::assemble_reaction_vector(
 			const double alpha0 = alpha_dofs_(i0);
 			const double alpha1 = alpha_dofs_(i1);
 
+			if (mass_lumping_) {
+				// Vertex rule, consistent with the lumped mass: the reaction
+				// is evaluated at the nodes, as in the nodal network model.
+				reaction(i0) += alpha0 * c0 * (1.0 - c0) * h / 2.0;
+				reaction(i1) += alpha1 * c1 * (1.0 - c1) * h / 2.0;
+				continue;
+			}
 			for (int q = 0; q < 3; ++q) {
 				const double phi0 = 1.0 - points[q];
 				const double phi1 = points[q];
@@ -349,6 +366,13 @@ SparseMatrix fisher_kolmogorov_problem::assemble_reaction_weight_matrix(
 			const double alpha0 = alpha_dofs_(i0);
 			const double alpha1 = alpha_dofs_(i1);
 
+			if (mass_lumping_) {
+				triplets.emplace_back(i0, i0,
+					alpha0 * (1.0 - state_factor * c0) * h / 2.0);
+				triplets.emplace_back(i1, i1,
+					alpha1 * (1.0 - state_factor * c1) * h / 2.0);
+				continue;
+			}
 			double local[2][2] = {};
 			for (int q = 0; q < 3; ++q) {
 				const double basis[2] = {1.0 - points[q], points[q]};

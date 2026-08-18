@@ -119,6 +119,34 @@ synthetic seed. Corti et al. report high frontal and parietal patient values;
 an exact ranking is not expected here because their PET initial condition,
 Brainnetome topology, volumes, and calibrated patient graph are different.
 
+## Does the ranking depend on the scale of the weights?
+
+The reference does not state the scale of its edge weights, and the
+normalization `D_e = w_e/max(w)` used above is a choice made here. To see
+whether the reproduced ordering depends on it, the same model was run at six
+multipliers of that normalization, from the literal scale of the Fornari
+comparison (`35.3221`, that is `rho = 1`) to ten times weaker than the run
+above (`results/weight_scale_sensitivity.csv`, written by
+`scripts/tabulate-corti-weight-scale.py`):
+
+```text
+scale    rho      Da     agreement with Corti table 3   ranking at t = 20
+35.3221  1.0000   0.16   18 / 21   frontal > limbic > subcortical > insular > temporal > parietal > occipital
+10       0.2831   0.57   18 / 21   frontal > limbic > subcortical > insular > temporal > parietal > occipital
+3        0.0849   1.91   21 / 21   frontal > limbic > temporal > insular > subcortical > parietal > occipital
+1        0.0283   5.73   20 / 21   limbic > frontal > temporal > insular > subcortical > parietal > occipital
+0.3      0.0085  19.09   19 / 21   limbic > frontal > temporal > subcortical > insular > parietal > occipital
+0.1      0.0028  57.27   20 / 21   frontal > limbic > temporal > subcortical > insular > parietal > occipital
+```
+
+Over two and a half decades of Damkohler number the agreement stays between
+18 and 21 of the 21 pairwise orderings, the occipital group is last and the
+frontal and limbic groups are the first two at every scale. The scale sets
+how far apart the regional curves are, not their order, which the regional
+rates decide; the normalization used above is therefore not what the
+reproduced ordering rests on. The best agreement, 21 of 21, occurs at a scale
+three times the one used above, which was not selected for that reason.
+
 
 
 ## Visualization semantics

@@ -14,6 +14,7 @@ copy 20_fisher_kolmogorov_alpha_sensitivity/results/alpha_sensitivity.pdf
 copy 21_fisher_kolmogorov_corti83/results/regional_averages.pdf
 copy 22_fisher_kolmogorov_sequential_performance/results/sequential_performance.pdf
 copy 23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.pdf
+copy 23_fisher_kolmogorov_diffusion_scaling/results/stabilization.pdf
 copy 24_connectome_topology/results/connectome_regions.pdf
 copy 24_connectome_topology/results/connectome_connectogram.pdf
 copy 24_connectome_topology/results/connectome_views.pdf

@@ -224,12 +224,20 @@ int main(int argc, char *argv[]) {
 		if (argc >= 5) final_time = std::stod(argv[4]);
 		const bool uniform_rates =
 			argc >= 6 && std::string(argv[5]) == "uniform";
+		// Optional multiplier on the normalized weights, D_e = s * w_e/max(w):
+		// s = 1 is the configuration of benchmark 21, s = max(w) the literal
+		// weights of the Fornari comparison. Used to test how the regional
+		// ranking depends on the undeclared scale of the reference's weights.
+		const double weight_scale = (argc >= 7) ? std::stod(argv[6]) : 1.0;
+		if (weight_scale <= 0.0)
+			throw std::invalid_argument("The weight scale must be positive.");
 		using clock = std::chrono::steady_clock;
 		const auto total_start = clock::now();
 
 		const auto nodes = read_nodes("data/connectome/fornari83/nodes.csv");
-		const auto diffusion = read_normalized_edge_weights(
+		auto diffusion = read_normalized_edge_weights(
 			"data/connectome/fornari83/edges.csv");
+		for (double &value : diffusion) value *= weight_scale;
 		const auto visualization_coordinates = read_visualization_coordinates(
 			"data/connectome/fornari83/nodes.csv");
 		std::vector<double> alpha(nodes.size());

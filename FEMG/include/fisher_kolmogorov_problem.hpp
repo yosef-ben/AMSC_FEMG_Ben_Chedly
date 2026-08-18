@@ -37,6 +37,12 @@ public:
 	void set_output_stride(std::size_t stride);
 	void set_verbose(bool verbose);
 	void set_time_scheme(TimeScheme scheme);
+	// Row-sum mass lumping. The lumped mass, the reaction vector and the
+	// reaction weight matrix are then evaluated with the vertex (trapezoidal)
+	// rule, which removes the positive off-diagonal mass entries and restores
+	// the discrete maximum principle in the reaction-dominated regime.
+	void set_mass_lumping(bool enabled);
+	bool mass_lumping() const { return mass_lumping_; }
 	void set_newton_parameters(double tolerance, std::size_t max_iterations);
 	void set_time_step_callback(TimeStepCallback callback);
 	void set_edge_initial_values(
@@ -82,6 +88,7 @@ private:
 	bool output_enabled_ = true;
 	bool verbose_ = true;
 	TimeScheme time_scheme_ = TimeScheme::corti_semi_implicit;
+	bool mass_lumping_ = false;
 	double newton_tolerance_ = 1.0e-11;
 	std::size_t newton_max_iterations_ = 30;
 	std::size_t newton_max_backtracks_ = 20;
