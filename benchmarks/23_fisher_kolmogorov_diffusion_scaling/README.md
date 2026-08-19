@@ -44,6 +44,33 @@ mean weighted degree = 42.7547
 max adjacency w      = 35.3221
 ```
 
+## The same number for the metric-graph FEM
+
+`Da` above is the Damkohler number of the nodal model, whose mass matrix is
+the identity. The finite element model shares `L` exactly at one element per
+connection, but every vertex also carries half of each incident connection:
+with unit lengths the lumped mass is `M_ii = deg_i / 2`, from 3 to 24 and
+13.61 on average, and the consistent mass has the blocks h/3, h/6. The rate
+of the slowest transport mode is then the smallest non-zero generalized
+eigenvalue of `(L, M)` instead of the Fiedler value of `L`
+(`scripts/tabulate-connectome-mass-spectrum.py`, `results/mass_spectrum.csv`):
+
+```text
+mass matrix   lambda_2    ratio to the identity   Da at rho = 1 / 0.05 / 0.005
+identity      0.772254    1.00                    0.65 /  12.9 /  129
+lumped        0.060627   12.74                    8.25 / 164.9 / 1649
+consistent    0.063533   12.16                    7.87 / 157.4 / 1574
+```
+
+At the same `rho` the finite element model therefore sits at a Damkohler
+number 12 to 13 times larger than the nodal one, which is why its lobes
+separate at a smaller nominal `Da` in the report figure: the 6.2 years of the
+consistent mass at nominal `Da = 12.9` correspond to `Da` of about 160 for
+that model, where the nodal sweep below gives between 4.38 (Da 129) and 5.90
+(Da 324) years. The two models agree on what controls the separation; the
+number at which a given separation is reached depends on the mass matrix,
+as the 1.5-year shift of benchmark 19 already does.
+
 ## Measured behaviour
 
 The nodal reference of `test_fisher_kolmogorov_fornari83` was run for
@@ -177,28 +204,29 @@ Run the commands in `commands.txt` from the project root.
 ```text
 results/diffusion_scaling.csv           sweep table, including FEM status
 results/diffusion_scaling_summary.json  spectral quantities and reference scalings
-results/diffusion_scaling.png/.pdf      report figure: biomarkers at three scalings
-results/diffusion_scaling_spread.png/.pdf  record figure: the same, plus spread against Da
-results/stabilization.png/.pdf         report figure: consistent against lumped mass, three scalings
-results/stabilization_summary.csv      the extremes and the stopping time behind that figure
-results/fem_lumped_sweep.csv           the lumped FEM over the whole sweep
+results/diffusion_scaling.png/.pdf        report figure: nodal, FEM consistent mass, FEM lumped mass at three scalings
+results/diffusion_scaling_summary_rows.csv  extremes, stopping time and lobe spread of its nine runs
+results/diffusion_scaling_spread.png/.pdf   record figure: nodal biomarkers plus spread against Da over the sweep
+results/fem_lumped_sweep.csv              the lumped FEM over the whole sweep
+results/mass_spectrum.csv                 Fiedler value of L against the identity, lumped and consistent mass
 ```
 
-`stabilization` shows, under identical conditions (one element per
+The report figure shows, under identical conditions (one element per
 connection, fully implicit scheme, dt = 0.4, T = 40, entorhinal seed), the
-consistent-mass FEM above and the lumped-mass FEM below at rho = 1, 0.05 and
-0.005, with the envelope of the 83 vertex concentrations shaded: with the
-consistent mass the envelope leaves [0,1] at Da = 12.9 (-0.08, 1.02) and the
-Newton iteration fails at t = 15.6 years at Da = 129 (-0.41, 1.17), where the
-run stops; with the lumped mass every panel stays within [0,1] and the lobes
-separate as Da grows.
+nodal model, the consistent-mass FEM and the lumped-mass FEM at rho = 1, 0.05
+and 0.005, with the envelope of the 83 vertex concentrations shaded. The
+lobes separate as Da grows in all three: spreads 3.9e-7, 0.65 and 4.4 years
+(nodal), 0.008 and 6.2 years (consistent, then breakdown), 0.027, 5.1 and 9.4
+years (lumped). With the consistent mass the envelope leaves [0,1] at
+Da = 12.9 (-0.08, 1.02) and the Newton iteration fails at t = 15.6 years at
+Da = 129 (-0.41, 1.17), where the run stops; with the lumped mass every panel
+stays within [0,1].
 
-The report figure shows the lobe biomarkers at three representative
-scalings. The record figure adds the measured spread against the Damkohler
-number, with the setting of benchmark 19 and the separation reported by
-Fornari et al. marked and the scalings at which the FEM leaves [0,1] shaded;
-the report quotes the spread values in the text instead (benchmark 21 is
-placed on the same curve in its own section of the report). The
+The record figure `diffusion_scaling_spread` shows the nodal biomarkers at
+three scalings and the measured spread against the Damkohler number, with the
+setting of benchmark 19 and the separation reported by Fornari et al. marked
+and the scalings at which the consistent-mass FEM leaves [0,1] shaded; the
+report quotes the spread values in the text instead. The
 lobe colours follow figure 7 of the paper; every pair of them separates by at
 least `10.8` in OKLab under protan, deutan and tritan simulation, and the line
 styles repeat the identity so it never rests on colour alone.

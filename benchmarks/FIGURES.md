@@ -23,8 +23,8 @@ disagree. Run it from the project root:
 | `20/alpha_sensitivity` | `plot-fisher-alpha-sensitivity.py` | `fornari83_alpha/alpha_*/` | `test_fisher_kolmogorov_fornari83` |
 | `21/regional_averages` | `plot-fisher-kolmogorov-regions.py` | `regional_averages.csv` | `test_fisher_kolmogorov_corti83` |
 | `22/sequential_performance` | `plot-fisher-sequential-performance.py` | `sequential_performance.csv` | `run-fisher-sequential-performance.py` driving `test_fisher_kolmogorov_corti83` |
-| `23/diffusion_scaling` (report, three biomarker panels) and `23/diffusion_scaling_spread` (record, with the spread panel) | `plot-fisher-diffusion-scaling.py` | `diffusion_scaling.csv`, `curves.npz` | `study-fisher-diffusion-scaling.py` driving `test_fisher_kolmogorov_fornari83` |
-| `23/stabilization` | `plot-fisher-stabilization.py` | `stabilization/rho_*_{be,be_lumped}/fem_biomarkers.csv`, summary in `stabilization_summary.csv` | `test_fisher_kolmogorov_fornari83`, consistent and lumped mass |
+| `23/diffusion_scaling` (report: nodal, consistent-mass FEM and lumped-mass FEM at three scalings) | `plot-fisher-stabilization.py` | `stabilization/rho_*_{nodal,be,be_lumped}/` biomarkers, summary in `diffusion_scaling_summary_rows.csv` | `test_fisher_kolmogorov_fornari83` |
+| `23/diffusion_scaling_spread` (record: nodal biomarkers plus spread against Da) | `plot-fisher-diffusion-scaling.py` | `diffusion_scaling.csv`, `curves.npz` | `study-fisher-diffusion-scaling.py` driving `test_fisher_kolmogorov_fornari83` |
 | `24/connectome_regions` | `plot-connectome-regions.py` | `data/connectome/fornari83/{nodes,edges}.csv`, `21/results/reaction_coefficients.csv` | `prepare-fornari-connectome.py`, `test_fisher_kolmogorov_corti83` |
 | `24/connectome_connectogram` | `plot-connectome-regions.py` | as above | as above |
 | `24/connectome_views` | `plot-connectome-views.py` | `data/connectome/fornari83/{nodes,edges}.csv` | `prepare-fornari-connectome.py` |

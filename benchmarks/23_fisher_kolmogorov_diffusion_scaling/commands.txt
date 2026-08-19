@@ -8,11 +8,8 @@ python3 scripts/study-fisher-diffusion-scaling.py \
   --output-dir output/fisher_kolmogorov/diffusion_scaling \
   --scalings 1.0 0.5 0.2 0.1 0.05 0.04 0.03 0.025 0.02 0.01 0.005 0.002 0.001
 
-# Report figure: the lobe biomarkers at three scalings.
-python3 scripts/plot-fisher-diffusion-scaling.py \
-  output/fisher_kolmogorov/diffusion_scaling --layout curves \
-  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.png
-# Record figure: the same three panels plus the spread against Da.
+# Record figure: the nodal biomarkers at three scalings plus the spread
+# against Da over the whole sweep.
 python3 scripts/plot-fisher-diffusion-scaling.py \
   output/fisher_kolmogorov/diffusion_scaling \
   --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling_spread.png
@@ -46,13 +43,19 @@ done
 python3 scripts/tabulate-fem-lumped-sweep.py \
   --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/fem_lumped_sweep.csv
 
-# Instability of the consistent mass and its cure, same mesh, scheme and
-# parameters: fully implicit scheme, one element per connection, T = 40.
+# Report figure: nodal model, FEM with consistent mass and FEM with lumped
+# mass at three scalings, same mesh, scheme and parameters (fully implicit,
+# one element per connection, T = 40); the lobes separate in all three, the
+# consistent mass leaves [0,1] and breaks down, the lumped mass does not.
 for rho in 1.0 0.05 0.005; do
-  for scheme in be be_lumped; do
+  for scheme in nodal be be_lumped; do
     ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 \
       output/fisher_kolmogorov/stabilization/rho_${rho}_${scheme} 0.5 40 $rho $scheme
   done
 done
 python3 scripts/plot-fisher-stabilization.py \
-  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/stabilization.png
+  --output benchmarks/23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.png
+
+# The Damkohler number of the finite element model against the nodal one:
+# Fiedler value of L with the identity, the lumped and the consistent mass.
+python3 scripts/tabulate-connectome-mass-spectrum.py

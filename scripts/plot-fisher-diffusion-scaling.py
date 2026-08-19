@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-"""Report figure for the Fisher-Kolmogorov diffusion-scaling study.
+"""Record figure of the Fisher-Kolmogorov diffusion-scaling sweep.
 
-Two layouts are written from the same stored sweep. ``--layout curves`` is
-the report figure: the lobe biomarkers at three transport scalings. The
-default ``--layout full`` adds the spread-against-Damkohler panel with the
-Fornari setting, the published separation and the scalings at which the
-finite element solution leaves [0,1]; it stays in the benchmark record.
+The nodal lobe biomarkers at three transport scalings, above the spread
+between the earliest and latest lobe against the Damkohler number over the
+whole sweep, with the Fornari setting, the published separation and the
+scalings at which the consistent-mass finite element solution leaves [0,1].
+The report shows the three-model figure drawn by plot-fisher-stabilization.py
+instead and quotes the spread values in the text.
 """
 
 import argparse
@@ -45,12 +46,19 @@ def arguments():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--panels", type=float, nargs=3,
                         default=[1.0, 0.05, 0.005])
-    parser.add_argument("--layout", choices=("full", "curves"),
-                        default="full")
     parser.add_argument("--benchmark-21-coefficients", type=Path,
                         default=Path("benchmarks/21_fisher_kolmogorov_corti83"
                                      "/results/reaction_coefficients.csv"))
     return parser.parse_args()
+
+
+def da_label(value):
+    """The Damkohler number to three figures, never in scientific notation."""
+    if value >= 100.0:
+        return f"{value:.0f}"
+    if value >= 10.0:
+        return f"{value:.1f}"
+    return f"{value:.2f}"
 
 
 def mean_reaction_coefficient(path):
@@ -75,13 +83,9 @@ def main():
                         for r in rows])
 
     figure_style.apply()
-    if args.layout == "curves":
-        figure = plt.figure(figsize=(9.8, 3.4))
-        grid = figure.add_gridspec(1, 3, wspace=0.24)
-    else:
-        figure = plt.figure(figsize=(9.8, 7.2))
-        grid = figure.add_gridspec(2, 3, height_ratios=[1.0, 1.2],
-                                   hspace=0.46, wspace=0.24)
+    figure = plt.figure(figsize=(9.8, 7.2))
+    grid = figure.add_gridspec(2, 3, height_ratios=[1.0, 1.2],
+                               hspace=0.46, wspace=0.24)
 
     for column, scaling in enumerate(args.panels):
         axes = figure.add_subplot(grid[0, column])
@@ -97,7 +101,7 @@ def main():
         index = int(np.argmin(np.abs(scalings - scaling)))
         axes.text(0.05, 0.955,
                   rf"$\rho = {scaling:g}$" "\n"
-                  rf"Da $= {damkohler[index]:.1f}$",
+                  rf"Da $= {da_label(damkohler[index])}$",
                   transform=axes.transAxes, fontsize=9,
                   fontweight="bold", color="0.35", va="top")
         # The first 25 of the simulated years, the window of the biomarker
@@ -118,13 +122,6 @@ def main():
         axes.text(0.0, 1.05, f"({chr(97 + column)})",
                   transform=axes.transAxes, fontsize=10.5,
                   fontweight="bold", style="italic", va="bottom")
-
-    if args.layout == "curves":
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        figure.savefig(args.output, dpi=200, bbox_inches="tight")
-        figure.savefig(args.output.with_suffix(".pdf"), bbox_inches="tight")
-        print(f"Written {args.output} and its PDF (curves layout)")
-        return
 
     axes = figure.add_subplot(grid[1, :])
     unbounded_max = damkohler[~bounded].min() if (~bounded).any() else None

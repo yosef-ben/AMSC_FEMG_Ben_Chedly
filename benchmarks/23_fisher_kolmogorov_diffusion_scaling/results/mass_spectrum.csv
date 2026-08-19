@@ -1,0 +1,4 @@
+mass_matrix,lambda_2,mean_diagonal,min_diagonal,max_diagonal,damkohler_rho_1,damkohler_rho_0.05,damkohler_rho_0.005
+identity,0.772254,1,1,1,0.647455,12.9491,129.491
+lumped,0.0606268,13.6145,3,24,8.24718,164.944,1649.44
+consistent,0.0635326,9.07631,2,16,7.86997,157.399,1573.99

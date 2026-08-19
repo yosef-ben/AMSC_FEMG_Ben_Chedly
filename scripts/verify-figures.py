@@ -680,18 +680,30 @@ def check_23(report):
 
 
 def check_23_stabilization(report):
-    """The instability figure: consistent against lumped mass, same runs."""
-    name = "23 stabilization"
+    """The three-row separation figure: nodal, consistent and lumped FEM."""
+    name = "23 diffusion_scaling rows"
     rows = read_csv(BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
-                            "/stabilization_summary.csv")
+                            "/diffusion_scaling_summary_rows.csv")
     table = {(row["scheme"], row["diffusion_scaling"]): row for row in rows}
-    report.check(name, "runs", float(len(rows)), 6.0)
+    report.check(name, "runs", float(len(rows)), 9.0)
+    for scaling, expected in (("1.0", 3.870e-07), ("0.05", 0.6529),
+                              ("0.005", 4.380)):
+        report.check(name, f"nodal lobe spread at rho={scaling}",
+                     float(table[("nodal", scaling)]["lobe_spread_years"]),
+                     expected, "years")
+        report.check(name, f"nodal within [0,1] at rho={scaling}",
+                     1.0 if float(table[("nodal", scaling)]["min_concentration"]) >= -1e-12
+                     and float(table[("nodal", scaling)]["max_concentration"]) <= 1 + 1e-12
+                     else 0.0, 1.0)
     report.check(name, "consistent, rho=1: minimum",
                  float(table[("be", "1.0")]["min_concentration"]), -1.337e-4)
     report.check(name, "consistent, rho=0.05: minimum",
                  float(table[("be", "0.05")]["min_concentration"]), -0.0798)
     report.check(name, "consistent, rho=0.05: maximum",
                  float(table[("be", "0.05")]["max_concentration"]), 1.0206)
+    report.check(name, "consistent, rho=0.05: lobe spread",
+                 float(table[("be", "0.05")]["lobe_spread_years"]), 6.18,
+                 "years")
     report.check(name, "consistent, rho=0.005: minimum",
                  float(table[("be", "0.005")]["min_concentration"]), -0.4139)
     report.check(name, "consistent, rho=0.005: maximum",
@@ -699,7 +711,7 @@ def check_23_stabilization(report):
     report.check(name, "consistent, rho=0.005: run stops at",
                  float(table[("be", "0.005")]["last_stored_time"]), 15.6,
                  "years")
-    for scaling in ("1.0", "0.05", "0.005"):
+    for scaling, spread in (("1.0", 0.0268), ("0.05", 5.09), ("0.005", 9.37)):
         row = table[("be_lumped", scaling)]
         report.check(name, f"lumped, rho={scaling}: within [0,1]",
                      1.0 if float(row["min_concentration"]) >= -1e-12
@@ -707,6 +719,122 @@ def check_23_stabilization(report):
                      else 0.0, 1.0)
         report.check(name, f"lumped, rho={scaling}: reaches T=40",
                      float(row["last_stored_time"]), 40.0, "years")
+        report.check(name, f"lumped, rho={scaling}: lobe spread",
+                     float(row["lobe_spread_years"]), spread, "years")
+
+    # The Damkohler and boundary prose of the chapter quote the FEM spreads
+    # at rho = 0.05 (consistent) and 0.005 (lumped) to one decimal; derive
+    # the strings from the summary and require them verbatim.
+    chapter = Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8")
+    for scheme, scaling, what in (("be", "0.05", "consistent"),
+                                  ("be_lumped", "0.005", "lumped")):
+        value = float(table[(scheme, scaling)]["lobe_spread_years"])
+        report.check_contains(name, f"chapter states the {what} FEM spread",
+                              chapter, f"${value:.1f}$ years")
+
+
+def check_23_mass_spectrum(report):
+    """The Damkohler number of the nodal model against the finite element one:
+    the Fiedler value of L against the identity, the lumped and the consistent
+    mass matrix, recomputed from the stored edge list."""
+    import numpy as np
+    name = "23 mass spectrum"
+    edges = read_csv(Path("data/connectome/fornari83/edges.csv"))
+    n = 1 + max(max(int(e["source"]), int(e["target"])) for e in edges)
+    laplacian = np.zeros((n, n))
+    lumped = np.zeros(n)
+    consistent = np.zeros((n, n))
+    for edge in edges:
+        i, j = int(edge["source"]), int(edge["target"])
+        w = float(edge["connectivity_weight"])
+        laplacian[i, i] += w
+        laplacian[j, j] += w
+        laplacian[i, j] -= w
+        laplacian[j, i] -= w
+        lumped[i] += 0.5
+        lumped[j] += 0.5
+        consistent[i, i] += 1.0 / 3.0
+        consistent[j, j] += 1.0 / 3.0
+        consistent[i, j] += 1.0 / 6.0
+        consistent[j, i] += 1.0 / 6.0
+
+    def fiedler(mass=None):
+        reduced = laplacian
+        if mass is not None:
+            inverse = np.linalg.inv(np.linalg.cholesky(mass))
+            reduced = inverse @ laplacian @ inverse.T
+        return float(np.sort(np.linalg.eigvalsh(reduced))[1])
+
+    recomputed = {"identity": fiedler(), "lumped": fiedler(np.diag(lumped)),
+                  "consistent": fiedler(consistent)}
+    rows = {row["mass_matrix"]: row for row in read_csv(
+        BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
+                "/mass_spectrum.csv")}
+    for mass, expected in (("identity", 0.772254), ("lumped", 0.0606268),
+                           ("consistent", 0.0635326)):
+        report.check(name, f"lambda_2 with the {mass} mass, stored",
+                     float(rows[mass]["lambda_2"]), expected)
+        report.check(name, f"lambda_2 with the {mass} mass, recomputed",
+                     recomputed[mass], expected)
+    report.check(name, "lumped diagonal: mean", float(lumped.mean()), 13.6145)
+    report.check(name, "lumped diagonal: min", float(lumped.min()), 3.0)
+    report.check(name, "lumped diagonal: max", float(lumped.max()), 24.0)
+    names = {int(row["node_id"]): row["name"] for row in read_csv(
+        Path("data/connectome/fornari83/nodes.csv"))}
+    degree = {i: 2.0 * lumped[i] for i in range(n)}
+    least = min(degree, key=degree.get)
+    report.check(name, "least connected vertex is a frontal pole",
+                 1.0 if "frontalpole" in names[least] else 0.0, 1.0)
+    caudate = max(degree[i] for i in names if "Caudate" in names[i])
+    report.check(name, "a caudate has the largest degree", caudate,
+                 max(degree.values()))
+    ratio_lumped = recomputed["identity"] / recomputed["lumped"]
+    ratio_consistent = recomputed["identity"] / recomputed["consistent"]
+    report.check(name, "ratio of Fiedler values, lumped", ratio_lumped, 12.74)
+    report.check(name, "ratio of Fiedler values, consistent",
+                 ratio_consistent, 12.16)
+
+    # The Damkohler paragraph of the chapter states these numbers; derive
+    # its strings from the recomputed values and the stored sweep.
+    chapter = Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8")
+    words = {11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen"}
+    for label, needle in (
+            ("lumped lambda_2", f"{recomputed['lumped']:.4f}$"),
+            ("consistent lambda_2", f"{recomputed['consistent']:.4f}$"),
+            ("identity lambda_2", f"{recomputed['identity']:.4f}$"),
+            ("mean lumped mass", f"${lumped.mean():.1f}$ on average"),
+            ("lumped mass of the frontal pole",
+             f"${lumped.min():g}$ for the frontal pole, which has "
+             f"${2 * lumped.min():g}$ connections"),
+            ("lumped mass of the caudate",
+             f"${lumped.max():g}$ for the caudate, which has "
+             f"${2 * lumped.max():g}$"),
+            ("ratio range", f"{words[math.floor(ratio_consistent)]} to "
+                            f"{words[math.ceil(ratio_lumped)]} times"),
+            ("FEM Da at rho = 1",
+             f"$\\mathrm{{Da}}={0.5 / recomputed['consistent']:.1f}$")):
+        report.check_contains(name, f"chapter states the {label}", chapter,
+                              needle)
+    # The Damkohler number of the finite element model at rho = 0.05 and
+    # 0.005, and the nodal spreads that bracket the former in the stored sweep.
+    effective = 0.5 / (0.05 * recomputed["consistent"])
+    effective_weak = 0.5 / (0.005 * recomputed["consistent"])
+    report.check_contains(name, "chapter states the FEM Da at rho = 0.05 "
+                          "and 0.005", chapter,
+                          f"\\mathrm{{Da}} \\approx {round(effective, -1):.0f}$ "
+                          f"and ${round(effective_weak, -2):.0f}$")
+    sweep = sorted(((float(r["damkohler"]), float(r["lobe_spread_years"]))
+                    for r in read_csv(
+                        BENCH / "23_fisher_kolmogorov_diffusion_scaling"
+                                "/results/diffusion_scaling.csv")))
+    below = max(s for d, s in sweep if d < effective)
+    above = min(s for d, s in sweep if d > effective)
+    report.check_contains(name, "chapter states the bracketing nodal spreads",
+                          chapter, f"between ${below:.1f}$ and ${above:.1f}$ years")
+    report.check(name, "chapter never says Fiedler",
+                 float(chapter.count("Fiedler")), 0.0)
 
 
 def check_27(report):
@@ -951,7 +1079,8 @@ def main():
     for check in (check_18, check_18_timestep, check_19, check_19_accuracy,
                   check_19_topology, check_connectome_consistency,
                   check_19_scheme, check_20, check_21, check_22, check_23,
-                  check_23_stabilization, check_24_views, check_25, check_26,
+                  check_23_stabilization, check_23_mass_spectrum,
+                  check_24_views, check_25, check_26,
                   check_26_order, check_27):
         try:
             check(report)

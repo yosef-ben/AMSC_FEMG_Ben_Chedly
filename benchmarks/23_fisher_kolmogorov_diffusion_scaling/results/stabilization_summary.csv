@@ -1,7 +1,0 @@
-scheme,diffusion_scaling,damkohler,min_concentration,max_concentration,last_stored_time
-be,1.0,0.6475,-0.000133721,0.999997,40
-be,0.05,12.9491,-0.0798182,1.0206,40
-be,0.005,129.4911,-0.413895,1.17115,15.6
-be_lumped,1.0,0.6475,0,0.999997,40
-be_lumped,0.05,12.9491,0,0.999994,40
-be_lumped,0.005,129.4911,0,0.999997,40
