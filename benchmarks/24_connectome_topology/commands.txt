@@ -1,2 +1,6 @@
 python3 scripts/plot-connectome-regions.py --output-dir benchmarks/24_connectome_topology/results
 python3 scripts/plot-connectome-views.py --output-dir benchmarks/24_connectome_topology/results
+
+# Total connectivity between the four biomarker lobes and the remaining
+# regions, the quotient graph behind the activation order of the report.
+python3 scripts/plot-lobe-connectivity.py

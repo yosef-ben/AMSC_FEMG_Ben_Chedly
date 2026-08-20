@@ -72,6 +72,18 @@ project; it is kept in these network renders, here and in the weight row of
 `connectome_regions`, because matching the reference's own colouring is what
 makes ours and theirs directly comparable.
 
+`results/lobe_connectivity` sums the same 1130 connections over the four
+cortical lobes of Fornari et al., the partition of every biomarker curve of
+the report, plus the 25 remaining regions (insular, limbic, subcortical and
+the brainstem): one line per pair of groups with the total on it, the width
+growing with the square root of the value, the entorhinal seed starred. It
+is the quotient graph behind the activation order of the report: the
+temporal lobe leads to the parietal (75.0) and occipital (55.6) lobes, while
+the frontal lobe hangs on the parietal lobe (190.5) and the deep regions
+(220.3), its direct couplings to the temporal and occipital lobes being 1.0
+and 2.3. These sums use the four-lobe partition and cannot be compared cell
+by cell with the seven-group matrix of `connectome_connectogram`.
+
 ## Relation to the reference figures
 
 Corti et al. present the same object in four panels: the MRI brain surface, the

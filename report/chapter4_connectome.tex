@@ -518,6 +518,15 @@ In what follows and in Figure~\ref{fig:damkohler} $\mathrm{Da}$ is always the no
 \label{fig:damkohler}
 \end{figure}
 
+With a uniform conversion rate the sweep also fixes what sets the order in which the lobes separate. Since every region grows at the same speed, the only spatial information left in the model is the network: the activation order is the order in which the contagion, seeded at the entorhinal cortex, reaches the lobes along the weighted connections. Figure~\ref{fig:lobegraph} shows those connections, summed over the four lobes of the biomarker and the $25$ remaining regions: the temporal lobe, which contains the seed, is coupled to the parietal lobe with a total connectivity of $75.0$ and to the occipital one with $55.6$, while its direct coupling to the frontal lobe is $1.0$, so the frontal lobe is reached only at the second step, through the parietal lobe, $190.5$, and through the deep regions, $220.3$; the frontal pole in particular is nearly isolated, with weighted degree $2.05$, the minimum of the graph. This is the order visible in the weak-transport panels of Figure~\ref{fig:damkohler}: in panel (i) the four lobes cross the $50$-percent level at $16.5$, $21.7$, $23.0$ and $25.9$ years, in the order temporal, occipital, parietal, frontal, and the nodal panel (c) shows the same sequence, the green curve first and the red one last. Section~\ref{sec:staging} returns to this order and to the one detail the couplings do not decide, the relative position of the parietal and occipital means.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.72\textwidth]{images/lobe_connectivity.pdf}
+\caption{\footnotesize Total connectivity between the four lobes of the biomarker \eqref{eq:biomarker} and the $25$ remaining regions (insular, limbic, subcortical and the brainstem, in grey), summed from the same $1130$ connections of Figure~\ref{fig:connectogram}; the region count of each group is in parentheses, the line width grows with the square root of the value and every value is printed. The star marks the entorhinal seed. The four lobes are the partition of~\cite{fornari2019prion} used by every biomarker curve of this chapter; the seven groups of Figure~\ref{fig:connectogram} are a different partition of the same regions, so the two figures cannot be compared cell by cell.}
+\label{fig:lobegraph}
+\end{figure}
+
 \subsubsection{A validity boundary and its stabilization}
 \label{sec:boundary}
 
@@ -588,11 +597,23 @@ remaining lobes reflects the connectivity of the graph and not the clinical
 sequence. Behind the staged renders the four lobes cross the $50$-percent
 level in the order temporal, occipital, parietal, frontal, at $16.5$, $21.7$,
 $23.0$ and $25.9$ years, the same order as in Figure~\ref{fig:damkohler};
-the reference reports temporal, frontal, parietal, occipital. In our
-simulations the frontal group is last because of the weak connectivity of
-the frontal pole, the least connected region of the graph, a property the
-reference also reports; whether the same holds for the matrix used there
-cannot be checked for the reasons given in Section~\ref{sec:damkohler}. With
+the reference reports temporal, frontal, parietal, occipital.
+Figure~\ref{fig:lobecrossings} shows where our order comes from: the
+biomarker \eqref{eq:biomarker} of a lobe is the mean over its regions and
+the order of the means is decided by the late regions of each lobe, not by
+the direct couplings. As Figure~\ref{fig:lobegraph} shows, the temporal lobe is more strongly
+connected to the parietal one than to the occipital one, $75.0$ against
+$55.6$, and indeed the first
+parietal region crosses before the first occipital one, at $19.4$ against
+$19.6$ years; but the twelve parietal regions carry a slow tail, the
+postcentral and paracentral gyri between $23.2$ and $26.0$ years, while the
+eight occipital ones lie together between $19.6$ and $23.4$ years, so the
+parietal mean crosses after the occipital one. The frontal group is last by
+the same mechanism taken to the extreme: the two frontal poles cross only at
+$29.8$ and $30.9$ years and drag the mean, and the frontal pole is the least
+connected region of the graph, a property the reference also reports;
+whether the same holds for the matrix used there cannot be checked for the
+reasons given in Section~\ref{sec:damkohler}. With
 a uniform conversion rate, connectivity is the only anatomy our model
 carries, so this is the order it produces on this graph. The clinical order
 emerges once the biology that carries it enters the coefficients: with the
@@ -621,6 +642,20 @@ resolve the origin, the direction and the endpoint of each progression; the
 relative order of the remaining cortical lobes is a property of the
 connectivity, discussed in the text.}
 \label{fig:expected}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{images/lobe_crossings.pdf}
+\caption{\footnotesize The activation of the four lobes region by region,
+in the tau run of this section (finite element model with the lumped mass,
+$\rho = 0.005$, entorhinal seed). Every dot is one region, placed at the
+first year its concentration reaches $50$ percent; the black bar is the
+crossing of the lobe biomarker \eqref{eq:biomarker}, the mean of the group.
+The two entorhinal seeds activate first, the slow parietal tail moves the
+parietal mean behind the occipital one and the two frontal poles close the
+sequence. The lobes are those of Figure~\ref{fig:lobegraph}.}
+\label{fig:lobecrossings}
 \end{figure}
 
 % ---------------------------------------------------------------------

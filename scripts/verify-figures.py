@@ -865,6 +865,116 @@ def check_27(report):
 
     # The amyloid ordering the report states: seeded lobes first, then the
     # insula, the limbic belt, and the subcortical nuclei last.
+    # The order of the two middle lobes in the tau run: the direct coupling
+    # favours the parietal lobe and its first region does cross first, but
+    # the slow parietal tail moves the group mean behind the occipital one.
+    # Recompute all the numbers the staging prose quotes.
+    def classify(name):
+        lowered = name.lower()
+        if any(key in lowered for key in ("temporal", "bankssts",
+                                          "entorhinal", "fusiform",
+                                          "parahippocampal")):
+            return "temporal"
+        if any(key in lowered for key in ("frontal", "orbitofrontal",
+                                          "parsopercularis", "parsorbitalis",
+                                          "parstriangularis", "precentral")):
+            return "frontal"
+        if any(key in lowered for key in ("parietal", "postcentral",
+                                          "precuneus", "supramarginal",
+                                          "paracentral")):
+            return "parietal"
+        if any(key in lowered for key in ("cuneus", "occipital", "lingual",
+                                          "pericalcarine")):
+            return "occipital"
+        return "other"
+
+    node_rows = read_csv(Path("data/connectome/fornari83/nodes.csv"))
+    lobes = {int(row["node_id"]): classify(row["name"]) for row in node_rows}
+    coupling = {}
+    for edge in read_csv(Path("data/connectome/fornari83/edges.csv")):
+        one = lobes[int(edge["source"])]
+        two = lobes[int(edge["target"])]
+        if one != two:
+            key = tuple(sorted((one, two)))
+            coupling[key] = coupling.get(key, 0.0) \
+                + float(edge["connectivity_weight"])
+    report.check(name, "temporal-parietal coupling",
+                 coupling[("parietal", "temporal")], 74.99)
+    report.check(name, "temporal-occipital coupling",
+                 coupling[("occipital", "temporal")], 55.58)
+    report.check(name, "frontal-parietal coupling",
+                 coupling[("frontal", "parietal")], 190.46)
+    report.check(name, "frontal-temporal coupling",
+                 coupling[("frontal", "temporal")], 1.03)
+    report.check(name, "frontal-occipital coupling",
+                 coupling[("frontal", "occipital")], 2.27)
+    report.check(name, "frontal-deep coupling",
+                 coupling[("frontal", "other")], 220.32)
+    weighted_degree = {}
+    for edge in read_csv(Path("data/connectome/fornari83/edges.csv")):
+        for end in ("source", "target"):
+            index = int(edge[end])
+            weighted_degree[index] = weighted_degree.get(index, 0.0) \
+                + float(edge["connectivity_weight"])
+    report.check(name, "minimum weighted degree",
+                 min(weighted_degree.values()), 2.0505)
+
+    tau = read_csv(base / "tau_profiles.csv")
+    times = [float(row["time"]) for row in tau]
+    middle = {"parietal": [], "occipital": []}
+    for index, lobe in lobes.items():
+        if lobe not in middle:
+            continue
+        values = [100.0 * float(row[f"node_{index}"]) for row in tau]
+        middle[lobe].append(crossing(times, values, 50.0))
+    report.check(name, "parietal regions", float(len(middle["parietal"])),
+                 12.0)
+    report.check(name, "occipital regions", float(len(middle["occipital"])),
+                 8.0)
+    report.check(name, "first parietal crossing",
+                 min(middle["parietal"]), 19.4, "years")
+    report.check(name, "first occipital crossing",
+                 min(middle["occipital"]), 19.6, "years")
+    report.check(name, "last occipital crossing",
+                 max(middle["occipital"]), 23.4, "years")
+    report.check(name, "last parietal crossing",
+                 max(middle["parietal"]), 26.0, "years")
+    poles = sorted(
+        crossing(times, [100.0 * float(row[f"node_{node['node_id']}"])
+                         for row in tau], 50.0)
+        for node in node_rows if "frontalpole" in node["name"].lower())
+    report.check(name, "first frontal pole crossing", poles[0], 29.82,
+                 "years")
+    report.check(name, "second frontal pole crossing", poles[1], 30.94,
+                 "years")
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    for label, needle in (
+            ("couplings", f"${coupling[('parietal', 'temporal')]:.1f}$ "
+                          f"against ${coupling[('occipital', 'temporal')]:.1f}$"),
+            ("first crossings", f"${min(middle['parietal']):.1f}$ against "
+                                f"${min(middle['occipital']):.1f}$ years"),
+            ("occipital range", f"between ${min(middle['occipital']):.1f}$ "
+                                f"and ${max(middle['occipital']):.1f}$ years"),
+            ("parietal tail", f"and ${max(middle['parietal']):.1f}$ years"),
+            ("frontal poles", f"${poles[0]:.1f}$ and ${poles[1]:.1f}$ years"),
+            ("damkohler temporal couplings",
+             f"parietal lobe with a total connectivity of "
+             f"${coupling[('parietal', 'temporal')]:.1f}$ and to the "
+             f"occipital one with ${coupling[('occipital', 'temporal')]:.1f}$"),
+            ("damkohler direct frontal coupling",
+             f"direct coupling to the frontal lobe is "
+             f"${coupling[('frontal', 'temporal')]:.1f}$"),
+            ("damkohler second step",
+             f"through the parietal lobe, "
+             f"${coupling[('frontal', 'parietal')]:.1f}$, and through the "
+             f"deep regions, ${coupling[('frontal', 'other')]:.1f}$"),
+            ("frontal pole degree",
+             f"weighted degree ${min(weighted_degree.values()):.2f}$, "
+             f"the minimum")):
+        report.check_contains(name, f"staging prose states the {label}",
+                              chapter, needle)
+
     rows = read_csv(base / "amyloid_profiles.csv")
     times = [float(row["time"]) for row in rows]
     activation = {}

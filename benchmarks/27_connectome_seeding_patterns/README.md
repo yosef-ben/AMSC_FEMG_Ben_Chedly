@@ -55,6 +55,17 @@ Braak sequence; the ordering of the late lobes differs from the clinical one
 for the reason recorded in benchmark 23, the weak connectivity of the
 frontal pole.
 
+The occipital-before-parietal order is a property of the group means, not of
+the direct couplings: the temporal lobe is coupled to the parietal one more
+strongly than to the occipital one (75.0 against 55.6 in total connectivity)
+and the first parietal region does cross first (19.4 against 19.6 years),
+but the twelve parietal regions carry a slow tail (postcentral and
+paracentral, 23.2 to 26.0 years) while the eight occipital ones lie together
+(19.6 to 23.4 years), so the parietal mean crosses last. The numbers come
+from `tau_profiles.csv` and the edge list; the verification recomputes them
+and `results/lobe_crossings` draws them, one dot per region on one row per
+lobe with the crossing of the lobe mean marked.
+
 ## Expected-against-obtained composite
 
 The report opens with `results/seeding_patterns_expected.pdf`, which places

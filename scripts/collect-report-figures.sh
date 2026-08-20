@@ -17,8 +17,10 @@ copy 23_fisher_kolmogorov_diffusion_scaling/results/diffusion_scaling.pdf
 copy 24_connectome_topology/results/connectome_regions.pdf
 copy 24_connectome_topology/results/connectome_connectogram.pdf
 copy 24_connectome_topology/results/connectome_views.pdf
+copy 24_connectome_topology/results/lobe_connectivity.pdf
 copy 25_connectome_seeding_vulnerability/results/seeding_vulnerability.pdf
 copy 26_connectome_progression/results/activation_order.pdf
 copy 27_connectome_seeding_patterns/results/seeding_patterns_expected.pdf
+copy 27_connectome_seeding_patterns/results/lobe_crossings.pdf
 
 echo "Copied $(ls report/images | wc -l) figures into report/images"
