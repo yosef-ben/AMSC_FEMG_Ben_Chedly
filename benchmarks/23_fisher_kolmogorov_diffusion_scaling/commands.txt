@@ -59,3 +59,15 @@ python3 scripts/plot-fisher-stabilization.py \
 # The Damkohler number of the finite element model against the nodal one:
 # Fiedler value of L with the identity, the lumped and the consistent mass.
 python3 scripts/tabulate-connectome-mass-spectrum.py
+
+# Consistent-mass runs within the validity boundary, same conditions as the
+# report figure, for the lobe-scale onset panel of 24/lobe_connectivity.
+for rho in 0.5 0.2 0.1; do
+  ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 \
+    output/fisher_kolmogorov/stabilization/rho_${rho}_be 0.5 40 $rho be
+done
+python3 scripts/tabulate-fem-consistent-bounded.py
+
+# Global and lobe-scale rates of the three models, and the eigenvector of
+# the nodal global rate.
+python3 scripts/tabulate-lobe-damkohler.py

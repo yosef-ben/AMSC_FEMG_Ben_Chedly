@@ -29,6 +29,7 @@ from matplotlib.patches import Patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import figure_style
+from lobe_scale import LobeGraph
 
 LOBE_STYLE = {
     "temporal": ("#2CA02C", "-"),
@@ -39,6 +40,8 @@ LOBE_STYLE = {
 ROWS = (("nodal", "nodal model"),
         ("be", "FEM, consistent mass"),
         ("be_lumped", "FEM, lumped mass"))
+# The mass matrix behind each row, for the lobe-scale Damkohler number.
+MASS = {"nodal": "nodal", "be": "consistent", "be_lumped": "lumped"}
 LOBES = tuple(LOBE_STYLE)
 
 
@@ -47,6 +50,16 @@ def da_label(value):
     if value >= 100.0:
         return f"{value:.0f}"
     if value >= 10.0:
+        return f"{value:.1f}"
+    return f"{value:.2f}"
+
+
+def lobe_label(value):
+    """The lobe-scale number as the text quotes it: two decimals below one,
+    one decimal up to fifty, integers above."""
+    if value >= 50.0:
+        return f"{value:.0f}"
+    if value >= 0.995:
         return f"{value:.1f}"
     return f"{value:.2f}"
 
@@ -80,6 +93,8 @@ def read(path):
 def main():
     args = arguments()
     figure_style.apply()
+    graph = LobeGraph()
+    lobe_rate = {scheme: graph.lobe_rate(MASS[scheme]) for scheme, _ in ROWS}
     figure, axes = plt.subplots(3, 3, figsize=(9.8, 8.6), sharex=True,
                                 sharey=True)
     summary = []
@@ -102,13 +117,17 @@ def main():
                 axis.plot(time, data[lobe], color=colour, linestyle=style,
                           linewidth=1.7, zorder=3)
             damkohler = args.alpha / (float(scaling) * args.fiedler)
+            lobe = args.alpha / (float(scaling) * lobe_rate[scheme])
+            # Lower-right corner, empty in every panel: the scaling and the
+            # Damkohler number of the column in the top row, the lobe-scale
+            # number of the model in every panel.
+            lines = [rf"Da$_{{\mathrm{{lobe}}}} = {lobe_label(lobe)}$"]
             if row == 0:
-                # Lower-right corner, empty in every panel of the top row.
-                axis.text(0.62, 0.30,
-                          rf"$\rho = {float(scaling):g}$" "\n"
-                          rf"Da $= {da_label(damkohler)}$",
-                          transform=axis.transAxes, fontsize=9,
-                          fontweight="bold", color="0.35", va="top")
+                lines = [rf"$\rho = {float(scaling):g}$",
+                         rf"Da $= {da_label(damkohler)}$"] + lines
+            axis.text(0.60, 0.31 if row == 0 else 0.22, "\n".join(lines),
+                      transform=axis.transAxes, fontsize=9,
+                      fontweight="bold", color="0.35", va="top")
             axis.set_xlim(0, 40)
             axis.set_ylim(-60, 115)
             axis.set_xticks([0, 10, 20, 30, 40])
@@ -124,7 +143,7 @@ def main():
             crossings = [crossing(time, data[lobe]) for lobe in LOBES]
             spread = max(crossings) - min(crossings)
             summary.append((scheme, scaling, min(data["min"]),
-                            max(data["max"]), time[-1], spread))
+                            max(data["max"]), time[-1], spread, lobe))
     # One legend for the whole figure, above the panels: the four lobes in
     # their colours and line styles, and the shaded envelope.
     handles = [Line2D([], [], color=colour, linestyle=style, linewidth=1.7)
@@ -150,13 +169,14 @@ def main():
         writer = csv.writer(stream)
         writer.writerow(["scheme", "diffusion_scaling", "damkohler",
                          "min_concentration", "max_concentration",
-                         "last_stored_time", "lobe_spread_years"])
-        for scheme, scaling, low, high, last, spread in summary:
+                         "last_stored_time", "lobe_spread_years",
+                         "damkohler_lobe"])
+        for scheme, scaling, low, high, last, spread, lobe in summary:
             writer.writerow([scheme, scaling,
                              f"{args.alpha / (float(scaling) * args.fiedler):.4f}",
                              f"{low:.6g}", f"{high:.6g}", f"{last:g}",
-                             f"{spread:.6g}"])
-    for scheme, scaling, low, high, last, spread in summary:
+                             f"{spread:.6g}", f"{lobe:.4g}"])
+    for scheme, scaling, low, high, last, spread, lobe in summary:
         print(f"  {scheme:10s} rho={scaling:>6s}  min c = {low:9.4g}  "
               f"max c = {high:8.5f}  last stored time = {last:g}  "
               f"lobe spread = {spread:.3g} yr")

@@ -61,3 +61,33 @@ validation quantities and the source parameters.
 This is the canonical application domain. The older files under
 `data/connectome/budapest_lcc_*` belong to the preliminary fine-graph
 experiment in benchmark 17 and are intentionally kept separate.
+
+## Region names and group memberships
+
+The `name` field of `nodes.csv` is copied verbatim from the Budapest
+Reference Connectome GraphML (`data/connectome/source/budapest_all_20k.graphml`);
+the names are the FreeSurfer/Desikan-Killiany identifiers of the 83-region
+parcellation. The dataset carries no grouping of the regions.
+
+Two partitions of the 83 regions are used by the experiments and both are
+implemented from these names, since neither reference prints its membership
+list:
+
+- the four cortical lobes of Fornari et al. (58 regions), used by every
+  biomarker curve: rule in `classify` of
+  `test_problem/fisher_kolmogorov/test_fisher_kolmogorov_fornari83.cpp`;
+- the seven anatomical groups of Corti et al. (all 83 regions), used by the
+  regional reaction rates and the anatomy figures: rule in `classify_region`
+  of `test_problem/fisher_kolmogorov/test_fisher_kolmogorov_corti83.cpp`.
+
+The assignments follow the standard Desikan-Killiany anatomy. The two
+partitions place the border regions differently: the entorhinal,
+parahippocampal and fusiform cortices are temporal in the four-lobe
+partition and the first two limbic in the seven-group one, so group-to-group
+connectivities summed over one partition do not coincide with those summed
+over the other. One assignment is a genuine border case, the paracentral
+lobule, kept in the parietal lobe; assigning it to the frontal lobe instead,
+as the FreeSurfer lobe mapping does, leaves every ordering of the report
+unchanged (tau lobe crossings 16.50, 21.65, 22.42, 25.83 instead of 16.50,
+21.65, 22.95, 25.87 years; temporal-parietal coupling 74.9 instead of 75.0,
+temporal-frontal 1.1 instead of 1.0).

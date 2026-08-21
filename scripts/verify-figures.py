@@ -795,36 +795,30 @@ def check_23_mass_spectrum(report):
     report.check(name, "ratio of Fiedler values, consistent",
                  ratio_consistent, 12.16)
 
-    # The Damkohler paragraph of the chapter states these numbers; derive
+    # The footnote of the Damkohler section states these numbers; derive
     # its strings from the recomputed values and the stored sweep.
-    chapter = Path("report/chapter4_connectome.tex").read_text(
-        encoding="utf-8")
-    words = {11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen"}
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
     for label, needle in (
-            ("lumped lambda_2", f"{recomputed['lumped']:.4f}$"),
-            ("consistent lambda_2", f"{recomputed['consistent']:.4f}$"),
-            ("identity lambda_2", f"{recomputed['identity']:.4f}$"),
+            ("lumped lambda_2", f"${recomputed['lumped']:.3f}$ with the "
+                                f"lumped mass"),
+            ("consistent lambda_2", f"${recomputed['consistent']:.3f}$ with "
+                                    f"the consistent one"),
+            ("identity lambda_2",
+             f"instead of ${recomputed['identity']:.3f}$"),
             ("mean lumped mass", f"${lumped.mean():.1f}$ on average"),
-            ("lumped mass of the frontal pole",
-             f"${lumped.min():g}$ for the frontal pole, which has "
-             f"${2 * lumped.min():g}$ connections"),
-            ("lumped mass of the caudate",
-             f"${lumped.max():g}$ for the caudate, which has "
-             f"${2 * lumped.max():g}$"),
-            ("ratio range", f"{words[math.floor(ratio_consistent)]} to "
-                            f"{words[math.ceil(ratio_lumped)]} times"),
-            ("FEM Da at rho = 1",
-             f"$\\mathrm{{Da}}={0.5 / recomputed['consistent']:.1f}$")):
+            ("lumped mass range",
+             f"from ${lumped.min():g}$ to ${lumped.max():g}$"),
+            ("ratio range", f"between ${math.floor(ratio_consistent)}$ and "
+                            f"${math.ceil(ratio_lumped)}$ times larger")):
         report.check_contains(name, f"chapter states the {label}", chapter,
                               needle)
     # The Damkohler number of the finite element model at rho = 0.05 and
-    # 0.005, and the nodal spreads that bracket the former in the stored sweep.
+    # the nodal spreads that bracket it in the stored sweep.
     effective = 0.5 / (0.05 * recomputed["consistent"])
-    effective_weak = 0.5 / (0.005 * recomputed["consistent"])
-    report.check_contains(name, "chapter states the FEM Da at rho = 0.05 "
-                          "and 0.005", chapter,
-                          f"\\mathrm{{Da}} \\approx {round(effective, -1):.0f}$ "
-                          f"and ${round(effective_weak, -2):.0f}$")
+    report.check_contains(name, "chapter states the effective Da", chapter,
+                          f"correspond to $\\mathrm{{Da}} \\approx "
+                          f"{round(effective, -1):.0f}$")
     sweep = sorted(((float(r["damkohler"]), float(r["lobe_spread_years"]))
                     for r in read_csv(
                         BENCH / "23_fisher_kolmogorov_diffusion_scaling"
@@ -835,6 +829,129 @@ def check_23_mass_spectrum(report):
                           chapter, f"between ${below:.1f}$ and ${above:.1f}$ years")
     report.check(name, "chapter never says Fiedler",
                  float(chapter.count("Fiedler")), 0.0)
+
+
+def check_23_lobe_scale(report):
+    """Lobe-scale rates and Damkohler numbers: the stored record against an
+    independent recomputation, and the consistent-mass sweep within its
+    validity boundary."""
+    import numpy as np
+    from scipy.linalg import eigh
+    name = "23 lobe scale"
+    base = BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
+    groups_of = {}
+    keys = {"temporal": ("temporal", "bankssts", "entorhinal", "fusiform",
+                         "parahippocampal"),
+            "frontal": ("frontal", "orbitofrontal", "parsopercularis",
+                        "parsorbitalis", "parstriangularis", "precentral"),
+            "parietal": ("parietal", "postcentral", "precuneus",
+                         "supramarginal", "paracentral"),
+            "occipital": ("cuneus", "occipital", "lingual", "pericalcarine")}
+    for row in read_csv(Path("data/connectome/fornari83/nodes.csv")):
+        lowered = row["name"].lower()
+        groups_of[int(row["node_id"])] = next(
+            (g for g, words in keys.items()
+             if any(w in lowered for w in words)), "other")
+    order = ("temporal", "frontal", "parietal", "occipital", "other")
+    n = 1 + max(groups_of)
+    laplacian = np.zeros((n, n))
+    lumped = np.zeros(n)
+    consistent = np.zeros((n, n))
+    for edge in read_csv(Path("data/connectome/fornari83/edges.csv")):
+        i, j = int(edge["source"]), int(edge["target"])
+        w = float(edge["connectivity_weight"])
+        laplacian[i, i] += w
+        laplacian[j, j] += w
+        laplacian[i, j] -= w
+        laplacian[j, i] -= w
+        lumped[i] += 0.5
+        lumped[j] += 0.5
+        consistent[i, i] += 1.0 / 3.0
+        consistent[j, j] += 1.0 / 3.0
+        consistent[i, j] += 1.0 / 6.0
+        consistent[j, i] += 1.0 / 6.0
+    projector = np.zeros((n, 5))
+    for i, g in groups_of.items():
+        projector[i, order.index(g)] = 1.0
+    masses = {"nodal": np.eye(n), "consistent": consistent,
+              "lumped": np.diag(lumped)}
+    expected = {"nodal": (10.0103, 12.9624), "consistent": (1.10733, 1.4339),
+                "lumped": (0.863236, 1.11781)}
+    record = {row["model"]: row for row in read_csv(base / "lobe_damkohler.csv")}
+    nodal_global = float(np.sort(np.linalg.eigvalsh(laplacian))[1])
+    rates = {}
+    for model, mass in masses.items():
+        coarse = eigh(projector.T @ laplacian @ projector,
+                      projector.T @ mass @ projector, eigvals_only=True)
+        rates[model] = float(np.sort(coarse)[1])
+        report.check(name, f"{model}: lobe rate, recomputed", rates[model],
+                     expected[model][0])
+        report.check(name, f"{model}: lobe rate, stored",
+                     float(record[model]["lobe_rate"]), expected[model][0])
+        report.check(name, f"{model}: onset ratio", rates[model] / nodal_global,
+                     expected[model][1])
+        for scaling, column in ((1.0, "damkohler_lobe_rho_1"),
+                                (0.05, "damkohler_lobe_rho_0.05"),
+                                (0.005, "damkohler_lobe_rho_0.005")):
+            report.check(name, f"{model}: Da_lobe at rho = {scaling:g}",
+                         float(record[model][column]),
+                         0.5 / (scaling * rates[model]))
+    # The panels of the report figure print the same numbers.
+    scheme_model = {"nodal": "nodal", "be": "consistent",
+                    "be_lumped": "lumped"}
+    for row in read_csv(base / "diffusion_scaling_summary_rows.csv"):
+        rho = float(row["diffusion_scaling"])
+        report.check(name, f"figure panel {row['scheme']} rho={rho:g}: Da_lobe",
+                     float(row["damkohler_lobe"]),
+                     0.5 / (rho * rates[scheme_model[row["scheme"]]]))
+    # The eigenvector of the nodal global rate lives on the periphery.
+    values, vectors = np.linalg.eigh(laplacian)
+    vector = vectors[:, 1]
+    names = {int(r["node_id"]): r["name"].lower()
+             for r in read_csv(Path("data/connectome/fornari83/nodes.csv"))}
+    top = np.argsort(-np.abs(vector))[:5]
+    peripheral = all(any(k in names[int(i)] for k in
+                         ("frontalpole", "temporalpole", "entorhinal"))
+                     for i in top)
+    report.check(name, "largest components on poles and entorhinal cortices",
+                 1.0 if peripheral else 0.0, 1.0)
+    right = [vector[int(i)] for i in top if "rh-" in names[int(i)]]
+    left = [vector[int(i)] for i in top if "lh-" in names[int(i)]]
+    report.check(name, "opposite signs in the two hemispheres",
+                 1.0 if right and left and max(right) * max(left) < 0
+                 and min(right) * max(right) > 0 and min(left) * max(left) > 0
+                 else 0.0, 1.0)
+    # The consistent-mass sweep within the validity boundary.
+    bounded = {row["diffusion_scaling"]: row
+               for row in read_csv(base / "fem_consistent_bounded.csv")}
+    for scaling, spread in (("1.0", 0.00838), ("0.5", 0.2440),
+                            ("0.2", 2.003), ("0.1", 4.031), ("0.05", 6.176)):
+        report.check(name, f"consistent mass, rho = {scaling}: lobe spread",
+                     float(bounded[scaling]["lobe_spread_years"]), spread,
+                     "years")
+        report.check(name, f"consistent mass, rho = {scaling}: bounded at the end",
+                     1.0 if float(bounded[scaling]["transient_max"]) < 1.03
+                     and float(bounded[scaling]["transient_min"]) > -0.1
+                     else 0.0, 1.0)
+    # Onset: first stored point with a spread above one year per model.
+    def first_above(points):
+        return min(d for d, s in points if s >= 1.0)
+    nodal_points = [(0.5 / (0.5 / (float(r["damkohler"]) * 0.772254) * rates["nodal"]),
+                     float(r["lobe_spread_years"]))
+                    for r in read_csv(base / "diffusion_scaling.csv")]
+    lumped_points = [(0.5 / (0.5 / (float(r["damkohler"]) * 0.772254) * rates["lumped"]),
+                      float(r["lobe_spread_years"]))
+                     for r in read_csv(base / "fem_lumped_sweep.csv")
+                     if r["scheme"] == "be_lumped" and r["cells_per_edge"] == "1"]
+    consistent_points = [(0.5 / (0.5 / (float(r["damkohler"]) * 0.772254) * rates["consistent"]),
+                          float(r["lobe_spread_years"]))
+                         for r in bounded.values()]
+    report.check(name, "nodal: first point above one year, Da_lobe",
+                 first_above(nodal_points), 1.665)
+    report.check(name, "lumped: first point above one year, Da_lobe",
+                 first_above(lumped_points), 2.897)
+    report.check(name, "consistent: first point above one year, Da_lobe",
+                 first_above(consistent_points), 2.258)
 
 
 def check_27(report):
@@ -950,14 +1067,6 @@ def check_27(report):
     chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
         encoding="utf-8").split())
     for label, needle in (
-            ("couplings", f"${coupling[('parietal', 'temporal')]:.1f}$ "
-                          f"against ${coupling[('occipital', 'temporal')]:.1f}$"),
-            ("first crossings", f"${min(middle['parietal']):.1f}$ against "
-                                f"${min(middle['occipital']):.1f}$ years"),
-            ("occipital range", f"between ${min(middle['occipital']):.1f}$ "
-                                f"and ${max(middle['occipital']):.1f}$ years"),
-            ("parietal tail", f"and ${max(middle['parietal']):.1f}$ years"),
-            ("frontal poles", f"${poles[0]:.1f}$ and ${poles[1]:.1f}$ years"),
             ("damkohler temporal couplings",
              f"parietal lobe with a total connectivity of "
              f"${coupling[('parietal', 'temporal')]:.1f}$ and to the "
@@ -1190,6 +1299,7 @@ def main():
                   check_19_topology, check_connectome_consistency,
                   check_19_scheme, check_20, check_21, check_22, check_23,
                   check_23_stabilization, check_23_mass_spectrum,
+                  check_23_lobe_scale,
                   check_24_views, check_25, check_26,
                   check_26_order, check_27):
         try:

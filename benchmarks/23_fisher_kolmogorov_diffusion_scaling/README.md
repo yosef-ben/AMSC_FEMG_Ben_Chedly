@@ -71,6 +71,34 @@ that model, where the nodal sweep below gives between 4.38 (Da 129) and 5.90
 number at which a given separation is reached depends on the mass matrix,
 as the 1.5-year shift of benchmark 19 already does.
 
+## The scale of the lobes
+
+The global Damkohler number above uses the slowest relaxation rate of the
+whole network, but that rate belongs to a pattern that is not a contrast
+between lobes: the eigenvector of `lambda_2` has its largest components on
+the frontal and temporal poles and on the entorhinal cortices, with opposite
+signs in the two hemispheres (`results/fiedler_support.csv`). The patterns
+the lobe biomarker measures are constant on the four lobes and the remaining
+regions, and they relax at the rates of the connectome compressed over those
+five groups (`scripts/lobe_scale.py`, `results/lobe_damkohler.csv`):
+
+```text
+model        global rate   lobe rates (compressed graph)      Da_lobe at rho = 1 / 0.05 / 0.005
+nodal        0.7723        10.01  20.30  27.67  49.37           0.050 /  1.00 /  10.0
+consistent   0.0635        1.107  2.399  3.297  5.434           0.452 /  9.03 /  90.3
+lumped       0.0606        0.863  1.708  2.238  3.577           0.579 / 11.58 / 115.8
+```
+
+`Da_lobe = alpha / (rho * lobe rate)` is the number that decides whether the
+lobes separate: plotted against it, the stored sweeps of the three models
+(`diffusion_scaling.csv`, `fem_lumped_sweep.csv` and the consistent-mass runs
+within the validity boundary of `fem_consistent_bounded.csv`) collapse onto
+one curve, flat below one and rising beyond it; the first stored point with
+a spread above one year sits at `Da_lobe` = 1.66 (nodal), 2.26 (consistent)
+and 2.90 (lumped). Panel (b) of the figure `24/lobe_connectivity` draws this
+collapse and every panel of `results/diffusion_scaling` prints its own
+`Da_lobe`.
+
 ## Measured behaviour
 
 The nodal reference of `test_fisher_kolmogorov_fornari83` was run for
@@ -209,6 +237,9 @@ results/diffusion_scaling_summary_rows.csv  extremes, stopping time and lobe spr
 results/diffusion_scaling_spread.png/.pdf   record figure: nodal biomarkers plus spread against Da over the sweep
 results/fem_lumped_sweep.csv              the lumped FEM over the whole sweep
 results/mass_spectrum.csv                 Fiedler value of L against the identity, lumped and consistent mass
+results/lobe_damkohler.csv                global and lobe-scale rates of the three models, onset ratios, Da_lobe
+results/fiedler_support.csv               largest components of the eigenvector of the nodal global rate
+results/fem_consistent_bounded.csv        consistent-mass FEM sweep within its validity boundary, rho = 1 to 0.05
 ```
 
 The report figure shows, under identical conditions (one element per

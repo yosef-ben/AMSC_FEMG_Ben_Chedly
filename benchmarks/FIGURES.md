@@ -23,19 +23,19 @@ disagree. Run it from the project root:
 | `20/alpha_sensitivity` | `plot-fisher-alpha-sensitivity.py` | `fornari83_alpha/alpha_*/` | `test_fisher_kolmogorov_fornari83` |
 | `21/regional_averages` | `plot-fisher-kolmogorov-regions.py` | `regional_averages.csv` | `test_fisher_kolmogorov_corti83` |
 | `22/sequential_performance` | `plot-fisher-sequential-performance.py` | `sequential_performance.csv` | `run-fisher-sequential-performance.py` driving `test_fisher_kolmogorov_corti83` |
-| `23/diffusion_scaling` (report: nodal, consistent-mass FEM and lumped-mass FEM at three scalings) | `plot-fisher-stabilization.py` | `stabilization/rho_*_{nodal,be,be_lumped}/` biomarkers, summary in `diffusion_scaling_summary_rows.csv` | `test_fisher_kolmogorov_fornari83` |
+| `23/diffusion_scaling` (report: nodal, consistent-mass FEM and lumped-mass FEM at three scalings, with the lobe-scale number of every panel) | `plot-fisher-stabilization.py` (with `lobe_scale.py`) | `stabilization/rho_*_{nodal,be,be_lumped}/` biomarkers, summary in `diffusion_scaling_summary_rows.csv` | `test_fisher_kolmogorov_fornari83` |
 | `23/diffusion_scaling_spread` (record: nodal biomarkers plus spread against Da) | `plot-fisher-diffusion-scaling.py` | `diffusion_scaling.csv`, `curves.npz` | `study-fisher-diffusion-scaling.py` driving `test_fisher_kolmogorov_fornari83` |
 | `24/connectome_regions` | `plot-connectome-regions.py` | `data/connectome/fornari83/{nodes,edges}.csv`, `21/results/reaction_coefficients.csv` | `prepare-fornari-connectome.py`, `test_fisher_kolmogorov_corti83` |
 | `24/connectome_connectogram` | `plot-connectome-regions.py` | as above | as above |
 | `24/connectome_views` | `plot-connectome-views.py` | `data/connectome/fornari83/{nodes,edges}.csv` | `prepare-fornari-connectome.py` |
-| `24/lobe_connectivity` | `plot-lobe-connectivity.py` | `data/connectome/fornari83/{nodes,edges}.csv` | `prepare-fornari-connectome.py` |
+| `24/lobe_connectivity` | `plot-lobe-connectivity.py` (with `lobe_scale.py`) | `data/connectome/fornari83/{nodes,edges}.csv`; `23/diffusion_scaling.csv`, `23/fem_lumped_sweep.csv`, `23/fem_consistent_bounded.csv` | `prepare-fornari-connectome.py`; `test_fisher_kolmogorov_fornari83` for the sweeps |
 | `25/seeding_vulnerability` | `plot-fisher-seeding-vulnerability.py` | `seeding_vulnerability_rho_*.csv`, `seeding_curves_rho_*.npz` | `study-fisher-seeding-vulnerability.py --scheme be_lumped` driving `test_fisher_kolmogorov_fornari83` (lumped-mass FEM) |
 | `26/anatomical_progression` | `plot-connectome-progression.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
 | `26/activation_time` | `plot-connectome-activation.py` | `corti83_refined/solution_*.vtp` | `test_fisher_kolmogorov_corti83` |
 | `26/activation_order` | `plot-corti-activation-order.py` | `corti83_refined/solution_*.vtp`, `corti83_uniform/solution_*.vtp` | `test_fisher_kolmogorov_corti83`, regional and `uniform` variants |
 | `27/seeding_patterns` | `plot-connectome-staging.py` | `staging/{tau,amyloid}_lumped/fem_profiles.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped` scheme |
 | `27/seeding_patterns_expected` | `plot-connectome-staging.py` | as above, plus `27/reference/weickenmeier_fig1_{tau,amyloid}.png` | as above; the reference strips are cut from the article PDF by `extract-weickenmeier-staging.py` |
-| `27/lobe_crossings` | `plot-fisher-lobe-crossings.py` | `tau_profiles.csv`, `tau_biomarkers.csv`, `data/connectome/fornari83/nodes.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped` scheme |
+| `27/lobe_crossings` (record, not in the report) | `plot-fisher-lobe-crossings.py` | `tau_profiles.csv`, `tau_biomarkers.csv`, `data/connectome/fornari83/nodes.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped` scheme |
 
 ## Rules the figures follow
 

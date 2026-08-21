@@ -23,7 +23,7 @@
 %         in QuantumGraphs/corti.pdf.
 %
 %  Ogni numero riportato qui e' ricalcolato dai file di risultato con
-%  scripts/verify-figures.py (186 controlli, nessuno fallito).
+%  scripts/verify-figures.py.
 % =====================================================================
 
 % ---------------------------------------------------------------------
@@ -79,6 +79,7 @@ We have validated our finite element library for the solution of graph-based dif
 \label{sec:onedim}
 
 Prion diseases are characterized by a chain reaction in which misfolded proteins force native ones into a similar pathogenic structure. A physics-based reaction-diffusion model can explain the spreading and growth of these proteins in neurodegenerative diseases: the Fisher-Kolmogorov equation combined with an anisotropic diffusion model \cite{weickenmeier2019prion,cortiFisherKolmogorovGraphs,fornari2019prion}. Following the work described in \cite{weickenmeier2019prion}, we demonstrate the role of the individual model parameters through a one-dimensional sensitivity test, that we exploit also to validate the nonlinear solver before it touches a connectome. We solve
+
 \begin{equation}
 \frac{\partial c}{\partial t} - d\,\frac{\partial^2 c}{\partial x^2}
   - \alpha\,c\,(1-c) = 0,
@@ -219,9 +220,9 @@ Fig.~\ref{fig:views} presents connections coloured and sized by their fibre numb
 %    Due differenze da dichiarare, e sono gia' nella didascalia: le
 %    coordinate dei nodi e la superficie vengono dal viewer pubblico di
 %    Budapest, non dal modello MRI di [F]; e [F] non dichiara la legge
-%    colore/spessore, quindi la rampa a radice quadrata usata dallo
-%    script e' una nostra scelta: quasi tutte le connessioni sottili e
-%    blu, pochi fasci corti caldi e spessi, fascia intermedia leggibile.
+%    colore/spessore, quindi la rampa lineare e' una nostra scelta,
+%    dichiarata. Con la rampa lineare l'aspetto coincide: quasi tutte le
+%    connessioni sottili e blu, pochi fasci corti caldi e spessi.
 % ---------------------------------------------------------------------
 
 \begin{figure}[htbp]
@@ -311,8 +312,8 @@ to become effective hubs for the propagation of misfolded proteins: the disease 
 %        elementi finiti nel continuo tridimensionale. Serve per vedere
 %        che il nostro termine di reazione integrato e' l'analogo su
 %        grafo metrico del loro, e non un prodotto nodale.
-%    Da confrontare esplicitamente: [F] eq. (3.2) contro il sistema
-%    semi-discreto dei primi capitoli. La differenza e' la matrice di massa.
+%    Da confrontare esplicitamente: [F] eq. (3.2) contro la nostra
+%    eq.~\eqref{eq:fem}. La differenza e' la matrice di massa.
 % ---------------------------------------------------------------------
 
 \subsection{Network model and metric-graph formulation}
@@ -364,7 +365,10 @@ Order in time
 \label{tab:integrators}
 \end{table}
 
-%  DA LEGGERE prima della sottosezione di confronto
+
+
+% ---------------------------------------------------------------------
+%  DA LEGGERE prima della sottosezione sul Damkohler
 %    [F] par. 4 "Biomarker models", p. 6, prime righe: la definizione di
 %        biomarker abnormality.
 %    [F] par. 4.1 "The Fisher-Kolmogorov model", p. 6: e' il paragrafo da
@@ -436,10 +440,10 @@ average.}
 %    la tabella di sensibilita' allo schema restano nel record del
 %    benchmark 19; qui se ne cita solo cio' che serve al discorso.
 %  ANALOGA di Figura~\ref{fig:damkohler}
-%    NESSUNA. E' una figura originale. I pannelli usano la stessa
-%    convenzione grafica di [F] Fig. 7, p. 7, cosi' che il lettore possa
-%    confrontarli; il pannello dello spread contro Da resta nel record
-%    del benchmark 23.
+%    NESSUNA. E' una figura originale. I pannelli superiori usano la
+%    stessa convenzione grafica di [F] Fig. 7, p. 7, cosi' che il
+%    lettore possa confrontarli, ma il pannello inferiore non ha
+%    corrispondente in letteratura.
 % ---------------------------------------------------------------------
 
 \subsection{What controls the regional separation}
@@ -494,27 +498,11 @@ Damk\"ohler number
   = \frac{\alpha}{\rho\,\lambda_2}.
 \label{eq:damkohler}
 \end{equation}
-When $\mathrm{Da}\ll1$, strong regional synchronization is expected. To evaluate $\mathrm{Da}$ we need $\lambda_2$ and $\lambda_2$ depends on the model, so we take the two models one at a time.\\
-Consider first the nodal model. With the reaction switched off it reads
-\[
-\frac{d\mathbf{c}}{dt} = -\rho\,L\,\mathbf{c}.
-\]
-Let $\lambda_k$ and $\mathbf{v}_k$ be the eigenvalues and eigenvectors of $L$, $0 = \lambda_1 < \lambda_2 \le \dots$. The solution is
-\[
-\mathbf{c}(t) = \sum_k a_k\, e^{-\rho\lambda_k t}\,\mathbf{v}_k ,
-\]
-with the coefficients $a_k$ fixed by the initial condition. The term with $\lambda_1 = 0$ is constant: it is the uniform state the network tends to. Every other term is a difference between regions and it decays exponentially, the slowest at the rate $\rho\lambda_2$. This is why the time scale of diffusion is $1/(\rho\lambda_2)$ and why $\lambda_2$ is the second eigenvalue of $L$. For the reconstructed connectome $\lambda_2 = 0.7723$, so with $\rho = 1$ and $\alpha = 0.5$ the nodal model has $\mathrm{Da} = 0.65$.\\
-Consider now the finite element model. With the reaction switched off it reads
-\[
-M\,\frac{d\mathbf{c}}{dt} = -\rho\,L\,\mathbf{c}.
-\]
-The matrix $L$ is the same as above, because at one element per connection the finite element diffusion matrix coincides with the connectome Laplacian. The difference is the mass matrix $M$ of Section 2.2 in front of the time derivative. It is there because in the finite element model the unknown at a vertex stands for the concentration on the vertex and on half of every connection that reaches it: with unit lengths $M_{ii} = \deg_i/2$, that is $3$ for the frontal pole, which has $6$ connections, $24$ for the caudate, which has $48$, and $13.6$ on average. Multiplying by $M^{-1}$ the solution has the same form as before, but now $\lambda_k$ and $\mathbf{v}_k$ are the eigenvalues and eigenvectors of $L$ relative to $M$, $L\mathbf{v}_k = \lambda_k M\mathbf{v}_k$. These eigenvalues are smaller: the same flux $\rho L\mathbf{c}$ has to change a mass $M_{ii}$ larger than one, so every difference between regions decays more slowly. The smallest non-zero one is $\lambda_2 = 0.0606$ with the lumped mass and $0.0635$ with the consistent one, twelve to thirteen times smaller than $0.7723$. At the same $\rho$ the finite element model therefore homogenizes twelve to thirteen times more slowly than the nodal one and its Damk\"ohler number, $\alpha/(\rho\lambda_2)$ with its own $\lambda_2$, is twelve to thirteen times larger: $\mathrm{Da}=7.9$ at $\rho=1$. Both $0.65$ and $7.9$ are well below the values at which the lobes separate by years, consistently with the near-coincident regional curves of Section~\ref{sec:comparison}.\\
-In what follows and in Figure~\ref{fig:damkohler} $\mathrm{Da}$ is always the nodal one, computed with $\lambda_2 = 0.7723$, so that each value of $\rho$ corresponds to one number; the finite element model at the same $\rho$ sits at a Damk\"ohler number about thirteen times larger. Figure~\ref{fig:damkohler} quantifies this dependence by sweeping $\rho$ while keeping the topology, seed and conversion rate fixed. In the nodal model the separation between the earliest and latest lobe increases from $3.9\cdot10^{-7}$ years at $\mathrm{Da}=0.65$ to $6.99$ years at $\mathrm{Da}=647$ and the finite element model shows the same behaviour, its lobes being together at $\mathrm{Da}=0.65$ and separated by $6.2$ years at $\mathrm{Da}=12.9$ with the consistent mass and by $9.4$ years at $\mathrm{Da}=129$ with the lumped mass of Section~\ref{sec:boundary}. Read with its own $\lambda_2$, the finite element model is there at $\mathrm{Da} \approx 160$ and $1600$, and at $\mathrm{Da} \approx 160$ the nodal model gives between $4.4$ and $5.9$ years: once each model is read at its own Damk\"ohler number the two separate by comparable amounts. A separation comparable to that shown in~\cite{fornari2019prion} is obtained only when the effective transport strength is substantially reduced relative to reaction. The sweep therefore identifies the relative transport-reaction scale as the quantity controlling the inter-lobe separation. This study does not establish which effective scaling was used in the original implementation of the reference.
-
+When $\mathrm{Da}\ll1$, strong regional synchronization is expected. For the reconstructed connectome, $\lambda_2=0.7723$. With $\rho=1$ and $\alpha=0.5$, we obtain $\mathrm{Da}=0.65$, which lies in the transport-dominated regime and is consistent with the near-coincident regional curves observed in our simulations\footnote{$\lambda_2$ is an eigenvalue of the connectome Laplacian, which the finite element diffusion matrix reproduces exactly at one element per connection, so $\mathrm{Da}$, as defined, is the Damk\"ohler number of the nodal model, whose mass matrix is the identity. In the finite element model each vertex also carries half of every connection incident to it, $M_{ii} = \deg_i/2$ with unit lengths, from $3$ to $24$ and $13.6$ on average with the lumped mass, and the slowest transport mode is the generalized eigenvalue of $(L, M)$, $0.061$ with the lumped mass and $0.064$ with the consistent one instead of $0.772$: the same $\rho$ corresponds to a Damk\"ohler number between $12$ and $13$ times larger. This is why the finite element lobes separate at a smaller nominal $\mathrm{Da}$ than the nodal ones: the $6.2$ years at $\mathrm{Da} = 12.9$ below correspond to $\mathrm{Da} \approx 160$ for the finite element model, where the nodal model gives between $4.4$ and $5.9$ years.}. Figure~\ref{fig:damkohler} quantifies this dependence by sweeping $\rho$ while keeping the topology, seed and conversion rate fixed. In the nodal model the separation between the earliest and latest lobe increases from $3.9\cdot10^{-7}$ years at $\mathrm{Da}=0.65$ to $6.99$ years at $\mathrm{Da}=647$ and the finite element model shows the same behaviour, its lobes being together at $\mathrm{Da}=0.65$ and separated by $6.2$ years at $\mathrm{Da}=12.9$ with the consistent mass and by $9.4$ years at $\mathrm{Da}=129$ with the lumped mass of Section~\ref{sec:boundary}, at the same values of $\rho$. A separation comparable to that shown in~\cite{fornari2019prion} is obtained only when the effective transport strength is substantially reduced relative to reaction. The sweep therefore identifies the relative transport-reaction scale as the quantity controlling the inter-lobe separation. This study does not establish which effective scaling was used in the original implementation of the reference.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/diffusion_scaling.pdf}
-\caption{\footnotesize Regional separation as a function of the Damk\"ohler number \eqref{eq:damkohler}, for the three models, at one element per connection with the fully implicit scheme, $\Delta t = 0.4$ years, the entorhinal seed and $\rho = 1$, $0.05$ and $0.005$ (columns); $\mathrm{Da}$ is quoted with the $\lambda_2$ of $L$, as in the text. Rows: (a)--(c) the nodal model of the references; (d)--(f) the finite element model with the consistent mass matrix of the first part of this work; (g)--(i) the same model with the lumped mass matrix (Section~\ref{sec:boundary}). Each panel shows the four lobe biomarkers, in the colours of figure 7 of~\cite{fornari2019prion}, and, shaded, the envelope of the $83$ vertex concentrations, from the smallest to the largest; the dashed lines mark $0$ and $100$ percent. The lobes separate as $\mathrm{Da}$ grows in every model. With the consistent mass the envelope leaves the physical range at $\mathrm{Da}=12.9$ (e) and at $\mathrm{Da}=129$ (f) the Newton iteration fails at $t=15.6$ years, where the run stops; with the lumped mass it stays within $[0,1]$ in every panel. Nothing is clipped; the axes are the same in every panel.}
+\caption{\footnotesize Regional separation as a function of the Damk\"ohler number \eqref{eq:damkohler}, for the three models, at one element per connection with the fully implicit scheme, $\Delta t = 0.4$ years, the entorhinal seed and $\rho = 1$, $0.05$ and $0.005$ (columns); each panel also reports the lobe-scale number $\mathrm{Da}_{\mathrm{lobe}}$ of its model, defined in Figure~\ref{fig:lobegraph}. Rows: (a)--(c) the nodal model of the references; (d)--(f) the finite element model with the consistent mass matrix of the first part of this work; (g)--(i) the same model with the lumped mass matrix (Section~\ref{sec:boundary}). Each panel shows the four lobe biomarkers and, shaded, the envelope of the $83$ vertex concentrations; the dashed lines mark $0$ and $100$ percent. The lobes separate as $\mathrm{Da}$ grows in every model. With the consistent mass the envelope leaves the physical range at $\mathrm{Da}=12.9$ (e) and at $\mathrm{Da}=129$ (f) the Newton iteration fails at $t=15.6$ years, where the run stops; with the lumped mass it stays within $[0,1]$ in every panel. Nothing is clipped; the axes are the same in every panel.}
 \label{fig:damkohler}
 \end{figure}
 
@@ -522,10 +510,16 @@ With a uniform conversion rate the sweep also fixes what sets the order in which
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.72\textwidth]{images/lobe_connectivity.pdf}
-\caption{\footnotesize Total connectivity between the four lobes of the biomarker \eqref{eq:biomarker} and the $25$ remaining regions (insular, limbic, subcortical and the brainstem, in grey), summed from the same $1130$ connections of Figure~\ref{fig:connectogram}; the region count of each group is in parentheses, the line width grows with the square root of the value and every value is printed. The star marks the entorhinal seed. The four lobes are the partition of~\cite{fornari2019prion} used by every biomarker curve of this chapter; the seven groups of Figure~\ref{fig:connectogram} are a different partition of the same regions, so the two figures cannot be compared cell by cell.}
+\includegraphics[width=\textwidth]{images/lobe_connectivity.pdf}
+\caption{\footnotesize (a) The connectome compressed over the four lobes of the biomarker \eqref{eq:biomarker}: one line per pair of lobes with the total connectivity printed on it and the width growing with the square root of the value, the temporal lobe at the centre because it holds the entorhinal seed (star), and at every lobe a grey stub carrying its total connectivity to the $25$ remaining regions (insular, limbic, subcortical and the brainstem); the region count of each lobe is in parentheses and the sums come from the same $1130$ connections of Figure~\ref{fig:connectogram}. (b) Lobe separation against the lobe-scale Damk\"ohler number $\mathrm{Da}_{\mathrm{lobe}} = \alpha/(\rho\lambda_{\mathrm{lobe}})$, with $\lambda_{\mathrm{lobe}}$ the slowest relaxation rate of the differences between lobes in the compressed graph of panel (a), for the stored sweeps of the three models, the consistent mass over the scalings within its validity boundary (Section~\ref{sec:boundary}); the dashed line marks $\mathrm{Da}_{\mathrm{lobe}} = 1$, below which every model keeps the lobes together. The four lobes are the partition of~\cite{fornari2019prion} used by every biomarker curve of this chapter; the seven groups of Figure~\ref{fig:connectogram} are a different partition of the same regions, so the two figures cannot be compared cell by cell.}
 \label{fig:lobegraph}
 \end{figure}
+
+% This interpretation also reconciles two results of this chapter that would otherwise appear contradictory. In Section~\ref{sec:corti}, the diffusivity is normalized as
+% \[
+% D_e=\frac{w_e}{\max_e w_e},
+% \]
+% which, for the same underlying edge weights, corresponds to a uniform scaling $\rho=1/\max_e w_e=0.0283$. Together with the regional reaction rates, whose average over the $83$ vertices is $0.1252$, this gives $\mathrm{Da}=5.73$. The larger Damk\"ohler number places the model in a regime where spatial contrasts persist more strongly, explaining why the regional curves separate much more clearly than in the unit-scale configuration considered above.
 
 \subsubsection{A validity boundary and its stabilization}
 \label{sec:boundary}
@@ -597,23 +591,11 @@ remaining lobes reflects the connectivity of the graph and not the clinical
 sequence. Behind the staged renders the four lobes cross the $50$-percent
 level in the order temporal, occipital, parietal, frontal, at $16.5$, $21.7$,
 $23.0$ and $25.9$ years, the same order as in Figure~\ref{fig:damkohler};
-the reference reports temporal, frontal, parietal, occipital.
-Figure~\ref{fig:lobecrossings} shows where our order comes from: the
-biomarker \eqref{eq:biomarker} of a lobe is the mean over its regions and
-the order of the means is decided by the late regions of each lobe, not by
-the direct couplings. As Figure~\ref{fig:lobegraph} shows, the temporal lobe is more strongly
-connected to the parietal one than to the occipital one, $75.0$ against
-$55.6$, and indeed the first
-parietal region crosses before the first occipital one, at $19.4$ against
-$19.6$ years; but the twelve parietal regions carry a slow tail, the
-postcentral and paracentral gyri between $23.2$ and $26.0$ years, while the
-eight occipital ones lie together between $19.6$ and $23.4$ years, so the
-parietal mean crosses after the occipital one. The frontal group is last by
-the same mechanism taken to the extreme: the two frontal poles cross only at
-$29.8$ and $30.9$ years and drag the mean, and the frontal pole is the least
-connected region of the graph, a property the reference also reports;
-whether the same holds for the matrix used there cannot be checked for the
-reasons given in Section~\ref{sec:damkohler}. With
+the reference reports temporal, frontal, parietal, occipital. In our
+simulations the frontal group is last because of the weak connectivity of
+the frontal pole, the least connected region of the graph, a property the
+reference also reports; whether the same holds for the matrix used there
+cannot be checked for the reasons given in Section~\ref{sec:damkohler}. With
 a uniform conversion rate, connectivity is the only anatomy our model
 carries, so this is the order it produces on this graph. The clinical order
 emerges once the biology that carries it enters the coefficients: with the
@@ -642,20 +624,6 @@ resolve the origin, the direction and the endpoint of each progression; the
 relative order of the remaining cortical lobes is a property of the
 connectivity, discussed in the text.}
 \label{fig:expected}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/lobe_crossings.pdf}
-\caption{\footnotesize The activation of the four lobes region by region,
-in the tau run of this section (finite element model with the lumped mass,
-$\rho = 0.005$, entorhinal seed). Every dot is one region, placed at the
-first year its concentration reaches $50$ percent; the black bar is the
-crossing of the lobe biomarker \eqref{eq:biomarker}, the mean of the group.
-The two entorhinal seeds activate first, the slow parietal tail moves the
-parietal mean behind the occipital one and the two frontal poles close the
-sequence. The lobes are those of Figure~\ref{fig:lobegraph}.}
-\label{fig:lobecrossings}
 \end{figure}
 
 % ---------------------------------------------------------------------
