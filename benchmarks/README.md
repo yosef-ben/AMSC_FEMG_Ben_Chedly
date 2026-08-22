@@ -46,7 +46,8 @@ immediately after `19`, since it answers the question `19` leaves open.
 
 ### Domain and dynamics, 24 to 27
 
-`24` documents the graph itself, `25` the regional vulnerability to seeding,
+`24` documents the graph itself, `25` the seeding study (a record: in the
+finite element model the ranking follows the seed mass, see its README),
 `26` the anatomical progression and the activation-time map, and `27` the
 staged spreading of the two clinical seedings, tau and amyloid-beta, against
 the progression the literature expects.

@@ -600,7 +600,7 @@ M^L_{ii}\,\alpha_i c_i(1-c_i).
 \]
 Together, mass lumping and the vertex rule make the reaction treatment local: the lumped mass removes the cross-node coupling introduced by $\mathbf{M}^{-1}$, while the vertex rule makes $f_i$ depend only on the local concentration $c_i$. The reaction therefore takes the same node-wise form as in the nodal model, while the transport operator remains the finite element one.\\
 We added mass lumping as an option in the finite element library and repeated the sweep under the same conditions. With the consistent mass, the concentration envelope already leaves $[0,1]$ at $\mathrm{Da}=12.9$ and the computation eventually breaks down at $\mathrm{Da}=129$. With the lumped mass, instead, all vertex concentrations remain within $[0,1]$ throughout the sweep, while the relevant physical behaviour is preserved: the lobe curves progressively separate as transport is weakened, as discussed in the previous paragraph.\\
-At the original transport scale, the two formulations are almost indistinguishable, with the network crossing time changing only from $12.68$ to $12.72$ years. This shows that mass lumping stabilizes the finite element model in the weak-transport regime without significantly modifying the solution where the consistent formulation is already reliable. For this reason, in the rest of the chapter we use the consistent mass where transport is strong and the lumped mass where transport is weak, in the seeding and vulnerability experiments below. Every result from this point onward is therefore a finite element result.
+At the original transport scale, the two formulations are almost indistinguishable, with the network crossing time changing only from $12.68$ to $12.72$ years. This shows that mass lumping stabilizes the finite element model in the weak-transport regime without significantly modifying the solution where the consistent formulation is already reliable. For this reason, in the rest of the chapter we use the consistent mass where transport is strong and the lumped mass where transport is weak, as in the seeding experiment of Section~\ref{sec:staging}. Every result from this point onward is therefore a finite element result.
 
 
 % ---------------------------------------------------------------------
@@ -624,7 +624,7 @@ At the original transport scale, the two formulations are almost indistinguishab
 \subsection{Seeding patterns and expected progression}
 \label{sec:staging}
 
-The two hallmark proteins of Alzheimer's disease enter the model through the initial spatial location alone. Tau inclusions appear first in the transentorhinal region and the expected progression is from the entorhinal cortex to the temporal lobe and then to the interconnected neocortex. Amyloid-$\beta$ deposits instead appear first in the neocortex and are expected to progress towards deeper structures, which are reached last \cite{weickenmeier2019prion}. On the graph, the two seedings are respectively the entorhinal vertices at $c_0=0.1$ and the $54$ neocortical vertices of the four cortical lobes.\\
+The two hallmark proteins of Alzheimer's disease enter the model through the initial spatial location alone. Tau inclusions appear first in the transentorhinal region and the expected progression is from the entorhinal cortex to the temporal lobe and then to the interconnected neocortex. Amyloid-$\beta$ deposits instead appear first in the neocortex and are expected to progress towards deeper structures, which are reached last \cite{weickenmeier2019prion}. On the graph, the two seedings are respectively the entorhinal vertices at $c_0=0.1$ and the $54$ neocortical vertices of the four cortical lobes, excluding the entorhinal and parahippocampal cortices, which belong to the allocortex.\\
 Figure~\ref{fig:expected} shows the two computed progressions below their clinical counterparts, namely the staging drawings of~\cite{weickenmeier2019prion}. Three representative stages are selected as the first instants at which the network mean concentration reaches $10\%$, $40\%$ and $80\%$. The solution is the finite element one with lumped mass and the fully implicit scheme, at $\rho=0.005$, corresponding to $\mathrm{Da}=129$ and $\mathrm{Da}_{\mathrm{lobe}}=116$.\\
 This transport scaling is essential for the progression to become visible. At $\rho=1$, the scale used in the references, transport is sufficiently fast to synchronize the network: in a control tau simulation the four lobes cross the $50\%$ level within $0.03$ years of each other and the three stages would appear almost spatially uniform. The choice $\rho=0.005$ should therefore be interpreted as a calibration of the transport time scale against the reference progression, rather than as an additional biological input. The only biological difference between the two simulations remains the location of the initial seed.\\
 Both expected qualitative patterns are recovered in their origin, direction and endpoint. The tau row starts from the entorhinal seed: the first two vertices to reach $c=0.5$ are the two entorhinal cortices. The disease then reaches the temporal neighbourhood before progressively involving the rest of the network. The three displayed stages occur at $15.2$, $21.6$ and $27.6$ years, corresponding respectively to network mean concentrations of $10\%$, $40\%$ and $80\%$.\\
@@ -637,138 +637,6 @@ The same caveat discussed in Section~\ref{sec:damkohler} remains valid. Within t
 \caption{\footnotesize Expected and computed progression for the two hallmark proteins of Alzheimer's disease. First and third rows: clinical staging drawings from Figure~1 of~\cite{weickenmeier2019prion}, medial view; tau above and amyloid-$\beta$ below. Second and fourth rows: progressions computed in this section, with sphere radius and blue intensity growing with the square root of the local concentration, at the first instants at which the network mean reaches $10\%$, $40\%$ and $80\%$. The finite element model uses lumped mass, $\rho=0.005$, $\mathrm{Da}=129$ and $\mathrm{Da}_{\mathrm{lobe}}=116$. Tau, seeded at the entorhinal cortex, first involves the temporal neighbourhood and then progressively the rest of the network; amyloid-$\beta$, seeded in the neocortex of the four cortical lobes, progresses towards deeper structures, which are reached last. The three stages highlight the origin, direction and endpoint of each progression, while the relative ordering of the cortical lobes is determined by the network connectivity, as discussed in the text. This motivates the introduction of further biology through heterogeneous reaction rates.}
 \label{fig:expected}
 \end{figure}
-
-% ---------------------------------------------------------------------
-%  DA LEGGERE prima della sottosezione sul tasso di conversione
-%    [F] par. 5 "Treatment opportunities", p. 7, introduzione.
-%    [F] par. 5.1 "Delaying conversion", pp. 7-8: e' l'esperimento che
-%        riproduciamo. Contiene l'interpretazione di alpha come
-%        combinazione di k12, k0, k1 e k1-tilde tramite l'equazione (2.7)
-%        di p. 3, che vale la pena citare nel testo per dare senso
-%        fisico alla variazione di alpha.
-%        Contiene anche la conclusione che riproduciamo alla lettera:
-%        abbassare alpha ritarda ma non crea uno stato stabile
-%        intermedio.
-%  ANALOGA di Figura~\ref{fig:alpha}
-%    [F] Fig. 11, p. 8. Stesso insieme di valori alpha = 0, 0.1, ..., 0.5
-%        e stesso orizzonte di 80 anni. La nostra aggiunge il confronto
-%        nodale/FEM, che in [F] non esiste perche' hanno un solo modello.
-%    Da guardare anche [F] Fig. 10, p. 8, che e' la versione anatomica
-%    dello stesso esperimento; la nostra vista anatomica corrispondente
-%    e' la Figura~\ref{fig:expected}.
-% ---------------------------------------------------------------------
-
-\subsection{Sensitivity to the conversion rate}
-\label{sec:alpha}
-
-We repeat the conversion-rate experiment of~\cite{fornari2019prion} with
-$\alpha = 0, 0.1, \dots, 0.5$ over $80$ years. In the reference the conversion
-rate is not a free parameter but a combination of production, clearance and
-misfolding rates, so lowering it is the model's representation of a therapeutic
-intervention.
-
-The qualitative conclusion of the reference is recovered: lowering $\alpha$
-delays the transition but does not create an intermediate stable state, and
-every positive conversion rate drives the network to $c=1$. The $50$-percent
-crossing of the network average moves from $11.11$ years at $\alpha = 0.5$ to
-$59.33$ years at $\alpha = 0.1$ in the nodal model, and from $12.68$ to $67.81$
-years in the finite element model. For $\alpha = 0$ the reaction vanishes and
-the two conserved quantities are preserved to round-off: the nodal average
-drifts by $1.1\cdot10^{-14}$ and the normalized finite element metric integral
-$\mathbf{1}^{\!\top} M \mathbf{C}/\mathbf{1}^{\!\top} M \mathbf{1}$ by
-$8.0\cdot10^{-16}$.
-
-In this figure the finite element biomarker is the metric average
-$\mathbf{1}^{\!\top} M \mathbf{C}/\mathbf{1}^{\!\top} M \mathbf{1}$, which
-starts below the nodal average because a value prescribed at a vertex is a
-smaller fraction of the metric domain than of the vertex set. No amplitude
-rescaling is applied to hide this difference, since it is a property of the
-two models and not an error of either.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/alpha_sensitivity.pdf}
-\caption{Conversion-rate sensitivity, after figure 11 of~\cite{fornari2019prion},
-for the nodal reference and the metric-graph finite element model over $80$
-years. The two models start from different global averages because a value
-prescribed at a vertex has a connectivity-dependent metric support in the
-finite element domain; no rescaling is applied.}
-\label{fig:alpha}
-\end{figure}
-
-
-% ---------------------------------------------------------------------
-%  DA LEGGERE prima di 4.7
-%    [F] par. 4.3 "Infection times", p. 7: e' l'esperimento che
-%        riproduciamo. Attenzione a due cose che vanno dette nel testo:
-%        (i) loro lo fanno con il modello Heterodimer, non con
-%        Fisher-Kolmogorov, quindi i tempi assoluti non sono
-%        confrontabili e noi confrontiamo solo l'ordinamento;
-%        (ii) la frase sulla corteccia entorinale che ha il secondo tempo
-%        di infezione piu' lungo, e l'argomento clinico che ne traggono,
-%        e' esattamente il risultato che ritroviamo indipendentemente.
-%        Vale la pena citarla per esteso.
-%  ANALOGA di Figura~\ref{fig:vulnerability}
-%    [F] Fig. 9, p. 8. Loro mostrano le 83 curve colorate per tempo di
-%        infezione e le sfere colorate sull'anatomia. I nostri pannelli
-%        (a) e (b) sono gli analoghi diretti.
-%    I nostri pannelli (c) e (d) non hanno corrispondente: (c) e' il
-%    meccanismo (tempo contro grado pesato) e (d) e' il confronto fra i
-%    due scaling. Sono aggiunte nostre e vanno presentate come tali.
-% ---------------------------------------------------------------------
-
-\subsection{Regional vulnerability}
-\label{sec:vulnerability}
-
-The network enters the model only through $L$, so it is natural to ask which
-regions are the most dangerous places for the disease to start. Following the
-infection-time study of~\cite{fornari2019prion} we seed each of the $83$ regions in
-turn and record the time at which the network biomarker reaches $95\%$. The
-sweep runs with the finite element model with the lumped mass, at
-$\rho = 1$ and at $\rho = 0.02$, the latter beyond the boundary of the
-consistent mass. The
-reference performs this experiment with the Heterodimer model rather than with
-Fisher--Kolmogorov, so the absolute times are not comparable and we compare only
-the ranking, which depends on the network rather than on the kinetics.
-
-At $\rho = 1$ the infection times span $3.9$ years and at $\rho=0.02$
-$11.2$ years, the transport being weaker in the second case, and the
-ordering is the same at both scalings. Three observations of the reference
-are recovered.
-
-The fastest seeds are subcortical hubs: we obtain the two caudate nuclei
-followed by the two thalami, where the reference reports the putamen and the
-insula. Both identify the same feature of the network, and the reference itself
-notes that the caudate carries the largest number of connections in the graph.
-The slowest seeds are the frontal and temporal poles; the frontal pole has the
-smallest weighted degree of the entire graph, $2.05$. Finally, and most
-interestingly, the entorhinal cortex, the region where the pathology is first
-observed clinically and the seed used throughout this chapter, ranks $76$th and
-$79$th of $83$ at $\rho=1$ and $79$th and $82$nd at $\rho=0.02$: it is one of
-the least efficient possible starting points. The reference draws from the same
-observation the argument that this is part of why the early stages of the
-disease are so hard to detect, and it is recovered here from an independent
-reconstruction of the graph.
-
-The third panel of the figure gives the mechanism. The infection time decreases
-monotonically with the weighted degree of the seeded vertex: a poorly connected
-seed keeps its concentration local, and the quadratic term of the reaction then
-slows the growth of the network average.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{images/seeding_vulnerability.pdf}
-\caption{Regional vulnerability, after figure 9 of~\cite{fornari2019prion}. Each of
-the $83$ regions is seeded in turn. (a) the resulting network biomarker curves
-and (b) the same quantity on the anatomy, both at $\rho=0.02$; (c) infection
-time against the weighted degree of the seeded region; (d) the delay of every
-seed behind the fastest one, at both scalings, on a logarithmic axis. Finite
-element model with the lumped mass, fully implicit scheme; the anatomy is
-drawn at $\rho=0.02$, where the infection times span $11.2$ years against
-$3.9$ at $\rho=1$.}
-\label{fig:vulnerability}
-\end{figure}
-
 
 % ---------------------------------------------------------------------
 %  DA LEGGERE prima di 4.8
@@ -813,6 +681,7 @@ we state clearly that we do not reproduce the clinical trajectory of their
 patient. The point of the section is therefore to test the finite element
 solver on a configuration taken from the literature rather than built here.
 
+The conversion rate is the parameter that sets the time scale of the disease. In~\cite{fornari2019prion} it is the combination $\alpha = k_{12}k_0/k_1 - \tilde{k}_1$ of production $k_0$, clearance $k_1$, $\tilde{k}_1$ and conversion $k_{12}$, and on our graph lowering it from $0.5$ to $0.1$ moves the $50$-percent crossing of the network from $12.68$ to $67.81$ years while every positive rate still drives the network to the misfolded state; making it regional is the first biology the model receives beyond the connectivity.\\
 The reaction coefficient is piecewise constant over seven anatomical groups and
 takes the mean values estimated in table 1 of the reference: $0.1801$ in the
 frontal lobe, $0.1421$ temporal, $0.0627$ parietal, $0.1005$ insular, $0.1351$

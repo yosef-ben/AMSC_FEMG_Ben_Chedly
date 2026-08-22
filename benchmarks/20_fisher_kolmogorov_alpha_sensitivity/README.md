@@ -57,6 +57,14 @@ difference.
 `results/alpha_sensitivity.png` and the PDF version are ready for the
 report.
 
+## Use in the report
+
+The figure is a record and is not in the report, which keeps one sentence
+of this study where the regional rates are introduced: lowering the rate
+from 0.5 to 0.1 moves the 50-percent crossing of the finite element network
+from 12.68 to 67.81 years while every positive rate still drives the network
+to the misfolded state.
+
 ## Interpretation
 
 This benchmark reproduces the qualitative conclusion of the reference
@@ -80,11 +88,24 @@ The paper's conclusion is that "irrespective of the conversion rate alpha, the
 misfolded protein concentration of the Fisher-Kolmogorov model always converges
 towards the fully misfolded state with a biomarker abnormality of C = 100%",
 and that lowering `alpha` only delays the transition. Both are reproduced:
-every positive `alpha` reaches `99.99%` or more of the stable state within the
-horizon, and the 50-percent crossing time grows from `11.1` years at
-`alpha = 0.5` to `59.3` years at `alpha = 0.1` in the nodal reference. The
-`alpha = 0` case conserves the nodal average to `3.9e-16` and the FEM metric
-integral to `9.7e-17`.
+every `alpha >= 0.2` reaches `99.98%` or more of the stable state within the
+horizon, `alpha = 0.1` is still rising at 80 years (`88.6%` nodal, `77.1%`
+FEM, the metric average) and the 50-percent crossing time grows from `11.1`
+years at `alpha = 0.5` to `59.3` years at `alpha = 0.1` in the nodal
+reference, from `12.7` to `67.8` years in the FEM. The product of the
+conversion rate and the FEM crossing time stays between 6.3 and 6.8 years
+over the five positive rates, the scaling of a logistic growth from the
+seed level. The `alpha = 0` case conserves the nodal average to `1.1e-14`
+and the FEM metric integral to `8.0e-16` (`alpha_sensitivity.csv`).
+
+The FEM runs use the consistent mass at `rho = 1`, where benchmark 23 shows
+it valid: the Damkohler numbers of the five positive rates run from 1.6 to
+7.9 (`Da_lobe` from 0.09 to 0.45 with the lobe rate 1.107 of benchmark 23),
+the transient minimum stays above `-1.4e-4` and every lobe is synchronized.
+The FEM biomarker plotted is the metric average `1^T M C / (1^T M 1)`, the
+quantity the scheme conserves at `alpha = 0`; its 50-percent crossing at
+`alpha = 0.5`, 12.679 years, agrees with the vertex-average crossing of
+benchmark 19, 12.682 years, to three thousandths of a year.
 
 The nodal and FEM curves differ in amplitude because a value prescribed at a
 graph vertex has a connectivity-dependent metric support in the FEM domain.

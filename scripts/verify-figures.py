@@ -522,6 +522,14 @@ def check_20(report):
             drift = abs(float(row["global_drift_alpha_zero"]))
             report.check(name, f"conservation drift {row['method']}",
                          drift, 0.0, "")
+    fem = {float(r["alpha"]): float(r["time_50_percent"]) for r in rows
+           if r["method"] == "Metric-graph FEM" and r["time_50_percent"]}
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    report.check_contains(
+        name, "regional-rate prose states the crossing shift", chapter,
+        f"lowering it from $0.5$ to $0.1$ moves the $50$-percent crossing "
+        f"of the network from ${fem[0.5]:.2f}$ to ${fem[0.1]:.2f}$ years")
 
 
 def check_21(report):
@@ -1223,8 +1231,9 @@ def check_27(report):
              f"frontal lobe is much weaker, with total weight "
              f"${coupling[('frontal', 'temporal')]:.1f}$"),
             ("frontal pole degree",
-             f"smallest weighted degree of the entire graph, "
-             f"${min(weighted_degree.values()):.2f}$")):
+             f"The weighted degree spans "
+             f"${min(weighted_degree.values()):.2f} \\le D_{{ii}} \\le "
+             f"{max(weighted_degree.values()):.2f}$")):
         report.check_contains(name, f"staging prose states the {label}",
                               chapter, needle)
 
@@ -1423,6 +1432,32 @@ def check_25(report):
                       if "entorhinal" in row["name"]]
         report.note(name, f"entorhinal ranks at rho={scaling:g}",
                     f"{entorhinal} of {len(order)}")
+        # The ranking follows the number of connections of the seeded
+        # vertex, which sets the metric mass of the seed in the finite
+        # element model, far more closely than the weighted degree; at
+        # rho = 1 the logistic growth of that seed mass predicts the times.
+        from scipy.stats import spearmanr
+        connections = [float(row["degree"]) for row in rows]
+        weighted = [float(row["weighted_degree"]) for row in rows]
+        edges = len(read_csv(Path("data/connectome/fornari83/edges.csv")))
+        seed = [0.1 * 0.5 * c / edges for c in connections]
+        predicted = [2.0 * math.log(19.0 * (1.0 - c) / c) for c in seed]
+        report.check(name, f"rank correlation with connections at "
+                     f"rho={scaling:g}",
+                     float(spearmanr(values, connections).correlation),
+                     {1: -0.982, 0.02: -0.823}[scaling])
+        report.check(name, f"rank correlation with weighted degree at "
+                     f"rho={scaling:g}",
+                     float(spearmanr(values, weighted).correlation),
+                     {1: -0.363, 0.02: -0.226}[scaling])
+        if scaling == 1:
+            gaps = [v - q for v, q in zip(values, predicted)]
+            mean = sum(gaps) / len(gaps)
+            report.check(name, "seed-mass prediction, mean gap", mean, -0.35,
+                         "years")
+            report.check(name, "seed-mass prediction, scatter of the gap",
+                         math.sqrt(sum((g - mean) ** 2 for g in gaps)
+                                   / len(gaps)), 0.12, "years")
 
 
 def check_26(report):

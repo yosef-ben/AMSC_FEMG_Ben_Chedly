@@ -382,7 +382,7 @@ benchmarks/26_connectome_progression/
 python3 scripts/plot-connectome-regions.py \
   --output-dir benchmarks/24_connectome_topology/results
 python3 scripts/study-fisher-seeding-vulnerability.py \
-  --output-dir output/fisher_kolmogorov/seeding
+  --output-dir output/fisher_kolmogorov/seeding_lumped --scheme be_lumped
 python3 scripts/plot-connectome-progression.py \
   --output benchmarks/26_connectome_progression/results/anatomical_progression.png
 ```
