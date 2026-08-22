@@ -4,19 +4,22 @@
 
 The construction of figure 1, panel (c), of Fornari et al. and of figure 7 of
 Weickenmeier et al.: the network solution on a translucent brain, spheres
-whose radius and blue intensity both grow with the local concentration, three
+whose radius and blue intensity both grow with the square root of the local
+concentration, three
 stages from left to right. The top row seeds the entorhinal cortex, where tau
 inclusions first appear; the bottom row seeds the four cortical lobes, where
 amyloid-beta deposits first appear (Weickenmeier et al., section 2.7).
 
-The solution shown is the nodal network model at the scaling rho = 0.005
-that benchmark 23 identifies as reproducing the published lobe separation
-(Da of order one hundred); at this scaling the consistent-mass metric-graph
-FEM leaves the physical range and cannot be shown, which is the boundary
-documented in the report. The nodal solution stays in [0,1] throughout and
-the script asserts as much. The three stages are selected by a rule, not by
-eye: the first instants at which the network mean reaches 10, 40 and 80
-percent. Nothing is smoothed, clipped or rescaled.
+The solution shown is the metric-graph FEM with the lumped mass and the
+fully implicit scheme at the scaling rho = 0.005 that benchmark 23
+identifies as reproducing the published lobe separation (Da of order one
+hundred, Da_lobe = 116); at this scaling the consistent-mass FEM leaves the
+physical range and cannot be shown, which is the boundary documented in the
+report, and at rho = 1 no staging exists because the transport synchronizes
+the regions. The lumped solution stays in [0,1] throughout and the script
+asserts as much. The three stages are selected by a rule, not by eye: the
+first instants at which the network mean reaches 10, 40 and 80 percent.
+Nothing is smoothed, clipped or rescaled.
 """
 
 import argparse
@@ -48,9 +51,9 @@ CONCENTRATION_MAP = plt.cm.Blues
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tau", type=Path, required=True,
-                        help="nodal_profiles.csv of the entorhinal seeding")
+                        help="fem_profiles.csv of the entorhinal seeding")
     parser.add_argument("--amyloid", type=Path, required=True,
-                        help="nodal_profiles.csv of the neocortical seeding")
+                        help="fem_profiles.csv of the neocortical seeding")
     parser.add_argument("--reference-dir", type=Path, default=None,
                         help="directory with the weickenmeier_fig1_*.png "
                              "strips cut by extract-weickenmeier-staging.py; "
@@ -76,12 +79,17 @@ def _staged_actor(coords, concentration, table):
         points.InsertNextPoint(*point)
     polydata = vtk.vtkPolyData()
     polydata.SetPoints(points)
-    radii = RADIUS_MIN + (RADIUS_MAX - RADIUS_MIN) * concentration
+    # Radius and colour follow the square root of the concentration, a
+    # mapping stated in the caption: a region at a tenth of its final value
+    # is drawn at a third of the full size and shade, so the seeded cortex
+    # of the amyloid pattern is visible at its first stage, while a region
+    # at zero stays a point. Nothing else is rescaled.
+    visible = np.sqrt(np.clip(np.asarray(concentration, float), 0.0, None))
+    radii = RADIUS_MIN + (RADIUS_MAX - RADIUS_MIN) * visible
     scalars = numpy_support.numpy_to_vtk(np.asarray(radii, float), deep=True)
     scalars.SetName("radius")
     polydata.GetPointData().SetScalars(scalars)
-    colours = numpy_support.numpy_to_vtk(
-        np.asarray(concentration, float), deep=True)
+    colours = numpy_support.numpy_to_vtk(visible, deep=True)
     colours.SetName("concentration")
     polydata.GetPointData().AddArray(colours)
 
@@ -235,7 +243,7 @@ def main():
             times, values = read_profiles(sources[case])
             means = values.mean(axis=1)
             assert values.min() >= 0.0 and values.max() <= 1.0 + 1e-10, \
-                "the nodal solution left [0,1]"
+                "the solution left [0,1]"
             for column, target in enumerate(STAGES):
                 index = int(np.argmax(means >= target))
                 stage_times[case, target] = times[index]

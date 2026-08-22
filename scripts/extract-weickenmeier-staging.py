@@ -9,9 +9,11 @@ medial brain drawings. The report compares the two Alzheimer rows against
 our simulated seeding patterns, so this script cuts those two rows out of
 the published page instead of redrawing them by hand.
 
-The extraction is deterministic and detected, not measured by eye: the page
-is rendered at 300 dpi, the four cartoon rows are found as horizontal bands
-of saturated pixels, the right-hand disease labels (plain black text) are
+The extraction is deterministic and detected, not measured by eye: the
+figure is the single image embedded in the page, a 300 ppi JPEG, which is
+pulled out as it is instead of re-rendering the page, so that no
+resampling is added to the published raster; the four cartoon rows are
+found as horizontal bands of saturated pixels, the right-hand disease labels (plain black text) are
 dropped by cutting at the last wide unsaturated gap, and the two target
 bands are identified by their dominant hue, orange for amyloid-beta and
 blue for tau. The script fails loudly if the page does not contain exactly
@@ -28,8 +30,8 @@ import numpy as np
 from PIL import Image
 
 PAGE = 3           # PDF page holding figure 1 (journal page 266)
-DPI = 600          # the strips span the full report text width, so the
-                   # rendering must stay well above print resolution
+DPI = 300          # resolution of the JPEG embedded in the page, the
+                   # ceiling of what the published figure contains
 SATURATION = 0.18  # chroma threshold separating drawings from black text
 MIN_BAND = DPI // 5   # minimum band height in pixels
 PAD = DPI // 50       # padding around detected content, pixels
@@ -44,14 +46,16 @@ def arguments():
 
 
 def render_page(pdf, directory):
-    prefix = Path(directory) / "page"
+    """The figure as embedded in the page: pdfimages writes the single JPEG
+    of the page at its native resolution, without re-rendering."""
+    prefix = Path(directory) / "figure"
     subprocess.run(
-        ["pdftoppm", "-f", str(PAGE), "-l", str(PAGE), "-r", str(DPI),
-         "-png", str(pdf), str(prefix)],
+        ["pdfimages", "-f", str(PAGE), "-l", str(PAGE), "-j", str(pdf),
+         str(prefix)],
         check=True)
-    produced = sorted(Path(directory).glob("page-*.png"))
+    produced = sorted(Path(directory).glob("figure-*"))
     if len(produced) != 1:
-        raise RuntimeError(f"Expected one rendered page, got {produced}")
+        raise RuntimeError(f"Expected one embedded image, got {produced}")
     return np.asarray(Image.open(produced[0]).convert("RGB"), dtype=float)
 
 

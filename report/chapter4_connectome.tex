@@ -624,73 +624,17 @@ At the original transport scale, the two formulations are almost indistinguishab
 \subsection{Seeding patterns and expected progression}
 \label{sec:staging}
 
-The two hallmark proteins of Alzheimer's disease enter the model through the
-initial condition alone. Tau inclusions appear first in the transentorhinal
-region, and the expected progression is the Braak sequence: entorhinal
-cortex, then the temporal lobe, then the interconnected neocortex.
-Amyloid-$\beta$ deposits appear first in the neocortex, and the expected
-progression runs the other way, downwards, with the deep structures last
-\cite{weickenmeier2019prion}. On the graph the two seedings are the entorhinal
-vertices at $c_0=0.1$, the seed used throughout this chapter, and the $58$
-vertices of the four cortical lobes at the same level.
-
-Figure~\ref{fig:expected} shows the two computed progressions below their
-clinical counterparts, the staging drawings of figure 1
-of~\cite{weickenmeier2019prion}, in the construction of figure 1
-of~\cite{fornari2019prion}: three stages, selected as the first instants at
-which the network mean reaches $10$, $40$ and $80$ percent. The solution is
-the finite element one with the lumped mass and the fully implicit scheme, at
-$\rho = 0.005$, the scaling at which Section~\ref{sec:damkohler} obtains a
-separation of the magnitude the reference publishes; the solution remains in
-$[0,1]$ throughout and the figure script verifies it.
-
-Both expected patterns are recovered. The tau row starts from a single dark
-sphere at the entorhinal cortex, the first two vertices to reach $c=0.5$
-being the two entorhinal cortices, reaches the temporal neighbourhood first
-and involves the whole network last, over $15.2$, $21.6$ and $27.6$ years.
-The amyloid row starts from a faint uniform cortical mantle and descends:
-averaging the first crossings of $c=0.5$ over each anatomical group, the
-four seeded lobes activate together at $4.4$ years, the insula at $9.6$, the
-limbic belt at $9.8$ and the subcortical nuclei last at $13.0$ years, more
-than eight years behind the cortex, which is the downward sequence the
-literature describes. The one caveat carries over from
-Section~\ref{sec:damkohler}: within the late tau stages the ordering of the
-remaining lobes reflects the connectivity of the graph and not the clinical
-sequence. Behind the staged renders the four lobes cross the $50$-percent
-level in the order temporal, occipital, parietal, frontal, at $16.5$, $21.7$,
-$23.0$ and $25.9$ years, the same order as in Figure~\ref{fig:damkohler};
-the reference reports temporal, frontal, parietal, occipital. In our
-simulations the frontal group is last because of the weak connectivity of
-the frontal pole, the least connected region of the graph, a property the
-reference also reports; whether the same holds for the matrix used there
-cannot be checked for the reasons given in Section~\ref{sec:damkohler}. With
-a uniform conversion rate, connectivity is the only anatomy our model
-carries, so this is the order it produces on this graph. The clinical order
-emerges once the biology that carries it enters the coefficients: with the
-regional rates of Section~\ref{sec:corti}, calibrated by that reference on
-patient data, the frontal group is among the first and the occipital group is
-last (Table~\ref{tab:corti} and Figure~\ref{fig:activationorder}) and
-Section~\ref{sec:corti} shows the recruitment to be set by those rates
-rather than by propagation.
+The two hallmark proteins of Alzheimer's disease enter the model through the initial spatial location alone. Tau inclusions appear first in the transentorhinal region and the expected progression is from the entorhinal cortex to the temporal lobe and then to the interconnected neocortex. Amyloid-$\beta$ deposits instead appear first in the neocortex and are expected to progress towards deeper structures, which are reached last \cite{weickenmeier2019prion}. On the graph, the two seedings are respectively the entorhinal vertices at $c_0=0.1$ and the $54$ neocortical vertices of the four cortical lobes.\\
+Figure~\ref{fig:expected} shows the two computed progressions below their clinical counterparts, namely the staging drawings of~\cite{weickenmeier2019prion}. Three representative stages are selected as the first instants at which the network mean concentration reaches $10\%$, $40\%$ and $80\%$. The solution is the finite element one with lumped mass and the fully implicit scheme, at $\rho=0.005$, corresponding to $\mathrm{Da}=129$ and $\mathrm{Da}_{\mathrm{lobe}}=116$.\\
+This transport scaling is essential for the progression to become visible. At $\rho=1$, the scale used in the references, transport is sufficiently fast to synchronize the network: in a control tau simulation the four lobes cross the $50\%$ level within $0.03$ years of each other and the three stages would appear almost spatially uniform. The choice $\rho=0.005$ should therefore be interpreted as a calibration of the transport time scale against the reference progression, rather than as an additional biological input. The only biological difference between the two simulations remains the location of the initial seed.\\
+Both expected qualitative patterns are recovered in their origin, direction and endpoint. The tau row starts from the entorhinal seed: the first two vertices to reach $c=0.5$ are the two entorhinal cortices. The disease then reaches the temporal neighbourhood before progressively involving the rest of the network. The three displayed stages occur at $15.2$, $21.6$ and $27.6$ years, corresponding respectively to network mean concentrations of $10\%$, $40\%$ and $80\%$.\\
+The amyloid-$\beta$ row starts instead from a diffuse neocortical seed and progresses towards deeper structures. The three displayed stages occur at $1.2$, $5.2$ and $12.0$ years. Considering the first crossing of $c=0.5$ within each anatomical group, the seeded neocortical regions cross first, at about $4.4$ years on average, followed by the insula at $9.6$ years, the limbic regions at $11.7$ years, the subcortical nuclei at $13.1$ years and finally the brainstem at $17.2$ years. This reproduces the downward progression described in the literature, from the neocortex towards the allocortex, deep nuclei and brainstem.\\
+The same caveat discussed in Section~\ref{sec:damkohler} remains valid. Within the later tau stages, the relative ordering of the cortical lobes is determined by the connectivity of the reconstructed graph rather than by the clinical staging sequence. The four lobes cross the $50\%$ level in the order temporal, occipital, parietal and frontal, at $16.5$, $21.7$, $23.0$ and $25.9$ years, respectively, reproducing the ordering already observed in Figure~\ref{fig:damkohler}. The reference instead reports the sequence temporal, frontal, parietal and occipital. In our simulations, the frontal group is delayed by its weak effective connectivity, with the frontal pole being the least connected region of the graph. Since the conversion rate is uniform in the present model, regional differences in the progression are driven by connectivity alone. This motivates the introduction of region-dependent conversion rates, as in Section~\ref{sec:corti}, where additional biological heterogeneity is included in the reaction term.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{images/seeding_patterns_expected.pdf}
-\caption{\footnotesize Expected against computed progression for the two
-hallmark proteins of Alzheimer's disease. First and third row: the clinical
-staging drawings of figure 1 of~\cite{weickenmeier2019prion}, medial view,
-adopted there from the neuropathological literature; tau above,
-amyloid-$\beta$ below. Second and fourth row: the progressions computed in
-this section, sphere radius and blue intensity both growing with the local
-concentration, at the first instants at which the network mean reaches
-$10$, $40$ and $80$ percent; finite element model with the lumped mass at
-$\rho = 0.005$. Tau, seeded at
-the entorhinal cortex, reaches the temporal neighbourhood first and the
-whole network last; amyloid-$\beta$, seeded on the four cortical lobes,
-descends towards the deep structures, which activate last. The three stages
-resolve the origin, the direction and the endpoint of each progression; the
-relative order of the remaining cortical lobes is a property of the
-connectivity, discussed in the text.}
+\caption{\footnotesize Expected and computed progression for the two hallmark proteins of Alzheimer's disease. First and third rows: clinical staging drawings from Figure~1 of~\cite{weickenmeier2019prion}, medial view; tau above and amyloid-$\beta$ below. Second and fourth rows: progressions computed in this section, with sphere radius and blue intensity growing with the square root of the local concentration, at the first instants at which the network mean reaches $10\%$, $40\%$ and $80\%$. The finite element model uses lumped mass, $\rho=0.005$, $\mathrm{Da}=129$ and $\mathrm{Da}_{\mathrm{lobe}}=116$. Tau, seeded at the entorhinal cortex, first involves the temporal neighbourhood and then progressively the rest of the network; amyloid-$\beta$, seeded in the neocortex of the four cortical lobes, progresses towards deeper structures, which are reached last. The three stages highlight the origin, direction and endpoint of each progression, while the relative ordering of the cortical lobes is determined by the network connectivity, as discussed in the text. This motivates the introduction of further biology through heterogeneous reaction rates.}
 \label{fig:expected}
 \end{figure}
 

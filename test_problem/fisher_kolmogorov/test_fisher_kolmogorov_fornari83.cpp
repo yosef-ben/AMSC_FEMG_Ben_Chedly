@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
 				"The time scheme must be be, cn, nodal, be_lumped or cn_lumped.");
 		// Seeding: absent or negative keeps the entorhinal seeding of the
 		// paper (the tau pattern); a vertex index seeds that vertex alone;
-		// the keyword "neocortex" seeds every vertex of the four cortical
+		// the keyword "neocortex" seeds every neocortical vertex of the four
 		// lobes, which is where amyloid-beta deposits first appear
 		// (Weickenmeier et al., section 2.7).
 		const std::string seed_argument = (argc >= 9) ? argv[8] : "-1";
@@ -267,16 +267,22 @@ int main(int argc, char *argv[]) {
 			femg::Vector::Zero(static_cast<Eigen::Index>(nodes.size()));
 		std::size_t seeds = 0;
 		if (seed_neocortex) {
-			// Amyloid-beta seeding: every vertex of the four cortical lobes,
-			// at the same level the entorhinal seeding uses.
+			// Amyloid-beta seeding: every neocortical vertex of the four
+			// cortical lobes, at the same level the entorhinal seeding uses.
+			// The entorhinal and parahippocampal cortices belong to the
+			// temporal lobe of the partition but are allocortex, which
+			// amyloid-beta reaches only at the second stage, so they are not
+			// seeded.
 			for (const Node &node : nodes) {
-				if (node.lobe >= 0) {
+				const std::string name = lower(node.name);
+				if (node.lobe >= 0 && !has(name, "entorhinal")
+					&& !has(name, "parahippocampal")) {
 					initial(static_cast<Eigen::Index>(node.id)) = 0.1;
 					++seeds;
 				}
 			}
-			if (seeds != 58)
-				throw std::runtime_error("Expected 58 neocortical seeds.");
+			if (seeds != 54)
+				throw std::runtime_error("Expected 54 neocortical seeds.");
 		} else if (seed_vertex < 0) {
 			// Default seeding of Fornari et al.: the entorhinal cortex.
 			for (const Node &node : nodes) {
@@ -422,7 +428,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Fornari 83-region Fisher-Kolmogorov comparison\n"
 			<< "  vertices: " << nodes.size() << "\n"
 			<< "  edges: " << edges.size() << "\n"
-			<< "  entorhinal seeds: " << seeds << "\n"
+			<< "  seed vertices: " << seeds << "\n"
 			<< "  alpha: " << alpha << "\n"
 			<< "  diffusion scaling: " << diffusion_scaling << "\n"
 			<< "  mass matrix: " << (lumped ? "lumped" : "consistent") << "\n"

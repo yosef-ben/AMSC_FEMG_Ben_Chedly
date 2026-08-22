@@ -1112,7 +1112,7 @@ def check_27(report):
                                          "/results/reaction_coefficients.csv")}
     # Lumped-mass finite element runs at rho = 0.005 (benchmark 27).
     expected_stages = {"tau": (15.2, 21.6, 27.6),
-                       "amyloid": (0.8, 4.8, 11.2)}
+                       "amyloid": (1.2, 5.2, 12.0)}
     for case in ("tau", "amyloid"):
         rows = read_csv(base / f"{case}_profiles.csv")
         times = np.array([float(row["time"]) for row in rows])
@@ -1228,6 +1228,10 @@ def check_27(report):
         report.check_contains(name, f"staging prose states the {label}",
                               chapter, needle)
 
+    summary_row = next(r for r in read_csv(
+        BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
+                "/diffusion_scaling_summary_rows.csv")
+        if r["scheme"] == "be_lumped" and r["diffusion_scaling"] == "0.005")
     rows = read_csv(base / "amyloid_profiles.csv")
     times = [float(row["time"]) for row in rows]
     activation = {}
@@ -1238,11 +1242,52 @@ def check_27(report):
         activation.setdefault(group[k], []).append(first)
     mean_activation = {g: sum(v) / len(v) for g, v in activation.items()}
     report.check(name, "amyloid subcortical mean activation",
-                 mean_activation["subcortical"], 12.98, "years")
+                 mean_activation["subcortical"], 13.0545, "years")
     report.check(name, "amyloid limbic mean activation",
-                 mean_activation["limbic"], 9.78, "years")
+                 mean_activation["limbic"], 11.6750, "years")
     report.check(name, "amyloid insular mean activation",
-                 mean_activation["insular"], 9.6, "years")
+                 mean_activation["insular"], 9.6000, "years")
+    brainstem = next(times[i] for i, row in enumerate(rows)
+                     if float(row["node_82"]) >= 0.5)
+    report.check(name, "amyloid brainstem activation", brainstem, 17.2, "years")
+    report.check(name, "brainstem last of all",
+                 1.0 if all(brainstem >= a for v in activation.values()
+                            for a in v) else 0.0, 1.0)
+    # The amyloid seed is the neocortex proper: the entorhinal and
+    # parahippocampal cortices start from zero and activate with the limbic
+    # group, after the seeded lobes.
+    names = {int(r["node_id"]): r["name"].lower() for r in read_csv(
+        Path("data/connectome/fornari83/nodes.csv"))}
+    allocortex = [k for k in names if "entorhinal" in names[k]
+                  or "parahippocampal" in names[k]]
+    report.check(name, "allocortex unseeded",
+                 max(float(rows[0][f"node_{k}"]) for k in allocortex), 0.0)
+    report.check(name, "seeded vertices", float(sum(
+        1 for k in range(83) if float(rows[0][f"node_{k}"]) > 0.0)), 54.0)
+    means = np.array([[float(row[f"node_{k}"]) for k in range(83)]
+                      for row in rows]).mean(axis=1)
+    stages = [times[int(np.argmax(means >= target))]
+              for target in (0.10, 0.40, 0.80)]
+    seeded = [a for g in ("frontal", "temporal", "parietal", "occipital")
+              for a in activation[g]]
+    for label, needle in (
+            ("amyloid stages",
+             f"occur at ${stages[0]:.1f}$, ${stages[1]:.1f}$ and "
+             f"${stages[2]:.1f}$ years"),
+            ("amyloid groups",
+             f"the seeded neocortical regions cross first, at about "
+             f"${sum(seeded) / len(seeded):.1f}$ years on average, followed "
+             f"by the insula at ${mean_activation['insular']:.1f}$ years, "
+             f"the limbic regions at ${mean_activation['limbic']:.1f}$ "
+             f"years, the subcortical nuclei at "
+             f"${mean_activation['subcortical']:.1f}$ years and finally "
+             f"the brainstem at ${brainstem:.1f}$ years"),
+            ("staging scaling in Da and Da_lobe",
+             f"$\\mathrm{{Da}}={round(float(summary_row['damkohler']))}$ and "
+             f"$\\mathrm{{Da}}_{{\\mathrm{{lobe}}}}="
+             f"{round(float(summary_row['damkohler_lobe']))}$")):
+        report.check_contains(name, f"staging prose states the {label}",
+                              chapter, needle)
     latest_cortical = max(mean_activation[g] for g in
                           ("frontal", "temporal", "parietal", "occipital"))
     report.check(name, "subcortical last, after every cortical lobe",
@@ -1287,6 +1332,31 @@ def check_27(report):
     report.check(name, "tau lobe order matches the diffusion scaling",
                  1.0 if ordered == ["temporal", "occipital", "parietal",
                                     "frontal"] else 0.0, 1.0)
+
+    # The same tau run at rho = 1, the transport scale of the references,
+    # stored to justify the scaling of the figure: the first stage is a
+    # uniform mantle and the lobes cross together, so no staging exists.
+    rows = read_csv(base / "tau_rho1_profiles.csv")
+    times = np.array([float(row["time"]) for row in rows])
+    values = np.array([[float(row[f"node_{k}"]) for k in range(83)]
+                       for row in rows])
+    first = int(np.argmax(values.mean(axis=1) >= 0.10))
+    stage_time = float(times[first])
+    report.check(name, "rho=1 first stage", stage_time, 8.8, "years")
+    report.check(name, "rho=1 lowest vertex at the first stage",
+                 float(values[first].min()), 0.101)
+    report.check(name, "rho=1 highest vertex at the first stage",
+                 float(values[first].max()), 0.131)
+    rows = read_csv(base / "tau_rho1_biomarkers.csv")
+    times = [float(row["time"]) for row in rows]
+    spread = [crossing(times, [float(row[lobe]) for row in rows], 50.0)
+              for lobe in ("temporal", "frontal", "parietal", "occipital")]
+    report.check(name, "rho=1 lobe spread", max(spread) - min(spread),
+                 0.027, "years")
+    report.check_contains(
+        name, "staging prose states the rho=1 lobe spread", chapter,
+        f"in a control tau simulation the four lobes cross the $50\\%$ "
+        f"level within ${max(spread) - min(spread):.2f}$ years of each other")
 
 
 def check_19_accuracy(report):

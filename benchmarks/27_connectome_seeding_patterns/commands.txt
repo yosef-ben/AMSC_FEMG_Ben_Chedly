@@ -1,7 +1,19 @@
 cmake --build build-release --target test_fisher_kolmogorov_fornari83
 
-# Tau seeding (entorhinal) and amyloid-beta seeding (neocortex), nodal
-# network model at the scaling that reproduces the published separation.
+# Tau seeding (entorhinal) and amyloid-beta seeding (neocortex proper, 54
+# vertices), finite element model with the lumped mass and the fully
+# implicit scheme, at the scaling that reproduces the published separation.
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau_lumped 0.5 40 0.005 be_lumped
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/amyloid_lumped 0.5 40 0.005 be_lumped neocortex
+
+# The tau run at rho = 1, the transport scale of the references, stored to
+# show that no staging exists there: at the first stage every vertex lies
+# between 0.10 and 0.13 and the four lobes cross together.
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau_lumped_rho1 0.5 40 1 be_lumped
+cp output/fisher_kolmogorov/staging/tau_lumped_rho1/fem_profiles.csv benchmarks/27_connectome_seeding_patterns/results/tau_rho1_profiles.csv
+cp output/fisher_kolmogorov/staging/tau_lumped_rho1/fem_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/tau_rho1_biomarkers.csv
+
+# The earlier nodal-model variant of the same two runs, kept for the record.
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau_nodal 0.5 40 0.005 nodal
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/amyloid_nodal 0.5 40 0.005 nodal neocortex
 
