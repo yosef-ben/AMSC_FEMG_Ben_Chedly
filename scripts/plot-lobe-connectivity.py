@@ -33,6 +33,10 @@ import figure_style
 from lobe_scale import LobeGraph, damkohler_lobe
 
 FIEDLER = 0.772254
+# Lobe separation read from figure 7 of Fornari et al. (temporal about 10
+# years, occipital about 15.5 years at alpha = 0.5), drawn with a margin of
+# 15 percent as in the record figure of the sweep.
+REFERENCE_SPREAD_YEARS = 5.5
 BENCH = Path("benchmarks/23_fisher_kolmogorov_diffusion_scaling/results")
 POSITION = {
     "frontal": (0.02, 0.90),
@@ -153,6 +157,11 @@ def draw_onset(axis, graph, alpha):
     }
     axis.axvline(1.0, color="0.55", linewidth=1.1, linestyle=(0, (4, 3)),
                  zorder=1)
+    axis.axhspan(REFERENCE_SPREAD_YEARS * 0.85, REFERENCE_SPREAD_YEARS * 1.15,
+                 color="0.55", alpha=0.16, zorder=0)
+    axis.text(0.034, REFERENCE_SPREAD_YEARS * 1.15 + 0.25,
+              "separation of the reference", fontsize=8.5, fontweight="bold",
+              color="0.4", ha="left", va="bottom")
     style = {"nodal": ("o", "0.25", "-"),
              "lumped": ("s", "#1F77B4", "--"),
              "consistent": ("D", "#D62728", ":")}
@@ -198,11 +207,14 @@ def main():
     for (one, two), value in sorted(graph.coupling.items(),
                                     key=lambda kv: -kv[1]):
         print(f"  {one:9s} - {two:9s} {value:8.2f}")
+    low = REFERENCE_SPREAD_YEARS * 0.85
     for model, points in series.items():
         first = next((d for d, s in points if s >= 1.0), float("nan"))
-        print(f"  {model:10s} lobe rate {graph.lobe_rate(model):.3f}, "
-              f"first point with a spread above one year at Da_lobe = "
-              f"{first:.2f}")
+        before = max((d for d, s in points if s < low), default=float("nan"))
+        inside = next((d for d, s in points if s >= low), float("nan"))
+        print(f"  {model:10s} lobe rate {graph.lobe_rate(model):.3f}, first "
+              f"point above one year at Da_lobe = {first:.2f}, reaches the "
+              f"reference band between Da_lobe = {before:.1f} and {inside:.1f}")
 
 
 if __name__ == "__main__":

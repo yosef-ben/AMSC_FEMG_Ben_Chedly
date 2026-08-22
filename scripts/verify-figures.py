@@ -727,11 +727,6 @@ def check_23_stabilization(report):
     # the strings from the summary and require them verbatim.
     chapter = Path("report/chapter4_connectome.tex").read_text(
         encoding="utf-8")
-    for scheme, scaling, what in (("be", "0.05", "consistent"),
-                                  ("be_lumped", "0.005", "lumped")):
-        value = float(table[(scheme, scaling)]["lobe_spread_years"])
-        report.check_contains(name, f"chapter states the {what} FEM spread",
-                              chapter, f"${value:.1f}$ years")
 
 
 def check_23_mass_spectrum(report):
@@ -795,40 +790,65 @@ def check_23_mass_spectrum(report):
     report.check(name, "ratio of Fiedler values, consistent",
                  ratio_consistent, 12.16)
 
-    # The footnote of the Damkohler section states these numbers; derive
-    # its strings from the recomputed values and the stored sweep.
+    # The Damkohler section states these numbers; derive its strings from
+    # the recomputed values.
     chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
         encoding="utf-8").split())
+    words = {11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen"}
     for label, needle in (
-            ("lumped lambda_2", f"${recomputed['lumped']:.3f}$ with the "
-                                f"lumped mass"),
-            ("consistent lambda_2", f"${recomputed['consistent']:.3f}$ with "
-                                    f"the consistent one"),
-            ("identity lambda_2",
-             f"instead of ${recomputed['identity']:.3f}$"),
-            ("mean lumped mass", f"${lumped.mean():.1f}$ on average"),
-            ("lumped mass range",
-             f"from ${lumped.min():g}$ to ${lumped.max():g}$"),
-            ("ratio range", f"between ${math.floor(ratio_consistent)}$ and "
-                            f"${math.ceil(ratio_lumped)}$ times larger")):
+            ("consistent lambda_2", f"from ${recomputed['consistent']:.4f}$ "
+                                    f"(the value of the consistent mass) to "
+                                    f"${recomputed['lumped']:.4f}$"),
+            ("identity lambda_2", f"$\\lambda_2 = {recomputed['identity']:.4f}$"),
+            ("lumped mass of the frontal pole",
+             f"${lumped.min():g}$ at the frontal pole"),
+            ("lumped mass of the caudate", f"${lumped.max():g}$ at the caudate"),
+            ("ratio range", f"{words[math.floor(ratio_consistent)]} to "
+                            f"{words[math.ceil(ratio_lumped)]} times smaller"),
+            ("nodal Da at rho = 1",
+             f"$\\mathrm{{Da}}={0.5 / recomputed['identity']:.2f}$"),
+            ("FEM Da at rho = 1",
+             f"$\\mathrm{{Da}}={0.5 / recomputed['consistent']:.1f}$")):
         report.check_contains(name, f"chapter states the {label}", chapter,
                               needle)
-    # The Damkohler number of the finite element model at rho = 0.05 and
-    # the nodal spreads that bracket it in the stored sweep.
-    effective = 0.5 / (0.05 * recomputed["consistent"])
-    report.check_contains(name, "chapter states the effective Da", chapter,
-                          f"correspond to $\\mathrm{{Da}} \\approx "
-                          f"{round(effective, -1):.0f}$")
-    sweep = sorted(((float(r["damkohler"]), float(r["lobe_spread_years"]))
-                    for r in read_csv(
-                        BENCH / "23_fisher_kolmogorov_diffusion_scaling"
-                                "/results/diffusion_scaling.csv")))
-    below = max(s for d, s in sweep if d < effective)
-    above = min(s for d, s in sweep if d > effective)
-    report.check_contains(name, "chapter states the bracketing nodal spreads",
-                          chapter, f"between ${below:.1f}$ and ${above:.1f}$ years")
     report.check(name, "chapter never says Fiedler",
                  float(chapter.count("Fiedler")), 0.0)
+
+
+def check_23_boundary_prose(report):
+    """The stabilization subsection quotes the extremes of the consistent
+    mass, the stopping time, the Newton safeguard and the divergence of the
+    semi-implicit scheme; derive the strings from the stored summary, the
+    source of the library and the benchmark record."""
+    name = "23 boundary prose"
+    rows = {(r["scheme"], r["diffusion_scaling"]): r for r in read_csv(
+        BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
+                "/diffusion_scaling_summary_rows.csv")}
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    literal = float(rows[("be", "1.0")]["min_concentration"])
+    mantissa, exponent = f"{literal:.1e}".split("e")
+    report.check_contains(name, "chapter states the undershoot at Da 0.65",
+                          chapter, f"${mantissa}\\cdot10^{{{int(exponent)}}}$")
+    report.check_contains(name, "chapter states the extremes at Da 12.9",
+                          chapter, f"it reaches ${float(rows[('be', '0.05')]['min_concentration']):.2f}$ "
+                          f"and the maximum reaches ${float(rows[('be', '0.05')]['max_concentration']):.2f}$")
+    report.check_contains(name, "chapter states the extremes at Da 129",
+                          chapter, f"reach ${float(rows[('be', '0.005')]['min_concentration']):.2f}$ "
+                          f"and ${float(rows[('be', '0.005')]['max_concentration']):.2f}$ by "
+                          f"$t={float(rows[('be', '0.005')]['last_stored_time']):g}$ years")
+    source = Path("FEMG/include/fisher_kolmogorov_problem.hpp").read_text()
+    match = re.search(r"newton_admissible_range_ = ([0-9.]+);", source)
+    bound = float(match.group(1))
+    report.check_contains(name, "chapter states the Newton safeguard", chapter,
+                          f"leaving the interval $[-{bound:g},{1 + bound:g}]$")
+    record = Path(BENCH / "23_fisher_kolmogorov_diffusion_scaling/README.md").read_text()
+    match = re.search(r"metric-graph FEM \[(-?[0-9.]+),\s+([0-9.]+)\]", record)
+    low, high = float(match.group(1)), float(match.group(2))
+    report.check_contains(name, "chapter states the semi-implicit divergence",
+                          chapter, f"diverges to $[{round(low)},{round(high)}]$")
+    report.check_contains(name, "chapter states the literal-scale crossings",
+                          chapter, "from $12.68$ to $12.72$ years")
 
 
 def check_23_lobe_scale(report):
@@ -952,6 +972,134 @@ def check_23_lobe_scale(report):
                  first_above(lumped_points), 2.897)
     report.check(name, "consistent: first point above one year, Da_lobe",
                  first_above(consistent_points), 2.258)
+    # Where each model enters the band of the reference separation, 5.5
+    # years with a margin of 15 percent, between two stored points.
+    low = 5.5 * 0.85
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    for label, points, before, inside in (
+            ("nodal", nodal_points, 10.0, 25.0),
+            ("lumped", lumped_points, 5.8, 11.6),
+            ("consistent", consistent_points, 4.5, 9.0)):
+        points = sorted(points)
+        last_below = max(d for d, s in points if s < low)
+        first_inside = min(d for d, s in points if s >= low)
+        report.check(name, f"{label}: last point below the reference band",
+                     last_below, before)
+        report.check(name, f"{label}: first point inside the reference band",
+                     first_inside, inside)
+    report.check_contains(name, "chapter reads the reference band off panel (b)",
+                          chapter, "is reached by every model at "
+                          "$\\mathrm{Da}_{\\mathrm{lobe}}$ of order ten")
+
+
+def check_23_lobe_order(report):
+    """The prose of the Damkohler section on the lobe-scale rates and on the
+    order of the lobes, against the edge list and the stored tau run."""
+    import numpy as np
+    from scipy.stats import spearmanr
+    name = "23 lobe order"
+    base = BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
+    record = {row["model"]: row for row in read_csv(base / "lobe_damkohler.csv")}
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    nodal_rates = [float(v) for v in record["nodal"]["lobe_rates"].split()]
+    needles = [
+        ("lobe-scale rates of the nodal model",
+         f"from ${nodal_rates[0]:.1f}$ to ${nodal_rates[-1]:.1f}$"),
+        ("temporal-occipital contrast",
+         f"relaxing at ${float(record['nodal']['temporal_occipital_rate']):.1f}$"),
+        ("FEM lobe rates",
+         f"${float(record['consistent']['lobe_rate']):.2f}$ with the consistent "
+         f"mass and ${float(record['lumped']['lobe_rate']):.2f}$ with the lumped"),
+        ("Da_lobe at rho = 1",
+         f"${float(record['nodal']['damkohler_lobe_rho_1']):.2f}$ for the nodal "
+         f"model and ${float(record['consistent']['damkohler_lobe_rho_1']):.2f}$ "
+         f"and ${float(record['lumped']['damkohler_lobe_rho_1']):.2f}$"),
+        ("caption: columns in Da_lobe",
+         "$0.05$, $1.0$ and $10.0$ for the nodal row and at $0.45$ and $0.58$, "
+         "$9.0$ and $11.6$, $90$ and $116$"),
+    ]
+    # The caption numbers against the summary of the figure.
+    summary = read_csv(base / "diffusion_scaling_summary_rows.csv")
+    printed = {("nodal", "1.0"): 0.05, ("nodal", "0.05"): 1.0,
+               ("nodal", "0.005"): 10.0, ("be", "1.0"): 0.45,
+               ("be", "0.05"): 9.0, ("be", "0.005"): 90.0,
+               ("be_lumped", "1.0"): 0.58, ("be_lumped", "0.05"): 11.6,
+               ("be_lumped", "0.005"): 116.0}
+    for row in summary:
+        key = (row["scheme"], row["diffusion_scaling"])
+        value = float(row["damkohler_lobe"])
+        shown = (round(value) if value >= 50.0
+                 else round(value, 1) if value >= 0.995 else round(value, 2))
+        report.check(name, f"caption Da_lobe {key[0]} rho={key[1]}", shown,
+                     printed[key])
+
+    # Per-region coupling to the temporal lobe and the crossing times of the
+    # stored tau run (the run of panel (i)).
+    keys = {"temporal": ("temporal", "bankssts", "entorhinal", "fusiform",
+                         "parahippocampal"),
+            "frontal": ("frontal", "orbitofrontal", "parsopercularis",
+                        "parsorbitalis", "parstriangularis", "precentral"),
+            "parietal": ("parietal", "postcentral", "precuneus",
+                         "supramarginal", "paracentral"),
+            "occipital": ("cuneus", "occipital", "lingual", "pericalcarine")}
+    names, lobes = {}, {}
+    for row in read_csv(Path("data/connectome/fornari83/nodes.csv")):
+        index = int(row["node_id"])
+        names[index] = row["name"].lower()
+        lobes[index] = next((g for g, words in keys.items()
+                             if any(w in names[index] for w in words)), "other")
+    coupling = {i: 0.0 for i in names}
+    for edge in read_csv(Path("data/connectome/fornari83/edges.csv")):
+        i, j = int(edge["source"]), int(edge["target"])
+        w = float(edge["connectivity_weight"])
+        if lobes[j] == "temporal":
+            coupling[i] += w
+        if lobes[i] == "temporal":
+            coupling[j] += w
+    tau = read_csv(BENCH / "27_connectome_seeding_patterns/results"
+                          "/tau_profiles.csv")
+    times = [float(r["time"]) for r in tau]
+    stats = {}
+    for lobe in ("occipital", "parietal", "frontal"):
+        members = [i for i, g in lobes.items() if g == lobe]
+        w = np.array([coupling[i] for i in members])
+        t = np.array([crossing(times, [100.0 * float(r[f"node_{i}"])
+                                        for r in tau], 50.0) for i in members])
+        stats[lobe] = (w.sum(), w.mean(), float(np.median(w)),
+                       float(spearmanr(t, w).correlation))
+    report.check(name, "occipital: coupling to the temporal lobe",
+                 stats["occipital"][0], 55.58)
+    report.check(name, "occipital: mean per region", stats["occipital"][1],
+                 6.95)
+    report.check(name, "occipital: median per region", stats["occipital"][2],
+                 5.36)
+    report.check(name, "parietal: coupling to the temporal lobe",
+                 stats["parietal"][0], 74.99)
+    report.check(name, "parietal: mean per region", stats["parietal"][1],
+                 6.25)
+    report.check(name, "parietal: median per region", stats["parietal"][2],
+                 3.32)
+    inferior = sum(coupling[i] for i in names if "inferiorparietal" in names[i])
+    report.check(name, "parietal: the two inferior parietal cortices",
+                 inferior, 49.42)
+    for lobe, expected in (("occipital", -0.95), ("parietal", -0.92),
+                           ("frontal", -0.78)):
+        report.check(name, f"{lobe}: rank correlation of crossing and coupling",
+                     stats[lobe][3], expected)
+    needles += [
+        ("occipital per-region coupling",
+         f"an average of ${stats['occipital'][1]:.1f}$ per region and a median "
+         f"of ${stats['occipital'][2]:.1f}$"),
+        ("parietal per-region coupling",
+         f"an average of ${stats['parietal'][1]:.1f}$ and a smaller median of "
+         f"${stats['parietal'][2]:.1f}$"),
+        ("inferior parietal share", f"${inferior:.1f}$ of the total parietal"),
+    ]
+    for label, needle in needles:
+        report.check_contains(name, f"chapter states the {label}", chapter,
+                              needle)
 
 
 def check_27(report):
@@ -1068,19 +1216,15 @@ def check_27(report):
         encoding="utf-8").split())
     for label, needle in (
             ("damkohler temporal couplings",
-             f"parietal lobe with a total connectivity of "
-             f"${coupling[('parietal', 'temporal')]:.1f}$ and to the "
-             f"occipital one with ${coupling[('occipital', 'temporal')]:.1f}$"),
+             f"with total weight ${coupling[('parietal', 'temporal')]:.1f}$, "
+             f"and to the occipital lobe, with total weight "
+             f"${coupling[('occipital', 'temporal')]:.1f}$"),
             ("damkohler direct frontal coupling",
-             f"direct coupling to the frontal lobe is "
+             f"frontal lobe is much weaker, with total weight "
              f"${coupling[('frontal', 'temporal')]:.1f}$"),
-            ("damkohler second step",
-             f"through the parietal lobe, "
-             f"${coupling[('frontal', 'parietal')]:.1f}$, and through the "
-             f"deep regions, ${coupling[('frontal', 'other')]:.1f}$"),
             ("frontal pole degree",
-             f"weighted degree ${min(weighted_degree.values()):.2f}$, "
-             f"the minimum")):
+             f"smallest weighted degree of the entire graph, "
+             f"${min(weighted_degree.values()):.2f}$")):
         report.check_contains(name, f"staging prose states the {label}",
                               chapter, needle)
 
@@ -1299,7 +1443,7 @@ def main():
                   check_19_topology, check_connectome_consistency,
                   check_19_scheme, check_20, check_21, check_22, check_23,
                   check_23_stabilization, check_23_mass_spectrum,
-                  check_23_lobe_scale,
+                  check_23_boundary_prose, check_23_lobe_scale, check_23_lobe_order,
                   check_24_views, check_25, check_26,
                   check_26_order, check_27):
         try:
