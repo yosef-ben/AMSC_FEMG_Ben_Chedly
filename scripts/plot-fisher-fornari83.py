@@ -77,7 +77,7 @@ def render_inset(path):
     table = rc.lookup_table(palette, -0.5, len(order) - 0.5,
                             samples=len(order))
     coords = np.array([node["coords"] for node in nodes])
-    rc.render(path, "sagittal_right", coords, values, table,
+    rc.render(path, "sagittal", coords, values, table,
               node_radius=3.6, scale=rc.common_scale(),
               size=(2200, 1800), surface_opacity=0.075)
     return path

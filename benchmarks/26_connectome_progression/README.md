@@ -100,10 +100,16 @@ the solution does not contain. The scattered `c = 0.5` marks in the section are
 the visual counterpart of the same fact, the level set is not a localised
 surface.
 
-`10` of the `10170` degrees of freedom never reach `0.5` within the horizon;
+`9` of the `10170` sampling points of the output (nine per connection; the
+run has `7993` degrees of freedom) never reach `0.5` within the horizon;
 they take the late end of the ramp and are counted in the caption.
 
 ## The control that isolates the biology
+
+The anatomical panels of `results/activation_order` are rendered from the
+left side of the head, frontal pole to the left, like every sagittal view of
+the report (the verification checks it).
+
 
 The refined simulation is repeated with the seven regional rates replaced by
 their vertex mean, `0.1252` (the `uniform` mode of the executable): the

@@ -90,6 +90,28 @@ Alzheimer-like datum is used. Entorhinal and hippocampal regions start from
 `c=0.10`; all remaining regions start from `c=0.01`. This choice creates
 four seed nodes and must not be interpreted as patient data.
 
+## The scaling in the numbers of benchmark 23
+
+The normalized diffusivity is a uniform scaling `rho = 1/max(w) = 0.0283`
+of the connectivity. With the mean of the regional rates over the 83
+vertices, `0.1252` (the rate of the uniform control of benchmark 26), the
+nominal Damkohler number is `Da = 5.72` and the lobe-scale number of the
+consistent mass is `Da_lobe = 4.0` (lobe rate `1.1073` from benchmark 23,
+times `rho`: `0.03135`). That lobe rate is tabulated at one element per
+connection, while this run uses four: with the consistent mass the quotient
+over patterns constant on the groups and linear across the connections
+between groups is the same at any refinement, because P1 elements reproduce
+a linear ramp and integrate its square exactly. The verification assembles
+the stiffness and consistent mass of the four-element mesh (3473 degrees of
+freedom) as the run does and recovers the same rate to five digits,
+`0.031350`, hence `Da_lobe = 3.99`; the eight-element mesh of benchmark 26
+gives the same. The global rate does move with refinement (`rho * lambda_2`
+from `0.001799` at one element to `0.001709` at four and `0.001703` at
+eight), which is why the report uses the nominal number and the lobe number,
+not one built on the model's own `lambda_2`. The metric mean of the rate
+interpolated along the connections is `0.1229`, two percent below the vertex
+mean; the report states the vertex mean as its convention.
+
 ## Results
 
 The solution remains inside the physical interval throughout the run. At

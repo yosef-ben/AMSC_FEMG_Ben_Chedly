@@ -193,7 +193,7 @@ def main():
                    facecolor="white")
     print(f"Saved {args.output}")
     print(f"  activation between {low:g} and {high:g} years; "
-          f"{never} of {len(activation)} degrees of freedom never reach "
+          f"{never} of {len(activation)} sampling points never reach "
           f"{LEVEL:g}")
     print(f"  correlation with local alpha {with_rate:+.3f}, "
           f"with graph distance {with_distance:+.3f}, "

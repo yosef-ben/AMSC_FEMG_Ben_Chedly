@@ -89,6 +89,14 @@ lobe with the crossing of the lobe mean marked.
 
 ## Expected-against-obtained composite
 
+The computed rows are rendered from the left side of the head, the frontal
+pole to the left of the image, which is the orientation of the clinical
+strips above them (medial view, cerebellum to the right); an earlier version
+rendered them from the right and was mirrored with respect to the strips.
+The verification checks the orientation of every sagittal view of the
+report.
+
+
 The report opens with `results/seeding_patterns_expected.pdf`, which places
 each computed row below the corresponding clinical staging strip of figure 1
 of Weickenmeier et al. (p. 266; the drawings are adopted there from Jucker

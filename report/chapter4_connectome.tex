@@ -685,27 +685,34 @@ The conversion rate is the parameter that sets the time scale of the disease. In
 The reaction coefficient is piecewise constant over seven anatomical groups and
 takes the mean values estimated in table 1 of the reference: $0.1801$ in the
 frontal lobe, $0.1421$ temporal, $0.0627$ parietal, $0.1005$ insular, $0.1351$
-limbic, $0.0545$ occipital and $0.1147$ in the subcortical nuclei. The nodal
+limbic, $0.0545$ occipital and $0.1147$ in the subcortical nuclei, a factor
+$3.3$ between the fastest and the slowest group. The nodal
 values are interpolated linearly along each connection. The diffusivity is the
 normalized connectivity $D_e = w_e/\max_e w_e$, a choice of ours, since the
 reference does not state the scale of its weights. In the terms of
 Section~\ref{sec:damkohler} it is a uniform scaling $\rho = 1/\max_e w_e =
 0.0283$, which together with the mean of the regional rates over the $83$
-vertices, $0.1252$, gives $\mathrm{Da} = 5.73$: the simulation sits on the
-other side of the crossover from the unit-scale comparison of
-Section~\ref{sec:comparison}, which is why its regional curves separate
-clearly while those coincided.
+vertices, $0.1252$, gives $\mathrm{Da} = 5.72$ and, for the finite element
+model with the consistent mass, $\mathrm{Da}_{\mathrm{lobe}} = 4.0$. The
+simulation therefore sits beyond the onset of Section~\ref{sec:damkohler},
+where the transport alone already separates the groups by a few years, and
+the regional rates add their own separation on top; the control experiment
+at the end of the section measures the two contributions.
 
 The time discretization is the semi-implicit scheme
-of Table~\ref{tab:integrators}, which is the one the reference adopts. We use
+of Table~\ref{tab:integrators}, which is the one the reference adopts, with
+the consistent mass, valid at this scaling by the boundary of
+Section~\ref{sec:boundary}. We use
 $\Delta t = 0.2$ years, four elements per connection, $3473$ degrees of freedom
 and a horizon of $20$ years, and we replace the unavailable PET projection by a documented
 synthetic datum: entorhinal and hippocampal regions start at $c = 0.10$ and all
 others at $c = 0.01$.
 
-The solution stays in $[0.0250, 0.6536]$ throughout, every regional average
-grows monotonically, and the mean concentration sampled at the $83$ anatomical
-vertices rises from $0.0143$ to $0.1578$. The absolute levels are far below
+The finite element field stays within $[0.01, 0.6532]$ over the twenty
+years, the lower bound being the background of the initial datum, and at
+$T = 20$ it ranges from $0.0239$ to $0.6532$; every regional average grows
+monotonically, and the mean concentration sampled at the $83$ anatomical
+vertices rises from $0.0143$ to $0.1580$. The absolute levels are far below
 those of the reference, as they must be given the different initial datum, but
 the ordering of the regions can be compared, and Table~\ref{tab:corti} does so.
 Twenty of the twenty-one pairwise orderings agree, a rank correlation of
@@ -760,9 +767,11 @@ the central curve has a counterpart.}
 \label{fig:regional}
 \end{figure}
 
-The same run, refined to eight elements per connection and extended to $60$
+The same run, refined to eight elements per connection ($7993$ degrees of
+freedom) and extended to $60$
 years, settles how the network is recruited. Colouring each of the
-$10\,170$ degrees of freedom with the first year its concentration reaches
+$10\,170$ sampling points of the output, nine per connection, with the first
+year its concentration reaches
 $0.5$ gives an anterior-to-posterior gradient whose obvious reading, a front
 travelling outward from the seed, is wrong: over the region vertices the
 activation time correlates with the local reaction coefficient at
@@ -776,9 +785,9 @@ of Section~\ref{sec:damkohler} reached independently.
 The role of the calibrated rates is then isolated by a control experiment,
 in the construction of the infection-time figure of~\cite{fornari2019prion}.
 The same refined simulation is repeated with the seven regional rates
-replaced by their vertex mean, $0.1252$: the reaction budget and the
-Damk\"ohler number are unchanged, and the only anatomy left in the model is
-the connectivity. Figure~\ref{fig:activationorder} colours every vertex by
+replaced by their vertex mean, $0.1252$: the reaction budget, $\mathrm{Da}$
+and $\mathrm{Da}_{\mathrm{lobe}}$ are unchanged, and the only anatomy left in
+the model is the connectivity. Figure~\ref{fig:activationorder} colours every vertex by
 its activation time, the first stored year at which the concentration
 reaches $0.5$, for the two variants. With the calibrated rates the mean
 group activation runs from $30.2$ years in the frontal group, first as in
@@ -787,10 +796,13 @@ four clear years, which is the clinical tail of the staging. With the
 uniform rate the picture inverts into the connectivity's order: the total
 spread collapses from $12.9$ to $3.0$ years, the occipital group moves up
 to $35.0$ years, and the frontal group, dragged by its weakly connected
-pole, activates last at $36.2$ years. On this connectome the clinical order
-of the groups is therefore carried by the regional biology and not by the
-network, which is the conclusion of Section~\ref{sec:damkohler} reached
-from the opposite side. The staged concentration sections of this run
+pole, activates last at $36.2$ years. The three years that remain are the
+separation the transport produces by itself at
+$\mathrm{Da}_{\mathrm{lobe}} = 4.0$, in the order of the connectivity; the
+other ten are the regional rates, in the clinical order. On this connectome
+the clinical order of the groups is therefore carried by the regional
+biology and not by the network, which is the conclusion of
+Section~\ref{sec:damkohler} reached from the opposite side. The staged concentration sections of this run
 remain in the benchmark record.
 
 % ---------------------------------------------------------------------

@@ -49,7 +49,7 @@ from render_connectome import (common_box, common_scale, lookup_table,
 # graph alone, as in the printed figure, so its surface is fully transparent
 # (the invisible actor still frames the camera like the other panels).
 PANELS = (
-    ("sagittal_right", "sagittal", "left", 0.08),
+    ("sagittal", "sagittal", "left", 0.08),
     ("coronal", "coronal", "right", 0.08),
     ("longitudinal", "longitudinal", "left", 0.08),
     ("oblique", None, None, 0.0),

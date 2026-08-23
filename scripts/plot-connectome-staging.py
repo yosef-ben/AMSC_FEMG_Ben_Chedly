@@ -138,7 +138,7 @@ def render_stage(output, coords, concentration, table, scale):
     window.AddRenderer(renderer)
     window.SetSize(1250, 950)
 
-    direction, up = rc.CAMERA["sagittal_right"]
+    direction, up = rc.CAMERA["sagittal"]
     renderer.ResetCamera()
     camera = renderer.GetActiveCamera()
     focal = np.array(camera.GetFocalPoint())

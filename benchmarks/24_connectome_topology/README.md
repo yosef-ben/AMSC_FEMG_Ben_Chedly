@@ -54,7 +54,10 @@ sagittal, a coronal, a longitudinal and an unlabelled oblique view, the last
 showing the graph without the surface, as the printed panel does; uniform
 silver spheres at the 83 vertices, and the 1130 connections drawn with colour
 and thickness both growing with the fibre number, over a rainbow bar
-labelled only at its ends, centred under the views. Two departures from the printed figure are
+labelled only at its ends, centred under the views. The sagittal view is
+taken from the left side of the head, frontal pole to the left, as in the
+printed figure and in every sagittal view of the report (an earlier version
+had it from the right, mirrored). Two departures from the printed figure are
 deliberate and stated in the report caption as well. The vertex coordinates
 and the pial surface are the ones distributed with the public Budapest
 Reference Connectome viewer, not the MRI-based brain model of the reference,

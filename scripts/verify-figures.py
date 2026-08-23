@@ -562,6 +562,134 @@ def check_21(report):
     spearman = 1 - 6 * squared / (len(corti) * (len(corti) ** 2 - 1))
     report.check(name, "rank correlation", spearman, 0.9643)
 
+    # The numbers the section quotes for the configuration and the run.
+    import numpy as np
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    rates = [float(r["alpha"]) for r in read_csv(
+        BENCH / "21_fisher_kolmogorov_corti83/results"
+                "/reaction_coefficients.csv")]
+    weights = [float(e["connectivity_weight"]) for e in read_csv(
+        Path("data/connectome/fornari83/edges.csv"))]
+    mean_rate = sum(rates) / len(rates)
+    rho = 1.0 / max(weights)
+    lobe_rate = next(float(r["lobe_rate"]) for r in read_csv(
+        BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
+                "/lobe_damkohler.csv") if r["model"] == "consistent")
+    report.check(name, "mean regional rate", mean_rate, 0.1252)
+    report.check(name, "nominal Damkohler number",
+                 mean_rate / (rho * 0.772254), 5.72)
+    report.check(name, "lobe Damkohler number, consistent mass",
+                 mean_rate / (rho * lobe_rate), 3.99)
+    # The lobe rate stored by benchmark 23 is computed at one element per
+    # connection; the run uses four. With the consistent mass the quotient
+    # over lobe-constant patterns, linear across the connections between
+    # groups, is the same at any refinement, because P1 elements reproduce
+    # a linear ramp and integrate its square exactly. Checked by assembling
+    # the operators of the four-element mesh, as the run does, with the
+    # normalized diffusivity w/max(w).
+    import scipy.sparse as sparse
+    from scipy.linalg import eigh as dense_eigh
+    groups_of = {}
+    keys = {"temporal": ("temporal", "bankssts", "entorhinal", "fusiform",
+                         "parahippocampal"),
+            "frontal": ("frontal", "orbitofrontal", "parsopercularis",
+                        "parsorbitalis", "parstriangularis", "precentral"),
+            "parietal": ("parietal", "postcentral", "precuneus",
+                         "supramarginal", "paracentral"),
+            "occipital": ("cuneus", "occipital", "lingual", "pericalcarine")}
+    for row in read_csv(Path("data/connectome/fornari83/nodes.csv")):
+        lowered = row["name"].lower()
+        groups_of[int(row["node_id"])] = next(
+            (g for g, words in keys.items()
+             if any(w in lowered for w in words)), "other")
+    order = ("temporal", "frontal", "parietal", "occipital", "other")
+    edge_rows = read_csv(Path("data/connectome/fornari83/edges.csv"))
+    cells = 4
+    size = 83 + (cells - 1) * len(edge_rows)
+    stiffness = sparse.lil_matrix((size, size))
+    mass = sparse.lil_matrix((size, size))
+    prolongation = np.zeros((size, len(order)))
+    for vertex in range(83):
+        prolongation[vertex, order.index(groups_of[vertex])] = 1.0
+    step = 1.0 / cells
+    next_dof = 83
+    for edge in edge_rows:
+        i, j = int(edge["source"]), int(edge["target"])
+        diffusivity = float(edge["connectivity_weight"]) * rho
+        chain = [i] + list(range(next_dof, next_dof + cells - 1)) + [j]
+        next_dof += cells - 1
+        for k, dof in enumerate(chain[1:-1], start=1):
+            prolongation[dof, order.index(groups_of[i])] += 1.0 - k * step
+            prolongation[dof, order.index(groups_of[j])] += k * step
+        for a, b in zip(chain[:-1], chain[1:]):
+            for (r, c, sign) in ((a, a, 1), (b, b, 1), (a, b, -1), (b, a, -1)):
+                stiffness[r, c] += sign * diffusivity / step
+            mass[a, a] += step / 3
+            mass[b, b] += step / 3
+            mass[a, b] += step / 6
+            mass[b, a] += step / 6
+    report.check(name, "degrees of freedom of the four-element mesh",
+                 float(size), 3473.0)
+    coarse_h = prolongation.T @ stiffness.tocsr() @ prolongation
+    coarse_m = prolongation.T @ mass.tocsr() @ prolongation
+    refined_rate = float(np.sort(dense_eigh(coarse_h, coarse_m,
+                                            eigvals_only=True))[1])
+    report.check(name, "lobe rate on the four-element mesh, scaled by rho",
+                 refined_rate, rho * lobe_rate)
+    report.check(name, "lobe Damkohler number on the four-element mesh",
+                 mean_rate / refined_rate, 3.99)
+    report.check(name, "ratio of the extreme rates", max(rates) / min(rates),
+                 3.30)
+    global_values = [float(r["global"]) for r in rows]
+    for label, needle in (
+            ("scaling", f"$\\rho = 1/\\max_e w_e = {rho:.4f}$"),
+            ("Damkohler numbers",
+             f"${mean_rate:.4f}$, gives $\\mathrm{{Da}} = "
+             f"{mean_rate / (rho * 0.772254):.2f}$ and, for the finite "
+             f"element model with the consistent mass, "
+             f"$\\mathrm{{Da}}_{{\\mathrm{{lobe}}}} = "
+             f"{mean_rate / (rho * lobe_rate):.1f}$"),
+            ("rate ratio", f"a factor ${max(rates) / min(rates):.1f}$ between "
+                           f"the fastest and the slowest group"),
+            ("mean rise", f"rises from ${global_values[0]:.4f}$ to "
+                          f"${global_values[-1]:.4f}$")):
+        report.check_contains(name, f"regional-rate prose states the {label}",
+                              chapter, needle)
+    monotone = all(all(float(rows[k][g]) > float(rows[k - 1][g])
+                       for k in range(1, len(rows)))
+                   for g in expected)
+    report.check(name, "every regional average grows monotonically",
+                 1.0 if monotone else 0.0, 1.0)
+    # The range of the full finite element field needs the solution files
+    # of the run, which are not stored; checked when they are present.
+    paths = sorted(glob.glob("output/fisher_kolmogorov/corti83"
+                             "/solution_*.vtp"))
+    try:
+        import vtk
+    except ImportError:
+        vtk = None
+    if paths and vtk is not None:
+        low, high, final = math.inf, -math.inf, None
+        for path in sorted(paths, key=lambda q: int(
+                re.search(r"solution_(\d+)\.vtp$", q).group(1))):
+            reader = vtk.vtkXMLPolyDataReader()
+            reader.SetFileName(path)
+            reader.Update()
+            final = reader.GetOutput().GetPointData().GetArray("c").GetRange()
+            low, high = min(low, final[0]), max(high, final[1])
+        report.check(name, "field minimum over the run", low, 0.01)
+        report.check(name, "field maximum over the run", high, 0.6532)
+        report.check(name, "field minimum at T", final[0], 0.0239)
+        report.check_contains(
+            name, "regional-rate prose states the field range", chapter,
+            f"stays within $[{low:.2f}, {high:.4f}]$ over the twenty years")
+        report.check_contains(
+            name, "regional-rate prose states the final range", chapter,
+            f"ranges from ${final[0]:.4f}$ to ${final[1]:.4f}$")
+    else:
+        report.note(name, "field range", "skipped, run benchmark 21 first")
+
     # The report states that the ordering does not rest on the chosen
     # normalization: over six weight scales the agreement stays between 18
     # and 21 of 21, occipital last and frontal/limbic first at every scale.
@@ -1542,6 +1670,56 @@ def check_26_order(report):
                  "years")
 
 
+def check_orientation(report):
+    """Every sagittal view of the report faces the same way as the staging
+    drawings of Weickenmeier et al. and figures 1 and 5 of Fornari et al.:
+    the frontal pole to the left of the image. Checked statically, no report
+    script may use the mirror camera, and by rendering the frontal poles."""
+    name = "anatomy orientation"
+    scripts = ("plot-fisher-fornari83.py", "plot-fornari-connectome-topology.py",
+               "plot-connectome-views.py", "plot-connectome-regions.py",
+               "plot-corti-activation-order.py", "plot-connectome-staging.py")
+    for script in scripts:
+        text = Path("scripts") / script
+        report.check(name, f"{script} uses the left-side camera",
+                     0.0 if "sagittal_right" in text.read_text() else 1.0, 1.0)
+    try:
+        import vtk  # noqa: F401
+        import numpy as np
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from PIL import Image
+    except ImportError:
+        report.note(name, "render", "skipped, vtk or PIL not installed")
+        return
+    sys.path.insert(0, "scripts")
+    import render_connectome as rc
+    from connectome_style import load_nodes
+    nodes = load_nodes()
+    coords = np.array([node["coords"] for node in nodes])
+    values = np.array([1.0 if "frontalpole" in node["name"].lower() else 0.0
+                       for node in nodes])
+    table = rc.lookup_table(plt.cm.viridis, 0.0, 1.0)
+    import tempfile
+    with tempfile.TemporaryDirectory() as scratch:
+        for view, side in (("sagittal", "left"), ("sagittal_right", "right")):
+            path, _ = rc.render(Path(scratch) / f"{view}.png", view, coords,
+                                values, table, node_radius=5.0,
+                                size=(900, 700))
+            image = np.asarray(Image.open(path).convert("RGB"), dtype=float)
+            yellow = ((image[:, :, 0] > 200) & (image[:, :, 1] > 200)
+                      & (image[:, :, 2] < 120))
+            columns = np.nonzero(yellow)[1]
+            fraction = float(columns.mean()) / image.shape[1]
+            report.check(name, f"frontal pole on the {side} in the "
+                         f"{view} view",
+                         1.0 if (fraction < 0.5) == (side == "left") else 0.0,
+                         1.0)
+            report.note(name, f"frontal pole column fraction, {view}",
+                        f"{fraction:.2f}")
+
+
 def main():
     report = Report()
     for check in (check_18, check_18_timestep, check_19, check_19_accuracy,
@@ -1550,7 +1728,7 @@ def main():
                   check_23_stabilization, check_23_mass_spectrum,
                   check_23_boundary_prose, check_23_lobe_scale, check_23_lobe_order,
                   check_24_views, check_25, check_26,
-                  check_26_order, check_27):
+                  check_26_order, check_27, check_orientation):
         try:
             check(report)
         except FileNotFoundError as error:

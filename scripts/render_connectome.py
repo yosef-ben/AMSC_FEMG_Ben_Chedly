@@ -21,10 +21,15 @@ from vtk.util import numpy_support
 SURFACE = Path("data/connectome/anatomy/brain_surface.vtk")
 
 # Camera position and up direction for each anatomical projection, in the
-# right/anterior/superior frame of the data. The last three are the
-# projections of the brain-network figure of Fornari et al.: the sagittal
-# view taken from the right so the frontal pole points left, the top-down
-# view with the anterior direction to the left, and the unlabelled oblique.
+# right/anterior/superior frame of the data. "sagittal" places the camera on
+# the left side of the head, so the frontal pole points to the left of the
+# image: this is the orientation of the staging drawings of Weickenmeier et
+# al. and of figures 1 and 5 of Fornari et al., and every sagittal view of
+# the report uses it (the verification renders the frontal pole and checks
+# the side). "sagittal_right" is the mirror view from the right side, with
+# the frontal pole to the right; it is kept for the record and not used by
+# the report figures. "longitudinal" is the top-down view with the anterior
+# direction to the left and "oblique" the unlabelled view of Fornari et al.
 CAMERA = {
     "sagittal": ((-1.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
     "coronal": ((0.0, 1.0, 0.0), (0.0, 0.0, 1.0)),

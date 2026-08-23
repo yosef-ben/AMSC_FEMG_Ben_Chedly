@@ -158,7 +158,7 @@ def render_brain(output, coords, radii, table, edges, scale,
     window.AddRenderer(renderer)
     window.SetSize(*size)
 
-    direction, up = rc.CAMERA["sagittal_right"]
+    direction, up = rc.CAMERA["sagittal"]
     renderer.ResetCamera()
     camera = renderer.GetActiveCamera()
     focal = np.array(camera.GetFocalPoint())

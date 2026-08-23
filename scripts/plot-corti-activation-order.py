@@ -167,7 +167,7 @@ def main():
                 anatomy, (("regional", "regional rates"),
                           ("uniform", "uniform mean rate"))):
             panels.append((axis, title, rc.render(
-                Path(scratch) / f"{label}.png", "sagittal_right", coords,
+                Path(scratch) / f"{label}.png", "sagittal", coords,
                 variants[label][2], table, node_radius=3.4,
                 size=(2000, 1650), scale=scale,
                 surface_opacity=0.075)[0]))

@@ -39,6 +39,17 @@ disagree. Run it from the project root:
 
 ## Rules the figures follow
 
+- Every sagittal view of the report is taken from the left side of the head,
+  so the frontal pole points to the left of the image. This is the
+  orientation of the staging drawings of Weickenmeier et al. (medial view,
+  cerebellum to the right) and of figures 1 and 5 of Fornari et al., and
+  `verify-figures.py` checks it both statically (no report script uses the
+  mirror camera `sagittal_right`) and by rendering the frontal poles. The
+  views of `24/connectome_views`, `19/connectome_topology`, the inset of
+  `19/biomarker_comparison`, `26/activation_order` and the computed rows of
+  `27/seeding_patterns_expected` were taken from the right side until the
+  orientation was unified; the data behind them did not change.
+
 - No curve is smoothed, resampled or fitted. Where a line joins points, the
   points are the stored samples.
 - Colour scales are stated numerically at their ends and are common to all
