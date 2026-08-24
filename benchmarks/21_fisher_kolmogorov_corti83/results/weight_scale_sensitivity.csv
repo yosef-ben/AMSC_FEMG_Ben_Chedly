@@ -2,6 +2,6 @@ weight_scale,rho,damkohler,agreeing_pairs_of_21,ranking_at_final_time
 35.3221,1,0.1621,18,frontal > limbic > subcortical > insular > temporal > parietal > occipital
 10,0.283109,0.5727,18,frontal > limbic > subcortical > insular > temporal > parietal > occipital
 3,0.0849327,1.9088,21,frontal > limbic > temporal > insular > subcortical > parietal > occipital
-1,0.0283109,5.7265,20,limbic > frontal > temporal > insular > subcortical > parietal > occipital
-0.3,0.00849327,19.0884,19,limbic > frontal > temporal > subcortical > insular > parietal > occipital
+1,0.0283109,5.7265,21,frontal > limbic > temporal > insular > subcortical > parietal > occipital
+0.3,0.00849327,19.0884,20,frontal > limbic > temporal > subcortical > insular > parietal > occipital
 0.1,0.00283109,57.2652,20,frontal > limbic > temporal > subcortical > insular > parietal > occipital

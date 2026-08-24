@@ -88,7 +88,11 @@ verified in benchmark 17 and the nonlinear solver in benchmarks 18-20.
 Because the patient PET projection is unavailable, a documented synthetic
 Alzheimer-like datum is used. Entorhinal and hippocampal regions start from
 `c=0.10`; all remaining regions start from `c=0.01`. This choice creates
-four seed nodes and must not be interpreted as patient data.
+two seed nodes, the same entorhinal seed as every other experiment of the
+chapter, and must not be interpreted as patient data. An earlier version
+also seeded the two hippocampi: with four seeds the limbic group started at
+0.0325 instead of 0.01 and overtook the frontal one, giving 20 of 21
+pairwise orderings instead of 21; the seed is now the chapter's.
 
 ## The scaling in the numbers of benchmark 23
 
@@ -118,26 +122,26 @@ The solution remains inside the physical interval throughout the run. At
 `T=20`, the full FEM field has range
 
 ```text
-0.0238645 <= c_h <= 0.653239.
+0.0253 <= c_h <= 0.4805.
 ```
 
 The mean concentration sampled at the 83 anatomical vertices increases from
-`0.0143373` to `0.157989`. Every regional average grows monotonically.
+`0.012160` to `0.135312`. Every regional average grows monotonically.
 The final regional means are:
 
 ```text
-frontal       0.202253
-temporal      0.167108
-parietal      0.096674
-insular       0.129048
-limbic        0.210617
-occipital     0.072868
-subcortical   0.127734
+frontal       0.193462
+temporal      0.135457
+parietal      0.082666
+insular       0.109318
+limbic        0.165760
+occipital     0.059494
+subcortical   0.106671
 ```
 
 The high frontal and low occipital values are consistent with their respective
 reaction coefficients. The limbic curve is additionally elevated by the
-synthetic seed. Corti et al. report high frontal and parietal patient values;
+entorhinal seed, which belongs to that group. Corti et al. report high frontal and parietal patient values;
 an exact ranking is not expected here because their PET initial condition,
 Brainnetome topology, volumes, and calibrated patient graph are different.
 
@@ -255,21 +259,20 @@ is. Table 3 of the paper reports the expected concentration per lobe at
 
 | Lobe | Corti et al., `t = 20` | rank | this benchmark | rank |
 |---|---:|---:|---:|---:|
-| frontal | 0.9289 | 1 | 0.2023 | 2 |
-| limbic | 0.8905 | 2 | 0.2106 | 1 |
-| temporal | 0.8699 | 3 | 0.1671 | 3 |
-| insular | 0.8558 | 4 | 0.1290 | 4 |
-| subcortical | 0.8413 | 5 | 0.1277 | 5 |
-| parietal | 0.7738 | 6 | 0.0967 | 6 |
-| occipital | 0.7336 | 7 | 0.0729 | 7 |
+| frontal | 0.9289 | 1 | 0.1935 | 1 |
+| limbic | 0.8905 | 2 | 0.1658 | 2 |
+| temporal | 0.8699 | 3 | 0.1355 | 3 |
+| insular | 0.8558 | 4 | 0.1093 | 4 |
+| subcortical | 0.8413 | 5 | 0.1067 | 5 |
+| parietal | 0.7738 | 6 | 0.0827 | 6 |
+| occipital | 0.7336 | 7 | 0.0595 | 7 |
 
-Twenty of the twenty-one pairwise orderings agree, giving a rank correlation of
-`0.96`. The single inversion is frontal against limbic, and it is explained by
-the initial condition: the synthetic seed places `c = 0.10` on the entorhinal
-and hippocampal vertices, all of which are limbic, so the limbic curve starts
-from `0.0325` instead of `0.01` and keeps that lead. Everything below the top
-two is reproduced in the published order using nothing but the seven table-1
-coefficients and the connectome topology.
+All twenty-one pairwise orderings agree, a rank correlation of `1.00`, using
+nothing but the seven table-1 coefficients and the connectome topology. With
+the earlier four-vertex seed, which also placed `c = 0.10` on the two
+hippocampi, the limbic group started from `0.0325` instead of `0.01` and
+overtook the frontal one, leaving 20 of 21 pairs and a correlation of `0.96`;
+the seed used now is the entorhinal one of the rest of the chapter.
 
 Note that the prose of the paper describes "a higher concentration of misfolded
 proteins inside the parietal and frontal lobes", whereas its own table 3 places

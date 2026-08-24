@@ -119,22 +119,23 @@ the 83 anatomical vertices (`results/activation_order_groups.csv`):
 
 ```text
 group        regional   uniform
-frontal         30.15     36.20   <- last with the uniform rate
-limbic          31.69     33.25
-temporal        33.86     34.07
-subcortical     35.91     35.55
-insular         36.00     35.00
-parietal        39.00     35.30
-occipital       43.00     35.00   <- last with the regional rates
+frontal         30.75     37.00   <- last of the four lobes, uniform rate
+limbic          33.88     35.44
+temporal        35.93     36.00
+insular         37.00     37.00
+subcortical     37.27     37.00
+parietal        40.60     36.90
+occipital       45.00     36.80   <- last with the regional rates
 ```
 
-With the calibrated rates the occipital group activates last, four clear
+With the calibrated rates the occipital group activates last, more than four
 years after every other group, which is the clinical tail of the staging,
 and the frontal group first, as in table 3 of Corti et al. With the uniform
-rate the total spread collapses from 12.9 to 3.0 years and the order becomes
+rate the total spread collapses from 14.2 to 1.6 years and the order becomes
 the connectivity's: the occipital group moves up and the frontal group,
 dragged by its weakly connected pole (weighted degree 2.05, the graph
-minimum), falls last. On this connectome the clinical order of the groups is
+minimum), falls last among the four biomarker lobes (the one-year output
+stride ties it with the insular and subcortical groups). On this connectome the clinical order of the groups is
 therefore carried by the regional biology and not by the network. This is
 the report's figure-9-style demonstration; the per-vertex activation times
 of both variants are stored in `results/activation_order.csv`.

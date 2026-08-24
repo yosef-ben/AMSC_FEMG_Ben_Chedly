@@ -195,7 +195,7 @@ std::vector<double> read_normalized_edge_weights(const std::string &path) {
 
 bool is_seed_region(const std::string &parent_name) {
 	const std::string name = lower_case(parent_name);
-	return contains(name, "entorhinal") || contains(name, "hippocampus");
+	return contains(name, "entorhinal");
 }
 
 } // namespace
@@ -206,6 +206,10 @@ int main(int argc, char *argv[]) {
 		// accepted so that the spreading can be followed to saturation.
 		double final_time = 20.0;
 		const double time_step = 0.2;
+		// The seed is the one of the rest of the chapter, the two entorhinal
+		// cortices at 0.10; an earlier version also seeded the hippocampi,
+		// which gave the limbic group a head start and inverted the two
+		// leading groups of the regional ranking (see the record).
 		const double background_concentration = 0.01;
 		const double seed_concentration = 0.10;
 		const std::size_t output_stride = 5;

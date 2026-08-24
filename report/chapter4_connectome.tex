@@ -266,7 +266,7 @@ Fig.~\ref{fig:views} presents connections coloured and sized by their fibre numb
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/connectome_connectogram.pdf}
-\caption{\footnotesize Connectivity of the reconstructed graph. Left: the connections with a weight above $5\%$ of the strongest one, on a circular layout grouped by anatomical group, following \cite{cortiFisherKolmogorovGraphs}. Right: connectivity summed over each pair of groups.}
+\caption{\footnotesize Connectivity of the reconstructed graph. Left: the connections between different anatomical groups with a weight above $5\%$ of the strongest one, on a circular layout grouped by anatomical group, following \cite{cortiFisherKolmogorovGraphs}. Right: connectivity summed over each pair of groups.}
 \label{fig:connectogram}
 \end{figure}
 
@@ -629,7 +629,7 @@ Figure~\ref{fig:expected} shows the two computed progressions below their clinic
 This transport scaling is essential for the progression to become visible. At $\rho=1$, the scale used in the references, transport is sufficiently fast to synchronize the network: in a control tau simulation the four lobes cross the $50\%$ level within $0.03$ years of each other and the three stages would appear almost spatially uniform. The choice $\rho=0.005$ should therefore be interpreted as a calibration of the transport time scale against the reference progression, rather than as an additional biological input. The only biological difference between the two simulations remains the location of the initial seed.\\
 Both expected qualitative patterns are recovered in their origin, direction and endpoint. The tau row starts from the entorhinal seed: the first two vertices to reach $c=0.5$ are the two entorhinal cortices. The disease then reaches the temporal neighbourhood before progressively involving the rest of the network. The three displayed stages occur at $15.2$, $21.6$ and $27.6$ years, corresponding respectively to network mean concentrations of $10\%$, $40\%$ and $80\%$.\\
 The amyloid-$\beta$ row starts instead from a diffuse neocortical seed and progresses towards deeper structures. The three displayed stages occur at $1.2$, $5.2$ and $12.0$ years. Averaging over each anatomical group the first time its regions cross $c=0.5$, the seeded neocortical regions cross first, at $4.4$ years, followed by the insula at $9.6$ years, the limbic regions at $11.7$ years, the remaining subcortical nuclei at $12.6$ years and finally the brainstem itself at $17.2$ years. This reproduces the downward progression described in the literature, from the neocortex towards the allocortex, deep nuclei and brainstem.\\
-The same caveat discussed in Section~\ref{sec:damkohler} remains valid. Within the later tau stages, the relative ordering of the cortical lobes is determined by the connectivity of the reconstructed graph rather than by the clinical staging sequence. The four lobes cross the $50\%$ level in the order temporal, occipital, parietal and frontal, at $16.5$, $21.7$, $23.0$ and $25.9$ years, respectively, reproducing the ordering already observed in Figure~\ref{fig:damkohler}. \cite{fornari2019prion} instead report the sequence temporal, frontal, parietal and occipital. In our simulations, the frontal group is delayed by its weak effective connectivity, with the frontal pole being the least connected region of the graph. Since the conversion rate is uniform in the present model, regional differences in the progression are driven by connectivity alone. This motivates the introduction of region-dependent conversion rates, as in Section~\ref{sec:corti}, where additional biological heterogeneity is included in the reaction term.
+The same caveat discussed in Section~\ref{sec:damkohler} remains valid. Within the later tau stages, the relative ordering of the cortical lobes is determined by the connectivity of the reconstructed graph rather than by the clinical staging sequence. The four lobes cross the $50\%$ level in the order temporal, occipital, parietal and frontal, at $16.5$, $21.7$, $23.0$ and $25.9$ years, respectively, reproducing the ordering already observed in Figure~\ref{fig:damkohler}. The sequence of the four lobes is not itself part of the clinical staging, which is described by region: tau appears in the transentorhinal layer and the entorhinal cortex and spreads to the amygdala and the interconnected neocortex, while amyloid-$\beta$ appears in the neocortex and descends to the allocortex and the subcortical regions~\cite{weickenmeier2019prion}. It is this description that the rows of Figure~\ref{fig:expected} compare. The lobe sequence is instead a result of the network model of~\cite{fornari2019prion}, whose figure 7 reports temporal, frontal, parietal and occipital and describes it as agreeing with the observed staging. In our simulations, the frontal group is delayed by its weak effective connectivity, with the frontal pole being the least connected region of the graph. Since the conversion rate is uniform in the present model, regional differences in the progression are driven by connectivity alone. This motivates the introduction of region-dependent conversion rates, as in Section~\ref{sec:corti}, where additional biological heterogeneity is included in the reaction term.
 
 \begin{figure}[htbp]
 \centering
@@ -668,59 +668,45 @@ The same caveat discussed in Section~\ref{sec:damkohler} remains valid. Within t
 \subsection{Deterministic model with regional reaction rates}
 \label{sec:corti}
 
-The last application follows~\cite{cortiFisherKolmogorovGraphs}, who solve a patient-specific
-stochastic Fisher--Kolmogorov model on a $246$-node Brainnetome graph and
-calibrate the reaction coefficient region by region against two PET
-acquisitions. Their formulation is the nodal one, an unknown per vertex and
-the discrete Laplacian, as in~\cite{fornari2019prion}. Neither the patient
-graph nor the PET images are available to us, so we take their mathematical
-model, their time discretization and their estimated mean parameters and
-solve them with the metric-graph finite element library of this work on the
-$83$-region connectome, with the connections refined into several elements;
-we state clearly that we do not reproduce the clinical trajectory of their
-patient. The point of the section is therefore to test the finite element
-solver on a configuration taken from the literature rather than built here.
-
-The conversion rate is the parameter that sets the time scale of the disease. In~\cite{fornari2019prion} it is the combination $\alpha = k_{12}k_0/k_1 - \tilde{k}_1$ of production $k_0$, clearance $k_1$, $\tilde{k}_1$ and conversion $k_{12}$, and on our graph lowering it from $0.5$ to $0.1$ moves the $50$-percent crossing of the network from $12.68$ to $67.81$ years while every positive rate still drives the network to the misfolded state; making it regional is the first biology the model receives beyond the connectivity.\\
-The reaction coefficient is piecewise constant over seven anatomical groups and
-takes the mean values estimated in table 1 of the reference: $0.1801$ in the
-frontal lobe, $0.1421$ temporal, $0.0627$ parietal, $0.1005$ insular, $0.1351$
-limbic, $0.0545$ occipital and $0.1147$ in the subcortical nuclei, a factor
-$3.3$ between the fastest and the slowest group. The nodal
-values are interpolated linearly along each connection. The diffusivity is the
-normalized connectivity $D_e = w_e/\max_e w_e$, a choice of ours, since the
-reference does not state the scale of its weights. In the terms of
-Section~\ref{sec:damkohler} it is a uniform scaling $\rho = 1/\max_e w_e =
-0.0283$, which together with the mean of the regional rates over the $83$
-vertices, $0.1252$, gives $\mathrm{Da} = 5.72$ and, for the finite element
-model with the consistent mass, $\mathrm{Da}_{\mathrm{lobe}} = 4.0$. The
-simulation therefore sits beyond the onset of Section~\ref{sec:damkohler},
-where the transport alone already separates the groups by a few years, and
-the regional rates add their own separation on top; the control experiment
-at the end of the section measures the two contributions.
-
-The time discretization is the semi-implicit scheme
-of Table~\ref{tab:integrators}, which is the one the reference adopts, with
-the consistent mass, valid at this scaling by the boundary of
-Section~\ref{sec:boundary}. We use
-$\Delta t = 0.2$ years, four elements per connection, $3473$ degrees of freedom
-and a horizon of $20$ years, and we replace the unavailable PET projection by a documented
-synthetic datum: entorhinal and hippocampal regions start at $c = 0.10$ and all
-others at $c = 0.01$.
-
-The finite element field stays within $[0.01, 0.6532]$ over the twenty
-years, the lower bound being the background of the initial datum, and at
-$T = 20$ it ranges from $0.0239$ to $0.6532$; every regional average grows
-monotonically, and the mean concentration sampled at the $83$ anatomical
-vertices rises from $0.0143$ to $0.1580$. The absolute levels are far below
-those of the reference, as they must be given the different initial datum, but
-the ordering of the regions can be compared, and Table~\ref{tab:corti} does so.
-Twenty of the twenty-one pairwise orderings agree, a rank correlation of
-$0.96$. The single inversion is frontal against limbic and is explained by the
-initial condition: the synthetic seed places $c=0.10$ on entorhinal and
-hippocampal vertices, all of which belong to the limbic group. Everything below
-the leading pair is reproduced in the published order using nothing but the
-seven reaction coefficients and the connectome topology.
+The previous sections showed what can be explained by the connectome alone. With a uniform conversion rate, the network connectivity determines how regional differences are transported and therefore strongly influences the ordering of the lobe-wise curves. However, this ordering does not fully reproduce the clinical one. We now introduce the biological heterogeneity that was absent from the previous model by allowing the conversion rate to vary between anatomical regions.\\
+We follow~\cite{cortiFisherKolmogorovGraphs}, who solve a patient-specific stochastic Fisher--Kolmogorov model on a $246$-node Brainnetome graph and estimate the reaction coefficient region by region from two PET acquisitions. Their formulation is nodal, with one unknown per vertex and a discrete graph Laplacian, whereas here we solve the corresponding deterministic problem with the metric-graph finite element model developed in this work. We do not attempt to reproduce the clinical trajectory of their patient. Instead, we transfer their estimated mean regional reaction rates to our $83$-region connectome and compare the resulting regional ordering. Making $\alpha$ region-dependent therefore introduces the first biological heterogeneity in the model beyond the connectivity itself.\\
+The reaction coefficient is taken piecewise constant over seven anatomical groups, using the mean values reported in Table~1 of~\cite{cortiFisherKolmogorovGraphs}:
+\[
+\alpha_{\mathrm{frontal}}=0.1801,\qquad
+\alpha_{\mathrm{temporal}}=0.1421,\qquad
+\alpha_{\mathrm{parietal}}=0.0627,
+\]
+\[
+\alpha_{\mathrm{insular}}=0.1005,\qquad
+\alpha_{\mathrm{limbic}}=0.1351,\qquad
+\alpha_{\mathrm{occipital}}=0.0545,\qquad
+\alpha_{\mathrm{subcortical}}=0.1147.
+\]
+These nodal values are interpolated linearly along each connection. The edge diffusivity is chosen as
+\[
+D_e=\frac{w_e}{\max_e w_e},
+\]
+since the absolute scaling of the connectivity weights is not specified in the reference. In the notation of Section~\ref{sec:damkohler}, this corresponds to
+\[
+\rho=\frac{1}{\max_e w_e}=0.0283.
+\]
+Using the vertex mean of the regional reaction rates,
+\[
+\overline{\alpha}=0.1252,
+\]
+gives the nominal value $\mathrm{Da}=5.72$. More importantly for the regional dynamics, the slowest lobe-scale relaxation rate of the finite element model with the consistent mass is, at this scaling,
+\[
+\rho\,\lambda_{\mathrm{lobe}}=0.031350\ \mathrm{yr}^{-1},
+\]
+which gives
+\[
+\mathrm{Da}_{\mathrm{lobe}}
+= \frac{\overline{\alpha}}{\rho\,\lambda_{\mathrm{lobe}}}
+= 4.0.
+\]
+This value was verified directly on the finite element meshes with one, four and eight elements per connection, for which the lobe-scale rate remains unchanged. The simulation therefore lies in a regime where transport alone already allows some regional separation, while the heterogeneous reaction rates can introduce an additional ordering. The time discretization is the semi-implicit scheme of Table~\ref{tab:integrators}, as in the reference, with the consistent mass matrix. We use $\Delta t=0.2$ years, four elements per connection, $3473$ degrees of freedom and a time horizon of $20$ years. Since the patient PET projection is unavailable, we use a synthetic initial condition: the two entorhinal vertices start from $c=0.10$, the same seed as every other experiment of this chapter, while the remaining regions are initialized at $c=0.01$, one tenth of the seed, to provide a small positive background in place of the unavailable PET field.\\
+The absolute concentrations are not directly comparable with those of the reference, since we use a different connectome, a finite element formulation instead of the nodal model and a synthetic initial condition. What can be meaningfully compared is therefore the relative ordering of the anatomical groups.\\
+Table~\ref{tab:corti} shows that the ordering agrees: all twenty-one pairwise orderings of the seven groups are reproduced, with the frontal group first and the occipital group last, using nothing but the seven reaction coefficients and the connectome. The solution stays within $[0.01,0.4805]$ over the twenty years, every regional average grows monotonically and the mean concentration at the $83$ vertices rises from $0.0122$ to $0.1353$.
 
 \begin{table}[htbp]
 \centering
@@ -728,107 +714,48 @@ seven reaction coefficients and the connectome topology.
 \hline
 Group & \cite{cortiFisherKolmogorovGraphs}, $t=20$ & rank & this work & rank \\
 \hline
-frontal      & $0.9289$ & $1$ & $0.2023$ & $2$ \\
-limbic       & $0.8905$ & $2$ & $0.2106$ & $1$ \\
-temporal     & $0.8699$ & $3$ & $0.1671$ & $3$ \\
-insular      & $0.8558$ & $4$ & $0.1290$ & $4$ \\
-subcortical  & $0.8413$ & $5$ & $0.1277$ & $5$ \\
-parietal     & $0.7738$ & $6$ & $0.0967$ & $6$ \\
-occipital    & $0.7336$ & $7$ & $0.0729$ & $7$ \\
+frontal     & $0.9289$ & $1$ & $0.1935$ & $1$ \\
+limbic      & $0.8905$ & $2$ & $0.1658$ & $2$ \\
+temporal    & $0.8699$ & $3$ & $0.1355$ & $3$ \\
+insular     & $0.8558$ & $4$ & $0.1093$ & $4$ \\
+subcortical & $0.8413$ & $5$ & $0.1067$ & $5$ \\
+parietal    & $0.7738$ & $6$ & $0.0827$ & $6$ \\
+occipital   & $0.7336$ & $7$ & $0.0595$ & $7$ \\
 \hline
 \end{tabular}
-\caption{Regional concentrations at the final time, against table 3
-of~\cite{cortiFisherKolmogorovGraphs}. The absolute values are not comparable, since the
-reference starts from a patient PET projection and we start from a synthetic
-datum, but the ordering is: twenty of the twenty-one pairwise orderings agree.
-Note that the prose of the reference describes higher concentrations in the
-parietal and frontal lobes, whereas its own table places the parietal group
-second from last; we compare against the table.}
+\caption{\footnotesize Regional concentrations at the final time compared with Table~3 of~\cite{cortiFisherKolmogorovGraphs}. The absolute values are not directly comparable, since we use a different connectome, a finite element formulation instead of the nodal model and a synthetic initial condition in place of the patient PET projection. The comparison is therefore limited to the regional ordering, which is reproduced exactly: all twenty-one pairwise orderings agree.}
 \label{tab:corti}
 \end{table}
-
-% ---------------------------------------------------------------------
-%  ANALOGA di Figura~\ref{fig:regional}
-%    [C] Fig. 7, p. 14: le curve per lobo. Loro mostrano media e banda di
-%        deviazione standard perche' il loro modello e' stocastico; noi
-%        abbiamo un modello deterministico e mostriamo la sola media, che
-%        e' l'analogo della loro curva centrale.
-%    Da leggere insieme: [C] Tabella 3, p. 13, gia' citata sopra.
-% ---------------------------------------------------------------------
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{images/regional_averages.pdf}
-\caption{Regional averages of the deterministic model over $20$ years. The
-reference reports mean and standard-deviation bands because its reaction
-coefficient is a random field; the model solved here is the deterministic
-counterpart obtained by fixing each coefficient at its estimated mean, so only
-the central curve has a counterpart.}
+\caption{Regional averages of the deterministic model over $20$ years. The reference reports mean curves together with standard-deviation bands because its reaction coefficient is stochastic; here each coefficient is fixed at its estimated regional mean, so only the deterministic regional averages are shown.}
 \label{fig:regional}
 \end{figure}
-
-The same run, refined to eight elements per connection ($7993$ degrees of
-freedom) and extended to $60$
-years, settles how the network is recruited. Colouring each of the
-$10\,170$ sampling points of the output, nine per connection, with the first
-year its concentration reaches
-$0.5$ gives an anterior-to-posterior gradient whose obvious reading, a front
-travelling outward from the seed, is wrong: over the region vertices the
-activation time correlates with the local reaction coefficient at
-$r=-0.841$ and with the graph distance from the seed at $r=+0.065$, and the
-graph eccentricity from the seed is $2$, every region lying within two
-connections of the entorhinal and hippocampal seed. The recruitment order is
-set by the regional conversion rates, $0.1801$ in the frontal group against
-$0.0545$ in the occipital one, not by propagation, which is the conclusion
-of Section~\ref{sec:damkohler} reached independently.
-
-The role of the calibrated rates is then isolated by a control experiment,
-in the construction of the infection-time figure of~\cite{fornari2019prion}.
-The same refined simulation is repeated with the seven regional rates
-replaced by their vertex mean, $0.1252$: the reaction budget, $\mathrm{Da}$
-and $\mathrm{Da}_{\mathrm{lobe}}$ are unchanged, and the only anatomy left in
-the model is the connectivity. Figure~\ref{fig:activationorder} colours every vertex by
-its activation time, the first stored year at which the concentration
-reaches $0.5$, for the two variants. With the calibrated rates the mean
-group activation runs from $30.2$ years in the frontal group, first as in
-table 3 of the reference, to $43.0$ years in the occipital group, last by
-four clear years, which is the clinical tail of the staging. With the
-uniform rate the picture inverts into the connectivity's order: the total
-spread collapses from $12.9$ to $3.0$ years, the occipital group moves up
-to $35.0$ years, and the frontal group, dragged by its weakly connected
-pole, activates last at $36.2$ years. The three years that remain are the
-separation the transport produces by itself at
-$\mathrm{Da}_{\mathrm{lobe}} = 4.0$, in the order of the connectivity; the
-other ten are the regional rates, in the clinical order. On this connectome
-the clinical order of the groups is therefore carried by the regional
-biology and not by the network, which is the conclusion of
-Section~\ref{sec:damkohler} reached from the opposite side. The staged concentration sections of this run
-remain in the benchmark record.
-
-% ---------------------------------------------------------------------
-%  ANALOGA di Figura~\ref{fig:activationorder}
-%    [F] Fig. 9, p. 8: vertici colorati per tempo di attivazione; la
-%    costruzione riusa quella convenzione. Il pannello (c), il controllo
-%    a tasso uniforme che isola il ruolo dei tassi regionali, non ha
-%    corrispondente in letteratura ed e' il punto della figura.
-% ---------------------------------------------------------------------
+\noindent
+Regional ordering can also be studied through the activation time, defined as the first time at which a vertex reaches $c=0.5$. A refined simulation with eight elements per connection and a $60$-year horizon is shown below: we repeat exactly the same experiment after replacing the seven regional coefficients by their mean,
+\[
+\alpha_i=\overline{\alpha}=0.1252.
+\]
+\noindent
+With the regional rates, the mean group activation times extend from $30.8$ years in the frontal group to $45.0$ years in the occipital group, giving a spread of $14.2$ years and reproducing the clinical tail of the ordering reported in the reference. When the reaction rate is made uniform, the spread collapses to $1.6$ years and the ordering returns to the connectivity-driven behaviour observed in Section~\ref{sec:damkohler}: the occipital group moves forward to $36.8$ years, while the frontal group becomes the last of the four lobes at $37.0$ years. Thus, on this connectome, connectivity determines the baseline spatial transport, while regional heterogeneity in the conversion rate is required to recover the clinical ordering of the anatomical groups.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{images/activation_order.pdf}
-\caption{\footnotesize Activation order of the deterministic model, in the
-construction of figure 9 of~\cite{fornari2019prion}: every vertex is
-coloured by its activation time, the first stored year at which $c$ reaches
-$0.5$. (a) the $83$ regional histories of the calibrated run; (b) the
-anatomy under the calibrated regional rates: the occipital group, palest,
-activates last, four years after every other group; (c) the control variant
-with the rates replaced by their vertex mean, on the same colour scale: the
-spread collapses and the order becomes the connectivity's, with the frontal
-group last. The reaction budget and the Damk\"ohler number are identical in
-the two variants.}
+\caption{\footnotesize Activation order of the deterministic model. Each vertex is coloured by its activation time, defined as the first stored year at which $c$ reaches $0.5$. (a) Regional concentration histories with the calibrated regional reaction rates. (b) Activation times with the regional rates: the frontal group activates first and the occipital group last. (c) Control simulation with all reaction rates replaced by their vertex mean, using the same colour scale: the temporal spread is strongly reduced and the ordering returns to the connectivity-driven one, with the frontal group last. All other model parameters, including the reaction budget and $\mathrm{Da}_{\mathrm{lobe}}$, are unchanged.}
 \label{fig:activationorder}
 \end{figure}
+\noindent
+The same heterogeneity closes the comparison with the clinical staging of Section~\ref{sec:staging}. Figure~\ref{fig:expectedregional} repeats the two clinical seedings of that section, with the same scaling, the same lumped mass and the same three-stage rule, after replacing the uniform conversion rate by the seven regional rates above, rescaled to the same vertex mean $0.5$: the reaction budget, $\mathrm{Da}$ and $\mathrm{Da}_{\mathrm{lobe}}$ are unchanged and only the distribution of the rate differs, the rates running from $0.2177$ in the occipital group to $0.7195$ in the frontal one, and the horizon is extended to $80$ years for the slow groups. The tau lobes now cross the $50\%$ level at $14.7$, $19.9$, $29.7$ and $32.4$ years, in the order temporal, frontal, parietal and occipital, which is the clinical sequence the uniform rate could not produce, and the centroid of the regions above $c=0.5$ moves anteriorly across the three stages, from $+2$ to $+12$ mm, where the uniform run moves it posteriorly. The amyloid-$\beta$ row keeps its downward progression, with stages at $1.2$, $5.6$ and $13.2$ years. The connectivity carries the propagation and the regional biology carries the order; the two figures show the two halves separately.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{images/seeding_patterns_regional_expected.pdf}
+\caption{\footnotesize The comparison of Figure~\ref{fig:expected} repeated with the regional reaction rates of this section, rescaled to the vertex mean $0.5$ of the uniform runs: same seeds, same scaling $\rho=0.005$, same lumped mass and the same three-stage rule, over $80$ years. The tau row now reaches the frontal lobe second and the occipital lobe last, the four lobes crossing $50\%$ at $14.7$, $19.9$, $29.7$ and $32.4$ years, which is the clinical sequence; the amyloid-$\beta$ row keeps its downward progression, with stages at $1.2$, $5.6$ and $13.2$ years.}
+\label{fig:expectedregional}
+\end{figure}
 
 % ---------------------------------------------------------------------
 %  DA LEGGERE prima della baseline sequenziale
@@ -871,13 +798,14 @@ less than one percent of the total in every refined case.}
 \end{table}
 
 Two facts emerge from Table~\ref{tab:performance} and they set the agenda for
-what follows. First, more than $99\%$ of the time is spent in the time loop and
-almost none in assembly or input, so the target for optimisation is the
+what follows. First, in every refined case more than $99\%$ of the time is spent in the
+time loop ($95.9\%$ at one element per connection) and almost none in
+assembly or input, so the target for optimisation is the
 repeated sparse factorisation forced by the semi-implicit scheme
 (Table~\ref{tab:integrators}), not the finite element assembly. Second, the cost per step is
 not a function of the number of unknowns alone: the two-element mesh, with
 $1213$ unknowns, costs more than the four-element mesh with $3473$.
-The one-element mesh has a hub-dominated sparsity pattern inherited from the
+The two-element mesh inherits a hub-dominated sparsity pattern from the
 connectome, and sparse factorisation depends on the elimination ordering and
 the resulting fill-in at least as much as on the matrix dimension.
 
