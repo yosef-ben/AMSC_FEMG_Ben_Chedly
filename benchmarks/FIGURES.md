@@ -35,6 +35,7 @@ disagree. Run it from the project root:
 | `26/activation_order` | `plot-corti-activation-order.py` | `corti83_refined/solution_*.vtp`, `corti83_uniform/solution_*.vtp` | `test_fisher_kolmogorov_corti83`, regional and `uniform` variants |
 | `27/seeding_patterns` | `plot-connectome-staging.py` | `staging/{tau,amyloid}_lumped/fem_profiles.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped` scheme |
 | `27/seeding_patterns_expected` | `plot-connectome-staging.py` | as above, plus `27/reference/weickenmeier_fig1_{tau,amyloid}.png` | as above; the reference strips are cut from the article PDF by `extract-weickenmeier-staging.py` |
+| `27/seeding_patterns_regional` (the same two seedings with the regional rates of Corti et al., rescaled to the same mean) | `plot-connectome-staging.py --prefix seeding_patterns_regional` | `staging/{tau,amyloid}_regional/fem_profiles.csv`, plus the reference strips | `test_fisher_kolmogorov_fornari83 ... be_lumped <seed> benchmarks/21/results/reaction_coefficients.csv` |
 | `27/lobe_crossings` (record, not in the report) | `plot-fisher-lobe-crossings.py` | `tau_profiles.csv`, `tau_biomarkers.csv`, `data/connectome/fornari83/nodes.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped` scheme |
 
 ## Rules the figures follow

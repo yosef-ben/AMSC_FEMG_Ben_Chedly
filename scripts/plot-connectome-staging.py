@@ -54,6 +54,8 @@ def arguments():
                         help="fem_profiles.csv of the entorhinal seeding")
     parser.add_argument("--amyloid", type=Path, required=True,
                         help="fem_profiles.csv of the neocortical seeding")
+    parser.add_argument("--prefix", default="seeding_patterns",
+                        help="basename of the two figures written")
     parser.add_argument("--reference-dir", type=Path, default=None,
                         help="directory with the weickenmeier_fig1_*.png "
                              "strips cut by extract-weickenmeier-staging.py; "
@@ -169,7 +171,8 @@ def render_stage(output, coords, concentration, table, scale):
     return Path(output)
 
 
-def composite(reference_dir, panels, box, stage_times, output_dir):
+def composite(reference_dir, panels, box, stage_times, output_dir,
+              prefix="seeding_patterns"):
     """Expected above obtained: the two Alzheimer strips of figure 1 of
     Weickenmeier et al. (each cut from the published page by
     extract-weickenmeier-staging.py, drawings adopted there from Jucker and
@@ -218,9 +221,9 @@ def composite(reference_dir, panels, box, stage_times, output_dir):
                           ha="right", va="center", rotation=90,
                           linespacing=1.35)
 
-    figure.savefig(output_dir / "seeding_patterns_expected.pdf",
+    figure.savefig(output_dir / f"{prefix}_expected.pdf",
                    facecolor="white")
-    figure.savefig(output_dir / "seeding_patterns_expected.png", dpi=300,
+    figure.savefig(output_dir / f"{prefix}_expected.png", dpi=300,
                    facecolor="white")
     plt.close(figure)
 
@@ -245,6 +248,12 @@ def main():
             assert values.min() >= 0.0 and values.max() <= 1.0 + 1e-10, \
                 "the solution left [0,1]"
             for column, target in enumerate(STAGES):
+                # argmax returns 0 on an all-false array, which would render
+                # the seed under a label reading the last stage.
+                if means.max() < target:
+                    raise RuntimeError(
+                        f"the {case} run never reaches a network mean of "
+                        f"{target:.0%}; it stops at {means.max():.3f}")
                 index = int(np.argmax(means >= target))
                 stage_times[case, target] = times[index]
                 panels.append(((row, column), render_stage(
@@ -256,7 +265,7 @@ def main():
         args.output_dir.mkdir(parents=True, exist_ok=True)
         if args.reference_dir is not None:
             composite(args.reference_dir, panels, box, stage_times,
-                      args.output_dir)
+                      args.output_dir, args.prefix)
 
     for row, (case, label, seed) in enumerate(CASES):
         axes[row, 0].text(-0.02, 0.5, label, transform=axes[row, 0].transAxes,
@@ -272,13 +281,13 @@ def main():
     figure.subplots_adjust(left=0.045, right=0.995, top=0.995, bottom=0.06,
                            hspace=0.14, wspace=0.02)
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    figure.savefig(args.output_dir / "seeding_patterns.pdf",
+    figure.savefig(args.output_dir / f"{args.prefix}.pdf",
                    facecolor="white")
-    figure.savefig(args.output_dir / "seeding_patterns.png", dpi=260,
+    figure.savefig(args.output_dir / f"{args.prefix}.png", dpi=260,
                    facecolor="white")
     plt.close(figure)
 
-    print(f"Saved seeding_patterns to {args.output_dir}")
+    print(f"Saved {args.prefix} to {args.output_dir}")
     for case, _, seed in CASES:
         stages = ", ".join(f"{stage_times[case, t]:.1f}" for t in STAGES)
         print(f"  {case:8s} seed: {seed:18s} stages at {stages} years")

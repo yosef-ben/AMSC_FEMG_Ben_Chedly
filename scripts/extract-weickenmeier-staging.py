@@ -13,8 +13,9 @@ The extraction is deterministic and detected, not measured by eye: the
 figure is the single image embedded in the page, a 300 ppi JPEG, which is
 pulled out as it is instead of re-rendering the page, so that no
 resampling is added to the published raster; the four cartoon rows are
-found as horizontal bands of saturated pixels, the right-hand disease labels (plain black text) are
-dropped by cutting at the last wide unsaturated gap, and the two target
+found as horizontal bands of saturated pixels, any label column is
+dropped by cutting at the last wide unsaturated gap (the embedded image of
+this article carries none, so the cut is empty here), and the two target
 bands are identified by their dominant hue, orange for amyloid-beta and
 blue for tau. The script fails loudly if the page does not contain exactly
 four bands with the expected hues.

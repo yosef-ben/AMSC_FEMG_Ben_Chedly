@@ -13,6 +13,27 @@ cmake --build build-release --target test_fisher_kolmogorov_fornari83
 cp output/fisher_kolmogorov/staging/tau_lumped_rho1/fem_profiles.csv benchmarks/27_connectome_seeding_patterns/results/tau_rho1_profiles.csv
 cp output/fisher_kolmogorov/staging/tau_lumped_rho1/fem_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/tau_rho1_biomarkers.csv
 
+# The same two seedings with the regional reaction rates of Corti et al.,
+# rescaled to the same vertex mean 0.5, so that only the distribution of the
+# reaction changes: the added biology of Section 4.8 applied to the clinical
+# seedings. The horizon is 80 years because the slow groups need it.
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau_regional 0.5 80 0.005 be_lumped -1 benchmarks/21_fisher_kolmogorov_corti83/results/reaction_coefficients.csv
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/amyloid_regional 0.5 80 0.005 be_lumped neocortex benchmarks/21_fisher_kolmogorov_corti83/results/reaction_coefficients.csv
+
+python3 scripts/plot-connectome-staging.py \
+  --tau output/fisher_kolmogorov/staging/tau_regional/fem_profiles.csv \
+  --amyloid output/fisher_kolmogorov/staging/amyloid_regional/fem_profiles.csv \
+  --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
+  --output-dir benchmarks/27_connectome_seeding_patterns/results \
+  --prefix seeding_patterns_regional
+
+for case in tau amyloid; do
+  cp output/fisher_kolmogorov/staging/${case}_regional/fem_profiles.csv \
+     benchmarks/27_connectome_seeding_patterns/results/${case}_regional_profiles.csv
+  cp output/fisher_kolmogorov/staging/${case}_regional/fem_biomarkers.csv \
+     benchmarks/27_connectome_seeding_patterns/results/${case}_regional_biomarkers.csv
+done
+
 # The earlier nodal-model variant of the same two runs, kept for the record.
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau_nodal 0.5 40 0.005 nodal
 ./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/amyloid_nodal 0.5 40 0.005 nodal neocortex

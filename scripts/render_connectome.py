@@ -271,8 +271,7 @@ def common_box(paths, pad=8):
     """
     boxes = [ink_box(path) for path in paths]
     top = max(min(box[0] for box in boxes) - pad, 0)
-    bottom = min(box[1] for box in boxes)
-    bottom = max(max(box[1] for box in boxes) + pad, bottom)
+    bottom = max(box[1] for box in boxes) + pad
     left = max(min(box[2] for box in boxes) - pad, 0)
     right = max(box[3] for box in boxes) + pad
     return top, bottom, left, right

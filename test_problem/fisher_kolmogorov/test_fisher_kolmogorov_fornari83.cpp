@@ -129,22 +129,69 @@ femg::SparseMatrix make_laplacian(
 	return matrix;
 }
 
+// The per-vertex reaction coefficients of Corti et al., as written by
+// test_fisher_kolmogorov_corti83 into its reaction_coefficients.csv: the
+// mean value of the seven anatomical groups estimated in their table 1,
+// assigned to every vertex of the group. The file is read rather than
+// reproduced here so that the two tests cannot disagree about the
+// classification. The values are rescaled to the requested mean, so that a
+// run with regional rates carries the same reaction budget as the uniform
+// run it is compared with and only the distribution of the rate changes.
+std::vector<double> read_reaction_coefficients(
+	const std::string &path,
+	const std::vector<Node> &nodes,
+	double mean_rate) {
+	std::ifstream input(path);
+	if (!input)
+		throw std::runtime_error("Unable to open reaction coefficients: " + path);
+	std::string line;
+	std::getline(input, line);
+	std::vector<double> rates(nodes.size(), -1.0);
+	while (std::getline(input, line)) {
+		if (line.empty()) continue;
+		std::stringstream stream(line);
+		std::string id, name, region, value;
+		std::getline(stream, id, ',');
+		std::getline(stream, name, ',');
+		std::getline(stream, region, ',');
+		std::getline(stream, value, ',');
+		const std::size_t index = static_cast<std::size_t>(std::stoul(id));
+		if (index >= nodes.size())
+			throw std::runtime_error("Reaction coefficient outside the graph.");
+		if (nodes[index].name != name)
+			throw std::runtime_error(
+				"Reaction coefficients do not match the node list at " + name);
+		rates[index] = std::stod(value);
+	}
+	double sum = 0.0;
+	for (double value : rates) {
+		if (value < 0.0)
+			throw std::runtime_error("A vertex has no reaction coefficient.");
+		sum += value;
+	}
+	const double scale = mean_rate * static_cast<double>(rates.size()) / sum;
+	for (double &value : rates) value *= scale;
+	return rates;
+}
+
 femg::Vector nodal_step(
 	const femg::Vector &old,
 	const femg::SparseMatrix &laplacian,
-	double alpha,
+	const std::vector<double> &alpha,
 	double dt) {
 	femg::Vector solution = old;
+	const Eigen::Map<const Eigen::VectorXd> rate(
+		alpha.data(), static_cast<Eigen::Index>(alpha.size()));
 	for (std::size_t iteration = 0; iteration < 30; ++iteration) {
 		const femg::Vector residual = solution - old + dt * (laplacian * solution)
-			- dt * alpha
-				* (solution.array() * (1.0 - solution.array())).matrix();
+			- dt * (rate.array() * solution.array()
+				* (1.0 - solution.array())).matrix();
 		if (residual.norm() < 1.0e-12) return solution;
 
 		femg::SparseMatrix jacobian = dt * laplacian;
 		for (Eigen::Index i = 0; i < solution.size(); ++i)
 			jacobian.coeffRef(i, i) +=
-				1.0 - dt * alpha * (1.0 - 2.0 * solution(i));
+				1.0 - dt * rate(i) * (1.0 - 2.0 * solution(i));
 		jacobian.makeCompressed();
 		Eigen::SparseLU<femg::SparseMatrix> solver;
 		solver.compute(jacobian);
@@ -248,6 +295,10 @@ int main(int argc, char *argv[]) {
 		// lobes, which is where amyloid-beta deposits first appear
 		// (Weickenmeier et al., section 2.7).
 		const std::string seed_argument = (argc >= 9) ? argv[8] : "-1";
+		// Optional per-vertex reaction coefficients: the path of a
+		// reaction_coefficients.csv written by test_fisher_kolmogorov_corti83.
+		// Absent or "uniform" keeps the single rate of the references.
+		const std::string reaction_file = (argc >= 10) ? argv[9] : "uniform";
 		const bool seed_neocortex = seed_argument == "neocortex";
 		const int seed_vertex =
 			seed_neocortex ? -1 : std::stoi(seed_argument);
@@ -301,6 +352,11 @@ int main(int argc, char *argv[]) {
 			seeds = 1;
 		}
 
+		const std::vector<double> reaction_rates =
+			(reaction_file == "uniform")
+				? std::vector<double>(nodes.size(), alpha)
+				: read_reaction_coefficients(reaction_file, nodes, alpha);
+
 		const femg::SparseMatrix laplacian =
 			diffusion_scaling * make_laplacian(nodes.size(), edges);
 		femg::Vector nodal = initial;
@@ -315,7 +371,7 @@ int main(int argc, char *argv[]) {
 			return nodal(static_cast<Eigen::Index>(i));
 		});
 		for (std::size_t step = 1; step <= n_steps; ++step) {
-			nodal = nodal_step(nodal, laplacian, alpha, dt);
+			nodal = nodal_step(nodal, laplacian, reaction_rates, dt);
 			write_biomarkers(nodal_output, step * dt, nodes, [&](std::size_t i) {
 				return nodal(static_cast<Eigen::Index>(i));
 			});
@@ -343,7 +399,7 @@ int main(int argc, char *argv[]) {
 		fem.init(2, arguments);
 
 		std::vector<double> diffusion;
-		std::vector<double> reaction(nodes.size(), alpha);
+		std::vector<double> reaction = reaction_rates;
 		std::vector<double> initial_values(nodes.size());
 		std::vector<std::array<double, 3>> coordinates;
 		diffusion.reserve(edges.size());
@@ -425,11 +481,19 @@ int main(int argc, char *argv[]) {
 			throw std::runtime_error(message.str());
 		}
 
+		const auto rate_bounds = std::minmax_element(
+			reaction_rates.begin(), reaction_rates.end());
 		std::cout << "Fornari 83-region Fisher-Kolmogorov comparison\n"
 			<< "  vertices: " << nodes.size() << "\n"
 			<< "  edges: " << edges.size() << "\n"
 			<< "  seed vertices: " << seeds << "\n"
-			<< "  alpha: " << alpha << "\n"
+			<< "  alpha: " << alpha
+			<< (reaction_file == "uniform"
+				? std::string(" (uniform)")
+				: " (regional, mean of " + reaction_file + ", between "
+					+ std::to_string(*rate_bounds.first) + " and "
+					+ std::to_string(*rate_bounds.second) + ")")
+			<< "\n"
 			<< "  diffusion scaling: " << diffusion_scaling << "\n"
 			<< "  mass matrix: " << (lumped ? "lumped" : "consistent") << "\n"
 			<< "  cells per edge: " << cells_per_edge

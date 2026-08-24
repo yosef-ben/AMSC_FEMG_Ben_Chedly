@@ -87,6 +87,47 @@ from `tau_profiles.csv` and the edge list; the verification recomputes them
 and `results/lobe_crossings` draws them, one dot per region on one row per
 lobe with the crossing of the lobe mean marked.
 
+## The same seedings with the regional reaction rates
+
+The uniform conversion rate is the only reason the late lobes activate in
+the order of the connectivity. Repeating both seedings with the seven
+regional rates of Corti et al. (`reaction_coefficients.csv` of benchmark 21,
+read by the executable and rescaled to the same vertex mean 0.5, so the
+reaction budget and both Damkohler numbers are unchanged and only the
+distribution of the rate differs) recovers the clinical sequence:
+
+```text
+tau, lobe 50-percent crossings [years]
+  uniform rate    temporal 16.50, occipital 21.65, parietal 22.95, frontal 25.87
+  regional rates  temporal 14.70, frontal 19.91, parietal 29.71, occipital 32.39
+  Fornari et al.  temporal, frontal, parietal, occipital
+
+tau, lobe means at the three stages [percent]
+  uniform   t=15.2  38.2 / 0.4 / 2.3 / 3.5      (temporal/frontal/parietal/occipital)
+            t=21.6  86.1 / 12.6 / 35.8 / 49.4
+            t=27.6  98.6 / 66.7 / 88.2 / 93.9
+  regional  t=14.0  42.8 / 1.3 / 0.4 / 0.6
+            t=20.4  90.6 / 57.2 / 6.3 / 5.7
+            t=28.8  99.5 / 99.1 / 44.3 / 31.6
+
+anterior-posterior centroid of the regions above 0.5, at the three stages
+  uniform    +8.5 -> -14.6 ->  -7.2 mm     (the spreading moves posteriorly)
+  regional   +2.2 ->  +8.9 -> +11.9 mm     (it moves anteriorly, as the
+                                            clinical arrows do)
+
+amyloid-beta, regional rates, group means of the first crossing [years]
+  seeded neocortex 5.6, limbic 10.9, insular 11.2, remaining subcortical
+  13.3, brainstem 18.4: the downward progression is preserved
+  stages at 1.2, 5.6 and 13.2 years
+```
+
+The rates run from 0.2177 (occipital) to 0.7195 (frontal) after rescaling, a
+factor 3.3, and the solution stays in `[0,1]`. The figure of this variant is
+`results/seeding_patterns_regional_expected.{png,pdf}`, built from the same
+strips and the same three-stage rule as the uniform one and collected into
+`report/images` beside it: the uniform figure shows what the connectivity
+does alone and the regional one what the added biology restores.
+
 ## Expected-against-obtained composite
 
 The computed rows are rendered from the left side of the head, the frontal

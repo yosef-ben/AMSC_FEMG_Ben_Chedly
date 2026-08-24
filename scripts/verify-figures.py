@@ -1365,6 +1365,8 @@ def check_27(report):
         report.check_contains(name, f"staging prose states the {label}",
                               chapter, needle)
 
+    names_all = {int(r["node_id"]): r["name"] for r in read_csv(
+        Path("data/connectome/fornari83/nodes.csv"))}
     summary_row = next(r for r in read_csv(
         BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
                 "/diffusion_scaling_summary_rows.csv")
@@ -1386,6 +1388,21 @@ def check_27(report):
                  mean_activation["insular"], 9.6000, "years")
     brainstem = next(times[i] for i, row in enumerate(rows)
                      if float(row["node_82"]) >= 0.5)
+    # The brainstem is one of the eleven vertices of the subcortical group,
+    # so the report quotes the group without it and the brainstem itself.
+    deep = [k for k in range(83) if group[k] == "subcortical"]
+    stem = [k for k in deep if "Brain-Stem" in names_all[k]]
+    report.check(name, "the brainstem is inside the subcortical group",
+                 float(len(stem)), 1.0)
+    deep_first = []
+    for k in deep:
+        if k in stem:
+            continue
+        series = [float(row[f"node_{k}"]) for row in rows]
+        deep_first.append(next(t for t, v in zip(times, series) if v >= 0.5))
+    deep_without_brainstem = sum(deep_first) / len(deep_first)
+    report.check(name, "subcortical mean without the brainstem",
+                 deep_without_brainstem, 12.64, "years")
     report.check(name, "amyloid brainstem activation", brainstem, 17.2, "years")
     report.check(name, "brainstem last of all",
                  1.0 if all(brainstem >= a for v in activation.values()
@@ -1412,13 +1429,13 @@ def check_27(report):
              f"occur at ${stages[0]:.1f}$, ${stages[1]:.1f}$ and "
              f"${stages[2]:.1f}$ years"),
             ("amyloid groups",
-             f"the seeded neocortical regions cross first, at about "
-             f"${sum(seeded) / len(seeded):.1f}$ years on average, followed "
+             f"the seeded neocortical regions cross first, at "
+             f"${sum(seeded) / len(seeded):.1f}$ years, followed "
              f"by the insula at ${mean_activation['insular']:.1f}$ years, "
              f"the limbic regions at ${mean_activation['limbic']:.1f}$ "
-             f"years, the subcortical nuclei at "
-             f"${mean_activation['subcortical']:.1f}$ years and finally "
-             f"the brainstem at ${brainstem:.1f}$ years"),
+             f"years, the remaining subcortical nuclei at "
+             f"${deep_without_brainstem:.1f}$ years and finally "
+             f"the brainstem itself at ${brainstem:.1f}$ years"),
             ("staging scaling in Da and Da_lobe",
              f"$\\mathrm{{Da}}={round(float(summary_row['damkohler']))}$ and "
              f"$\\mathrm{{Da}}_{{\\mathrm{{lobe}}}}="
@@ -1465,6 +1482,37 @@ def check_27(report):
                            ("parietal", 22.95), ("frontal", 25.87)):
         report.check(name, f"tau {lobe} lobe crossing at rho=0.005",
                      lobe_crossings[lobe], expected, "years")
+    # The caption states what the middle tau panel of the figure shows.
+    profiles = read_csv(base / "tau_profiles.csv")
+    stage = next(r for r in profiles if abs(float(r["time"]) - 21.6) < 1e-9)
+    lobe_of = {}
+    for row in read_csv(Path("data/connectome/fornari83/nodes.csv")):
+        lowered = row["name"].lower()
+        lobe_of[int(row["node_id"])] = next(
+            (g for g, words in (
+                ("temporal", ("temporal", "bankssts", "entorhinal",
+                              "fusiform", "parahippocampal")),
+                ("frontal", ("frontal", "orbitofrontal", "parsopercularis",
+                             "parsorbitalis", "parstriangularis",
+                             "precentral")),
+                ("parietal", ("parietal", "postcentral", "precuneus",
+                              "supramarginal", "paracentral")),
+                ("occipital", ("cuneus", "occipital", "lingual",
+                               "pericalcarine")))
+             if any(w in lowered for w in words)), "other")
+    stage_mean = {}
+    for lobe in ("temporal", "frontal", "parietal", "occipital"):
+        members = [k for k, g in lobe_of.items() if g == lobe]
+        stage_mean[lobe] = sum(float(stage[f"node_{k}"])
+                               for k in members) / len(members)
+    report.check_contains(
+        name, "caption states the second tau stage", chapter,
+        f"the temporal lobe has reached ${stage_mean['temporal'] * 100:.0f}\\%$ "
+        f"and the frontal lobe ${stage_mean['frontal'] * 100:.0f}\\%$, with the "
+        f"occipital and parietal lobes in between at "
+        f"${stage_mean['occipital'] * 100:.0f}\\%$ and "
+        f"${stage_mean['parietal'] * 100:.0f}\\%$")
+
     ordered = sorted(lobe_crossings, key=lobe_crossings.get)
     report.check(name, "tau lobe order matches the diffusion scaling",
                  1.0 if ordered == ["temporal", "occipital", "parietal",
@@ -1494,6 +1542,86 @@ def check_27(report):
         name, "staging prose states the rho=1 lobe spread", chapter,
         f"in a control tau simulation the four lobes cross the $50\\%$ "
         f"level within ${max(spread) - min(spread):.2f}$ years of each other")
+
+
+def check_27_regional(report):
+    """The same two seedings with the regional reaction rates: the record
+    variant of benchmark 27, which recovers the clinical lobe order."""
+    import numpy as np
+    name = "27 regional_rates"
+    base = BENCH / "27_connectome_seeding_patterns/results"
+    rates = [float(r["alpha"]) for r in read_csv(
+        BENCH / "21_fisher_kolmogorov_corti83/results"
+                "/reaction_coefficients.csv")]
+    scale = 0.5 * len(rates) / sum(rates)
+    report.check(name, "rescaled rate, smallest", min(rates) * scale, 0.2177)
+    report.check(name, "rescaled rate, largest", max(rates) * scale, 0.7195)
+    report.check(name, "rescaled rate, mean",
+                 sum(rates) * scale / len(rates), 0.5)
+
+    for case, stages in (("tau", (14.0, 20.4, 28.8)),
+                         ("amyloid", (1.2, 5.6, 13.2))):
+        rows = read_csv(base / f"{case}_regional_profiles.csv")
+        times = np.array([float(r["time"]) for r in rows])
+        values = np.array([[float(r[f"node_{k}"]) for k in range(83)]
+                           for r in rows])
+        report.check(name, f"{case} stays in [0,1]",
+                     1.0 if values.min() >= 0.0
+                     and values.max() <= 1.0 + 1e-10 else 0.0, 1.0)
+        means = values.mean(axis=1)
+        for target, expected in zip((0.10, 0.40, 0.80), stages):
+            report.check(name, f"{case} stage at mean {target:.0%}",
+                         float(times[int(np.argmax(means >= target))]),
+                         expected, "years")
+
+    rows = read_csv(base / "tau_regional_biomarkers.csv")
+    times = [float(r["time"]) for r in rows]
+    crossings = {lobe: crossing(times, [float(r[lobe]) for r in rows], 50.0)
+                 for lobe in ("temporal", "frontal", "parietal", "occipital")}
+    for lobe, expected in (("temporal", 14.70), ("frontal", 19.91),
+                           ("parietal", 29.71), ("occipital", 32.39)):
+        report.check(name, f"tau {lobe} crossing with the regional rates",
+                     crossings[lobe], expected, "years")
+    ordered = sorted(crossings, key=crossings.get)
+    report.check(name, "the regional rates recover the clinical lobe order",
+                 1.0 if ordered == ["temporal", "frontal", "parietal",
+                                    "occipital"] else 0.0, 1.0)
+    # The uniform run at the same scaling gives the connectivity order, so
+    # the two records must disagree exactly on the two middle lobes.
+    uniform = read_csv(base / "tau_biomarkers.csv")
+    times = [float(r["time"]) for r in uniform]
+    uniform_order = sorted(
+        ("temporal", "frontal", "parietal", "occipital"),
+        key=lambda lobe: crossing(times, [float(r[lobe]) for r in uniform],
+                                  50.0))
+    report.check(name, "the uniform run keeps the connectivity order",
+                 1.0 if uniform_order == ["temporal", "occipital", "parietal",
+                                          "frontal"] else 0.0, 1.0)
+
+    # The spreading moves anteriorly with the regional rates and posteriorly
+    # with the uniform one: the centroid of the activated regions.
+    coordinate = {int(r["node_id"]): float(r["y"]) for r in read_csv(
+        Path("data/connectome/fornari83/nodes.csv"))}
+    def centroid(path, stages):
+        rows = read_csv(path)
+        times = np.array([float(r["time"]) for r in rows])
+        values = np.array([[float(r[f"node_{k}"]) for k in range(83)]
+                           for r in rows])
+        out = []
+        for target in stages:
+            row = values[int(np.argmin(abs(times - target)))]
+            chosen = [k for k in range(83) if row[k] >= 0.5]
+            out.append(sum(coordinate[k] for k in chosen) / len(chosen))
+        return out
+    forward = centroid(base / "tau_regional_profiles.csv", (14.0, 20.4, 28.8))
+    backward = centroid(base / "tau_profiles.csv", (15.2, 21.6, 27.6))
+    report.check(name, "regional: the centroid moves anteriorly",
+                 1.0 if forward[0] < forward[1] < forward[2] else 0.0, 1.0)
+    report.check(name, "uniform: the centroid moves posteriorly",
+                 1.0 if backward[1] < backward[0] else 0.0, 1.0)
+    report.note(name, "centroid of the activated regions, anterior positive",
+                f"regional {['%+.1f' % v for v in forward]} mm, "
+                f"uniform {['%+.1f' % v for v in backward]} mm")
 
 
 def check_19_accuracy(report):
@@ -1680,9 +1808,14 @@ def check_orientation(report):
                "plot-connectome-views.py", "plot-connectome-regions.py",
                "plot-corti-activation-order.py", "plot-connectome-staging.py")
     for script in scripts:
-        text = Path("scripts") / script
+        text = " ".join((Path("scripts") / script).read_text().split())
+        # Two of these scripts place the camera themselves instead of calling
+        # render(), so the mirror view can also enter as an inlined direction.
+        inlined = any(f"({sign}1.0, 0.0, 0.0)" in text
+                      for sign in ("+", "")) and "CAMERA" not in text
         report.check(name, f"{script} uses the left-side camera",
-                     0.0 if "sagittal_right" in text.read_text() else 1.0, 1.0)
+                     0.0 if ("sagittal_right" in text or inlined) else 1.0,
+                     1.0)
     try:
         import vtk  # noqa: F401
         import numpy as np
@@ -1728,7 +1861,8 @@ def main():
                   check_23_stabilization, check_23_mass_spectrum,
                   check_23_boundary_prose, check_23_lobe_scale, check_23_lobe_order,
                   check_24_views, check_25, check_26,
-                  check_26_order, check_27, check_orientation):
+                  check_26_order, check_27, check_27_regional,
+                  check_orientation):
         try:
             check(report)
         except FileNotFoundError as error:
