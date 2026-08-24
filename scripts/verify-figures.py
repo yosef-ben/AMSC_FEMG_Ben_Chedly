@@ -1610,12 +1610,116 @@ def check_27_regional(report):
                  1.0 if forward[0] < forward[1] < forward[2] else 0.0, 1.0)
     report.check(name, "uniform: the centroid moves posteriorly",
                  1.0 if backward[1] < backward[0] else 0.0, 1.0)
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    # The control that removes the protein transfer: a synthetic rate field,
+    # linear in the anterior-posterior coordinate with the same spread, gives
+    # the same lobe order as the coefficients of the reference.
+    field = read_csv(base / "synthetic_rate_field.csv")
+    values = [float(r["alpha"]) for r in field]
+    report.check(name, "synthetic field, spread", max(values) / min(values),
+                 3.3046)
+    coordinate = {int(r["node_id"]): float(r["y"]) for r in read_csv(
+        Path("data/connectome/fornari83/nodes.csv"))}
+    ordered = sorted(field, key=lambda r: coordinate[int(r["node_id"])])
+    monotone = all(float(a["alpha"]) <= float(b["alpha"])
+                   for a, b in zip(ordered, ordered[1:]))
+    report.check(name, "synthetic field grows towards the anterior end",
+                 1.0 if monotone else 0.0, 1.0)
+    rows = read_csv(base / "tau_synthetic_biomarkers.csv")
+    times = [float(r["time"]) for r in rows]
+    synthetic = {lobe: crossing(times, [float(r[lobe]) for r in rows], 50.0)
+                 for lobe in ("temporal", "frontal", "parietal", "occipital")}
+    for lobe, expected in (("temporal", 17.46), ("frontal", 21.12),
+                           ("parietal", 26.75), ("occipital", 31.25)):
+        report.check(name, f"synthetic control, {lobe} crossing",
+                     synthetic[lobe], expected, "years")
+    report.check(name, "the synthetic control recovers the clinical order",
+                 1.0 if sorted(synthetic, key=synthetic.get)
+                 == ["temporal", "frontal", "parietal", "occipital"]
+                 else 0.0, 1.0)
+    report.check_contains(
+        name, "the section states the synthetic control", chapter,
+        "at $17.5$, $21.1$, $26.7$ and $31.3$ years")
+
+    # What a regional field must satisfy: the 5040 assignments of the seven
+    # values to the seven groups.
+    table = read_csv(base / "rate_permutations.csv")
+    report.check(name, "assignments tried", float(len(table)), 5040.0)
+    clinical = [r for r in table if r["clinical_order"] == "1"]
+    below = [r for r in table
+             if float(r["frontal_over_occipital"]) <= 1.0]
+    report.check(name, "assignments giving the clinical order",
+                 float(len(clinical)), 431.0)
+    report.check(name, "none of them has the occipital rate above the "
+                 "frontal one",
+                 float(sum(int(r["clinical_order"]) for r in below)), 0.0)
+    report.check(name, "assignments with frontal below occipital",
+                 float(len(below)), 2520.0)
+    above = [r for r in table if float(r["frontal_over_occipital"]) > 1.0]
+    strong = [r for r in table if float(r["frontal_over_occipital"]) >= 3.0]
+    report.check(name, "share with the clinical order, frontal above "
+                 "occipital",
+                 100.0 * sum(int(r["clinical_order"]) for r in above)
+                 / len(above), 17.1, "percent")
+    report.check(name, "share with the clinical order, ratio at least three",
+                 100.0 * sum(int(r["clinical_order"]) for r in strong)
+                 / len(strong), 75.0, "percent")
+    for label, needle in (
+            ("count of assignments", "in all $5040$ possible ways"),
+            ("necessary condition", "in none of the $2520$ such "
+                                    "assignments"),
+            ("shares", "it appears in $17$ percent of those in which it does "
+                       "and in $75$ percent of those in which it exceeds it "
+                       "by a factor of three or more"),
+            ("scope of the condition",
+             "That condition is a statement about this model on this graph "
+             "and it should not be read as a property of the protein."),
+            ("distinction between a PET rate and alpha",
+             "a rate of accumulation measured by positron emission "
+             "tomography is not the coefficient $\\alpha$"),
+            ("non-stationary tau pattern",
+             "an anterior-to-posterior gradient of conversion is not a "
+             "documented property of tau")):
+        report.check_contains(name, f"the section states the {label}",
+                              chapter, needle)
+
+    # The amyloid variant: the ordering survives but the seeded mantle is no
+    # longer uniform, which is why the report shows the tau row alone.
+    def mantle(path, stages):
+        rows = read_csv(path)
+        times = np.array([float(r["time"]) for r in rows])
+        values = np.array([[float(r[f"node_{k}"]) for k in range(83)]
+                           for r in rows])
+        seeded = [k for k in range(83) if values[0][k] > 0.0]
+        out = []
+        for target in stages:
+            row = values[int(np.argmin(abs(times - target)))]
+            out.append(row[seeded].max() - row[seeded].min())
+        return out
+    uniform_mantle = mantle(base / "amyloid_profiles.csv", (1.2, 5.2, 12.0))
+    regional_mantle = mantle(base / "amyloid_regional_profiles.csv",
+                             (1.2, 5.6, 13.2))
+    report.check(name, "uniform amyloid mantle rises as a block",
+                 max(uniform_mantle), 0.02)
+    report.check(name, "regional amyloid mantle spreads",
+                 max(regional_mantle), 0.58)
+    # The amyloid row stays in the report figure: its ordering survives and
+    # the report quotes both the narrowed margin and the new gradient.
+    for label, needle in (
+            ("amyloid stages", "with stages at $1.2$, $5.6$ and $13.2$ "
+                               "years"),
+            ("narrowed margin", "narrows from $5.2$ to $1.0$ years"),
+            ("mantle gradient", "crossing at $3.2$, $4.0$, $8.4$ and $9.9$ "
+                                "years instead of together at $4.4$")):
+        report.check_contains(name,
+                              f"regional staging prose states the {label}",
+                              chapter, needle)
+
     report.note(name, "centroid of the activated regions, anterior positive",
                 f"regional {['%+.1f' % v for v in forward]} mm, "
                 f"uniform {['%+.1f' % v for v in backward]} mm")
 
-    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
-        encoding="utf-8").split())
     ordered_crossings = [crossings[lobe] for lobe in
                          ("temporal", "frontal", "parietal", "occipital")]
     for label, needle in (
@@ -1625,8 +1729,6 @@ def check_27_regional(report):
             ("rescaled extremes",
              f"running from ${min(rates) * scale:.4f}$ in the occipital "
              f"group to ${max(rates) * scale:.4f}$ in the frontal one"),
-            ("amyloid stages", "downward progression, with stages at "
-             "$1.2$, $5.6$ and $13.2$ years"),
             ("centroid direction",
              f"from $+{round(forward[0]):d}$ to $+{round(forward[2]):d}$ mm")):
         report.check_contains(name,

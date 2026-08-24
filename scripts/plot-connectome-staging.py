@@ -39,10 +39,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from connectome_style import load_nodes
 import render_connectome as rc
 
-CASES = (
+ALL_CASES = (
     ("tau", "tau seeding", "entorhinal cortex"),
     ("amyloid", r"amyloid-$\beta$ seeding", "neocortex"),
 )
+# Set by --only to restrict the composite to one protein; the other run is
+# still read and its stage times printed, so the two figures stay comparable.
+CASES = ALL_CASES
 STAGES = (0.10, 0.40, 0.80)
 RADIUS_MIN, RADIUS_MAX = 0.55, 5.2     # mm; radius grows with concentration
 CONCENTRATION_MAP = plt.cm.Blues
@@ -56,6 +59,8 @@ def arguments():
                         help="fem_profiles.csv of the neocortical seeding")
     parser.add_argument("--prefix", default="seeding_patterns",
                         help="basename of the two figures written")
+    parser.add_argument("--only", choices=("tau", "amyloid"), default=None,
+                        help="restrict the composite to one protein")
     parser.add_argument("--reference-dir", type=Path, default=None,
                         help="directory with the weickenmeier_fig1_*.png "
                              "strips cut by extract-weickenmeier-staging.py; "
@@ -192,7 +197,7 @@ def composite(reference_dir, panels, box, stage_times, output_dir,
         heights.extend([1.0 / strip_aspect, (1.0 / 3.0) / panel_aspect])
     width = 9.6
     figure = plt.figure(figsize=(width, 1.06 * width * sum(heights)))
-    grid = figure.add_gridspec(4, 3, height_ratios=heights,
+    grid = figure.add_gridspec(2 * len(CASES), 3, height_ratios=heights,
                                hspace=0.10, wspace=0.02,
                                left=0.05, right=0.995,
                                top=0.995, bottom=0.035)
@@ -229,7 +234,10 @@ def composite(reference_dir, panels, box, stage_times, output_dir,
 
 
 def main():
+    global CASES
     args = arguments()
+    if args.only is not None:
+        CASES = tuple(c for c in ALL_CASES if c[0] == args.only)
     nodes = load_nodes()
     coords = np.array([node["coords"] for node in nodes])
     table = rc.lookup_table(CONCENTRATION_MAP, 0.0, 1.0)
@@ -238,7 +246,9 @@ def main():
 
     plt.rcParams.update({"font.family": "serif",
                          "font.serif": ["DejaVu Serif"]})
-    figure, axes = plt.subplots(2, 3, figsize=(9.6, 5.4))
+    figure, axes = plt.subplots(len(CASES), 3,
+                                figsize=(9.6, 2.7 * len(CASES)),
+                                squeeze=False)
     stage_times = {}
     with tempfile.TemporaryDirectory() as scratch:
         panels = []

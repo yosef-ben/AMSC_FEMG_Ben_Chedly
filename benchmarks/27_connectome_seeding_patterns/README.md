@@ -122,7 +122,83 @@ amyloid-beta, regional rates, group means of the first crossing [years]
 ```
 
 The rates run from 0.2177 (occipital) to 0.7195 (frontal) after rescaling, a
-factor 3.3, and the solution stays in `[0,1]`. The figure of this variant is
+factor 3.3, and the solution stays in `[0,1]`.
+
+The gain is tau's alone, and the amyloid row is measurably worse. With the
+uniform rate the seeded mantle rises as a block (spread between its 54
+vertices 0.00, 0.02 and 0.01 at the three stages) so the only visible
+contrast is the one to the deep structures, which is the Thal picture. With
+the regional rates the mantle acquires an anterior-to-posterior gradient
+that the staging drawings do not show (spread 0.10, 0.58 and 0.32; the
+concentration-weighted centroid moves from -4.9 to -2.3 mm with the uniform
+rate and from +3.9 to +9.8 mm at the middle stage with the regional one),
+and the cortex-to-deep contrast at the last stage falls from +0.56 to +0.43.
+The ordering survives, the seeded neocortex still crossing before the
+allocortex, the deep nuclei and the brainstem, although the margin between
+the last cortical group and the first allocortical one narrows from 5.2 to
+1.0 years (the four seeded lobes cross at 3.2, 4.0, 8.4 and 9.9 years
+instead of together at 4.4). The gradient cannot be judged against the
+staging drawings, which shade the whole neocortex at the first phase and
+resolve no ordering inside it, and it is the kind of detail these
+coefficients carry: Corti et al. estimate them from amyloid-beta PET, so
+applying them to the tau seeding, where they restore the clinical lobe
+order, is a transfer across proteins. The report therefore shows both rows
+and states all of this; `results/seeding_patterns_regional_tau_expected`
+carries the tau row alone and is kept as a record for the presentation of
+the tau result on its own.
+
+## The control that removes the protein transfer
+
+Because those coefficients are estimated for amyloid-beta, the tau result
+must not depend on their particular values, and it does not. Repeating the
+tau run with `results/synthetic_rate_field.csv`, a field linear in the
+anterior-posterior coordinate of the vertices that shares with them only the
+ratio 3.3 between its fastest and its slowest value (and, like them, is
+rescaled by the executable to the vertex mean 0.5), gives
+
+```text
+temporal 17.46, frontal 21.12, parietal 26.75, occipital 31.25 years
+```
+
+the same sequence the coefficients of the reference produce (14.70, 19.91,
+29.71, 32.39) and the one the uniform rate cannot produce (16.50, 21.65,
+22.95, 25.87).
+
+`scripts/study-rate-permutations.py` then asks what a regional field must
+satisfy, by assigning the seven values to the seven groups in all 5040 ways
+at the same vertex mean and recording the order of the four lobes
+(`results/rate_permutations.csv`, one row per assignment):
+
+```text
+5040 assignments
+  431 give the clinical order (8.6 percent)
+  of the 2520 with the occipital rate at or above the frontal one, none
+  of those with frontal above occipital, 17 percent
+  of those with a ratio of three or more, 75 percent
+  the assignment of the reference has the largest possible ratio, 3.3046
+```
+
+So the necessary feature is that the anterior groups convert faster than the
+posterior ones; the rest of the reference's ranking is not used, the
+temporal lobe being first because of the seed, as the uniform run shows.
+
+That condition is a property of this model on this graph and not of tau.
+Two limitations are recorded with it. A rate of accumulation measured by
+PET is not the coefficient alpha of the equation: it is the observed change
+of a burden that transport, local conversion and the concentration already
+present produce together, which is why Corti et al. estimate alpha through
+an inverse problem rather than reading it from the images. And the regional
+pattern of tau accumulation is not stationary: longitudinal tau PET reports
+the fastest accumulation in the mesial and inferior temporal cortex before
+symptoms and in temporoparietal cortex once they appear (Jack et al., Brain
+141 (2018) 1517-1528; Krishnadas, Dore, Robertson et al., eBioMedicine 88
+(2023) 104450), so an anterior-to-posterior gradient of conversion is not a
+documented property of the protein. The experiment is therefore a
+demonstration of the mechanism and of the method, not a calibration for
+tau.
+The study integrates the same lumped-mass system with Heun's method at a
+small step instead of backward Euler at 0.4 years, so its crossing times run
+about two years earlier than the stored runs; only the order is used. The figure of this variant is
 `results/seeding_patterns_regional_expected.{png,pdf}`, built from the same
 strips and the same three-stage rule as the uniform one and collected into
 `report/images` beside it: the uniform figure shows what the connectivity

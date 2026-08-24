@@ -27,6 +27,31 @@ python3 scripts/plot-connectome-staging.py \
   --output-dir benchmarks/27_connectome_seeding_patterns/results \
   --prefix seeding_patterns_regional
 
+# The tau row alone: the regional rates restore the clinical lobe order for
+# tau, while for amyloid-beta they add an anterior gradient inside the seeded
+# mantle that the staging drawings do not show (see the README).
+python3 scripts/plot-connectome-staging.py \
+  --tau output/fisher_kolmogorov/staging/tau_regional/fem_profiles.csv \
+  --amyloid output/fisher_kolmogorov/staging/amyloid_regional/fem_profiles.csv \
+  --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
+  --output-dir benchmarks/27_connectome_seeding_patterns/results \
+  --prefix seeding_patterns_regional_tau --only tau
+
+# Control: the same tau seeding with a synthetic rate field, linear in the
+# anterior-posterior coordinate and sharing with the reference only the ratio
+# 3.3 between its fastest and its slowest vertex. It answers the objection
+# that the coefficients of Corti et al. are estimated for amyloid-beta.
+python3 scripts/make-synthetic-rate-field.py \
+  --output benchmarks/27_connectome_seeding_patterns/results/synthetic_rate_field.csv
+./build-release/test_fisher_kolmogorov_fornari83 1 0.4 output/fisher_kolmogorov/staging/tau_synthetic 0.5 80 0.005 be_lumped -1 benchmarks/27_connectome_seeding_patterns/results/synthetic_rate_field.csv
+cp output/fisher_kolmogorov/staging/tau_synthetic/fem_biomarkers.csv \
+   benchmarks/27_connectome_seeding_patterns/results/tau_synthetic_biomarkers.csv
+
+# What a regional field must satisfy: the seven values assigned to the seven
+# groups in all 5040 ways, with the order of the four lobes recorded.
+python3 scripts/study-rate-permutations.py \
+  --output benchmarks/27_connectome_seeding_patterns/results/rate_permutations.csv
+
 for case in tau amyloid; do
   cp output/fisher_kolmogorov/staging/${case}_regional/fem_profiles.csv \
      benchmarks/27_connectome_seeding_patterns/results/${case}_regional_profiles.csv
