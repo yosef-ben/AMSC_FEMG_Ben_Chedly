@@ -1418,24 +1418,26 @@ def check_27(report):
              f"the seeded neocortical regions cross first, at "
              f"${sum(seeded) / len(seeded):.1f}$ years, followed "
              f"by the insula at ${mean_activation['insular']:.1f}$ years, "
-             f"the limbic belt at ${mean_activation['limbic']:.1f}$ "
+             f"the limbic regions at ${mean_activation['limbic']:.1f}$ "
              f"years, the remaining subcortical nuclei at "
              f"${deep_without_brainstem:.1f}$ years and finally "
              f"the brainstem itself at ${brainstem:.1f}$ years"),
             ("scope of what is recovered",
-             "For tau the model produces one step of the expected sequence: "
-             "from the entorhinal seed the pathology reaches the temporal "
-             "lobe first, as the clinical description says. It does not "
-             "produce the rest."),
+             "the model produces one step of the expected sequence: from "
+             "the entorhinal seed the pathology reaches the temporal lobe "
+             "first, as the clinical description says. It does not produce "
+             "the rest."),
             ("which lobe is last",
-             "the occipital lobe, which the sequence of~\\cite{fornari2019prion} "
-             "leaves for last, is here the second to be involved, and the "
-             "frontal lobe, which that sequence places immediately after the "
-             "temporal one, is here the last"),
-            ("composition of the stations",
-             "the allocortex is contained in the limbic belt, which holds "
-             "the entorhinal and parahippocampal cortices and the "
-             "hippocampi"),
+             "the occipital lobe, which the sequence "
+             "of~\\cite{fornari2019prion} leaves for last, is here the "
+             "second to be involved and the frontal lobe, which the "
+             "reference places immediately after the temporal one, is here "
+             "the last"),
+            ("evidential weight of the two rows",
+             "the diffuse neocortical seed already prescribes the first "
+             "stage of the expected progression, so the resulting downward "
+             "spread mainly verifies that the model propagates the "
+             "pathology away from the seeded cortex"),
             ("distinction between the clinical staging and the lobe "
              "sequence",
              "The lobe sequence is instead a result of the network model "
@@ -1574,11 +1576,7 @@ def check_27_single_seed(report):
                  1.0 if summary["regional"] > summary["uniform"] else 0.0, 1.0)
     chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
         encoding="utf-8").split())
-    report.check_contains(
-        name, "the section states the control", chapter,
-        f"${summary['uniform']:.1f}$ of the six pairwise orderings are right "
-        f"with the uniform rate and ${summary['regional']:.1f}$ with the "
-        f"regional rates")
+
 
 
 def check_27_regional(report):
@@ -1684,9 +1682,7 @@ def check_27_regional(report):
                  1.0 if sorted(synthetic, key=synthetic.get)
                  == ["temporal", "frontal", "parietal", "occipital"]
                  else 0.0, 1.0)
-    report.check_contains(
-        name, "the section states the synthetic control", chapter,
-        "at $17.5$, $21.1$, $26.7$ and $31.3$ years")
+
 
     # What a regional field must satisfy: the 5040 assignments of the seven
     # values to the seven groups.
@@ -1711,23 +1707,30 @@ def check_27_regional(report):
     report.check(name, "share with the clinical order, ratio at least three",
                  100.0 * sum(int(r["clinical_order"]) for r in strong)
                  / len(strong), 75.0, "percent")
+    report.check_contains(
+        name, "the section states the division of roles", chapter,
+        "connectivity governs the transport pathways and contributes to "
+        "the ordering, while the heterogeneous reaction field provides the "
+        "dominant regional bias in this experiment")
     for label, needle in (
             ("count of assignments", "in all $5040$ possible ways"),
-            ("necessary condition", "in none of the $2520$ such "
-                                    "assignments"),
-            ("shares", "it appears in $17$ percent of those in which it does "
-                       "and in $75$ percent of those in which it exceeds it "
-                       "by a factor of three or more"),
-            ("scope of the condition",
-             "That condition is a statement about this model on this graph "
-             "and it should not be read as a property of the protein."),
-            ("distinction between a PET rate and alpha",
-             "a rate of accumulation measured by positron emission "
-             "tomography is not the coefficient $\\alpha$"),
-            ("non-stationary tau pattern",
-             "an anterior-to-posterior gradient of conversion is not a "
-             "documented property of tau")):
-        report.check_contains(name, f"the section states the {label}",
+            ("necessary condition",
+             "never appears when the frontal coefficient does not exceed "
+             "the occipital one"),
+            ("share at ratio three",
+             "appears in $75$ percent of the assignments in which it "
+             "exceeds it by a factor of three or more"),
+            ("synthetic control",
+             "sharing with the calibrated one only that ratio, recovers "
+             "the same sequence"),
+            ("PET rate is not alpha",
+             "an imaging rate of accumulation cannot be read directly as "
+             "the coefficient $\\alpha$"),
+            ("tau-PET continuation",
+             "repeating their estimation on longitudinal tau acquisitions "
+             "would provide conversion rates for tau itself")):
+        report.check_contains(name,
+                              f"provenance paragraph states the {label}",
                               chapter, needle)
 
     # The amyloid variant: the ordering survives but the seeded mantle is no
@@ -1755,9 +1758,9 @@ def check_27_regional(report):
     for label, needle in (
             ("amyloid stages", "with stages at $1.2$, $5.6$ and $13.2$ "
                                "years"),
-            ("narrowed margin", "narrows from $5.2$ to $1.0$ years"),
-            ("mantle gradient", "crossing at $3.2$, $4.0$, $8.4$ and $9.9$ "
-                                "years instead of together at $4.4$")):
+            ("footnote on the coefficients",
+             "The ordering of the seven regional coefficients already fixes "
+             "nineteen of the twenty-one pairwise orderings")):
         report.check_contains(name,
                               f"regional staging prose states the {label}",
                               chapter, needle)

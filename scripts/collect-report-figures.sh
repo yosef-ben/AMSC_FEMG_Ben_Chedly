@@ -19,7 +19,6 @@ copy 24_connectome_topology/results/connectome_views.pdf
 copy 24_connectome_topology/results/lobe_connectivity.pdf
 copy 26_connectome_progression/results/activation_order.pdf
 copy 27_connectome_seeding_patterns/results/seeding_patterns_expected.pdf
-copy 27_connectome_seeding_patterns/results/amyloid_phase_crossings.pdf
 copy 27_connectome_seeding_patterns/results/seeding_patterns_regional_expected.pdf
 
 echo "Copied $(ls report/images | wc -l) figures into report/images"
