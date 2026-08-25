@@ -204,6 +204,55 @@ strips and the same three-stage rule as the uniform one and collected into
 `report/images` beside it: the uniform figure shows what the connectivity
 does alone and the regional one what the added biology restores.
 
+## What the amyloid row demonstrates
+
+The amyloid seeding fills the first phase of the expected progression at
+`t = 0`, so only the ordering after it can be a result. To see how much the
+initial condition carries, `scripts/study-amyloid-single-seed.py` seeds each
+of the 54 neocortical vertices alone and repeats the run with the uniform
+rate and with the regional field, ordering the four phases (neocortex,
+allocortex with the insula and the limbic belt, deep nuclei, brainstem) by
+the mean first crossing of `c = 0.5` over their vertices
+(`results/amyloid_single_seed.csv`, 108 runs):
+
+```text
+                mean phase crossing over the 54 seeds [years]
+uniform    neocortex 26.1  allocortex 25.4  deep 24.5  brainstem 25.4
+           -> deep < brainstem < allocortex < neocortex
+           2.13 of the 6 pairwise orderings right on average, 1 seed of 54
+           with all six
+regional   neocortex 26.6  allocortex 24.4  deep 25.4  brainstem 27.0
+           -> allocortex < deep < neocortex < brainstem
+           3.20 of 6 on average, none with all six
+```
+
+From a single cortical seed the deep nuclei are reached first, because they
+are the hubs of the graph, so neither field reproduces the phases: the
+descent of the report figure comes from the neocortex being seeded, not from
+the dynamics. The comparison also settles what the regional field does to
+this protein. Where the target is a simultaneous onset, as in the seeded
+mantle, a uniform rate is the only field that can produce it and any
+heterogeneity necessarily breaks it; where the target is an ordering, as
+here, the regional field is better than the uniform one (3.20 against 2.13
+of six, and 35, 40 and 49 of the 54 seeds for the three orderings after the
+cortex, against 16, 35 and 29). The apparent damage to the amyloid row is
+therefore a property of the comparison, not of the field.
+
+## The amyloid stations, region by region
+
+The staged renders show the descent only as the centre of the glass brain
+lagging behind the mantle, because the deep structures sit inside it in the
+lateral view. `results/amyloid_phase_crossings` therefore reports it region
+by region: one dot per region at its first crossing of `c = 0.5`, one row
+per station, the black bar at the group mean the report quotes. The stations
+are composed from the seven groups of benchmark 21: the 54 seeded vertices,
+the insula, the limbic belt (which contains the allocortex: entorhinal,
+parahippocampal, hippocampi), the subcortical nuclei without the brainstem
+and the brainstem itself. The 54 seeded dots collapse onto 4.4 years, which
+is the block onset of the mantle; limbic and subcortical spreads overlap
+(10.4 to 14.0 and 10.8 to 14.8 years) while their means order as the text
+states; the brainstem is last at 17.2.
+
 ## Expected-against-obtained composite
 
 The computed rows are rendered from the left side of the head, the frontal

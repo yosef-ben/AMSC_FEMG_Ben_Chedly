@@ -52,6 +52,12 @@ cp output/fisher_kolmogorov/staging/tau_synthetic/fem_biomarkers.csv \
 python3 scripts/study-rate-permutations.py \
   --output benchmarks/27_connectome_seeding_patterns/results/rate_permutations.csv
 
+# What the amyloid row demonstrates: each of the 54 neocortical vertices
+# seeded alone, with the uniform rate and with the regional field, so that
+# the model has to fill the neocortex before it reaches anything else.
+python3 scripts/study-amyloid-single-seed.py \
+  --output benchmarks/27_connectome_seeding_patterns/results/amyloid_single_seed.csv
+
 for case in tau amyloid; do
   cp output/fisher_kolmogorov/staging/${case}_regional/fem_profiles.csv \
      benchmarks/27_connectome_seeding_patterns/results/${case}_regional_profiles.csv
@@ -83,3 +89,7 @@ cp output/fisher_kolmogorov/staging/amyloid_lumped/fem_biomarkers.csv benchmarks
 
 # Region-by-region activation of the four lobes, from the stored tau run.
 python3 scripts/plot-fisher-lobe-crossings.py
+
+# Region-by-region activation of the amyloid run: the stations of the
+# expected sequence composed from the seven groups, one dot per region.
+python3 scripts/plot-amyloid-phase-crossings.py

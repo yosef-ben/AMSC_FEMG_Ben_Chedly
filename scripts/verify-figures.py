@@ -1418,10 +1418,24 @@ def check_27(report):
              f"the seeded neocortical regions cross first, at "
              f"${sum(seeded) / len(seeded):.1f}$ years, followed "
              f"by the insula at ${mean_activation['insular']:.1f}$ years, "
-             f"the limbic regions at ${mean_activation['limbic']:.1f}$ "
+             f"the limbic belt at ${mean_activation['limbic']:.1f}$ "
              f"years, the remaining subcortical nuclei at "
              f"${deep_without_brainstem:.1f}$ years and finally "
              f"the brainstem itself at ${brainstem:.1f}$ years"),
+            ("scope of what is recovered",
+             "For tau the model produces one step of the expected sequence: "
+             "from the entorhinal seed the pathology reaches the temporal "
+             "lobe first, as the clinical description says. It does not "
+             "produce the rest."),
+            ("which lobe is last",
+             "the occipital lobe, which the sequence of~\\cite{fornari2019prion} "
+             "leaves for last, is here the second to be involved, and the "
+             "frontal lobe, which that sequence places immediately after the "
+             "temporal one, is here the last"),
+            ("composition of the stations",
+             "the allocortex is contained in the limbic belt, which holds "
+             "the entorhinal and parahippocampal cortices and the "
+             "hippocampi"),
             ("distinction between the clinical staging and the lobe "
              "sequence",
              "The lobe sequence is instead a result of the network model "
@@ -1533,6 +1547,38 @@ def check_27(report):
         name, "staging prose states the rho=1 lobe spread", chapter,
         f"in a control tau simulation the four lobes cross the $50\\%$ "
         f"level within ${max(spread) - min(spread):.2f}$ years of each other")
+
+
+def check_27_single_seed(report):
+    """The control that separates the prescribed first phase of the amyloid
+    row from the ordering the model produces."""
+    name = "27 single_seed"
+    base = BENCH / "27_connectome_seeding_patterns/results"
+    rows = read_csv(base / "amyloid_single_seed.csv")
+    phases = ("neocortex", "allocortex", "deep", "brainstem")
+    summary = {}
+    for field in ("uniform", "regional"):
+        chosen = [r for r in rows if r["field"] == field
+                  and r["correct_pairs"] != ""]
+        report.check(name, f"{field} seeds", float(len(chosen)), 54.0)
+        pairs = [int(r["correct_pairs"]) for r in chosen]
+        summary[field] = sum(pairs) / len(pairs)
+        report.check(name, f"{field}, mean pairwise orderings right of six",
+                     summary[field], {"uniform": 2.13, "regional": 3.20}[field])
+        means = {p: sum(float(r[p]) for r in chosen) / len(chosen)
+                 for p in phases}
+        report.check(name, f"{field}, the neocortex is not the first phase",
+                     1.0 if means["neocortex"] != min(means.values())
+                     else 0.0, 1.0)
+    report.check(name, "the regional field orders the phases better",
+                 1.0 if summary["regional"] > summary["uniform"] else 0.0, 1.0)
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    report.check_contains(
+        name, "the section states the control", chapter,
+        f"${summary['uniform']:.1f}$ of the six pairwise orderings are right "
+        f"with the uniform rate and ${summary['regional']:.1f}$ with the "
+        f"regional rates")
 
 
 def check_27_regional(report):
@@ -1979,6 +2025,7 @@ def main():
                   check_23_boundary_prose, check_23_lobe_scale, check_23_lobe_order,
                   check_24_views, check_25, check_26,
                   check_26_order, check_27, check_27_regional,
+                  check_27_single_seed,
                   check_orientation):
         try:
             check(report)
