@@ -1123,10 +1123,33 @@ def check_23_lobe_order(report):
     name = "23 lobe order"
     base = BENCH / "23_fisher_kolmogorov_diffusion_scaling/results"
     record = {row["model"]: row for row in read_csv(base / "lobe_damkohler.csv")}
+    # The scope of the second conclusion: the fine-graph control of
+    # verification/coarse_graining finds the intermediate ordering sensitive
+    # to the aggregation (occipital second at 83 regions, third or last at
+    # 1015 parcels) while temporal first and frontal late survive; the
+    # bullet states exactly that and the stored study backs it.
+    fine = {row["lobe"]: float(row["region_mean_crossing"])
+            for row in read_csv(Path("verification/coarse_graining/results"
+                                     "/fine_lobe_crossings.csv"))}
+    coarse = {row["lobe"]: float(row["coarse_crossing"])
+              for row in read_csv(Path("verification/coarse_graining/results"
+                                       "/fine_lobe_crossings.csv"))}
+    report.check(name, "fine control: temporal first",
+                 1.0 if min(fine, key=fine.get) == "temporal" else 0.0, 1.0)
+    report.check(name, "fine control: frontal within half a year of last",
+                 1.0 if max(fine.values()) - fine["frontal"] <= 0.5 else 0.0,
+                 1.0)
+    report.check(name, "fine control: the occipital position moves",
+                 1.0 if sorted(fine, key=fine.get).index("occipital")
+                 != sorted(coarse, key=coarse.get).index("occipital")
+                 else 0.0, 1.0)
     chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
         encoding="utf-8").split())
     nodal_rates = [float(v) for v in record["nodal"]["lobe_rates"].split()]
     needles = [
+        ("scope of the second conclusion",
+         "the intermediate ordering is sensitive to the coarse-graining, "
+         "while the temporal lobe first and the frontal lobe late are not"),
         ("lobe-scale rates of the nodal model",
          f"from ${nodal_rates[0]:.1f}$ to ${nodal_rates[-1]:.1f}$"),
         ("temporal-occipital contrast",
