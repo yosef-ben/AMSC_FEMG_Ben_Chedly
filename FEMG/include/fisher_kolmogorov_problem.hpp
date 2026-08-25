@@ -67,6 +67,13 @@ public:
 	double time() const { return time_; }
 
 	Vector assemble_reaction_vector(const Vector &state) const;
+	// The derivative of the reaction with respect to the state (state_factor
+	// = 2) or the reaction weight of the semi-implicit scheme (state_factor
+	// = 1). Public so that the verification tests can check the assembled
+	// Newton Jacobian against finite differences of the residual.
+	SparseMatrix assemble_reaction_weight_matrix(
+		const Vector &state,
+		double state_factor) const;
 	void print_matrix_summary(std::ostream &out) const;
 
 private:
@@ -75,9 +82,6 @@ private:
 		const std::vector<double> &vertex_values,
 		Vector &dof_values) const;
 	Edge edge_with_index(std::size_t edge_index) const;
-	SparseMatrix assemble_reaction_weight_matrix(
-		const Vector &state,
-		double state_factor) const;
 	Vector solve_backward_euler_step(const Vector &old_solution);
 	void output(std::size_t step) const;
 	void write_pvd_record(const std::vector<std::size_t> &steps) const;

@@ -1,0 +1,37 @@
+test,check,value,bound,status
+1 exact interval,L2 rate in h (expect 2),1.99137,2,pass
+1 exact interval,H1 rate in h (expect 1),0.995796,1,pass
+1 exact interval,L2 error at h = 1/32 (theory 1.4e-4 per edge),0.000148932,0.00018,pass
+1 exact star,L2 rate in h (expect 2),1.99137,2,pass
+1 exact star,H1 rate in h (expect 1),0.995796,1,pass
+1 exact star,L2 error at h = 1/32 (theory 1.4e-4 per edge),0.000257959,0.000311769,pass
+1 time backward-euler,L2 rate in dt (expect 1),1.10767,1,pass
+1 time crank-nicolson,M-norm rate in dt (expect 2),1.98996,2,pass
+2 diffusion consistent be,M-norm rate in dt (expect 1),0.992295,1,pass
+2 diffusion consistent be,M-norm error at the smallest step,0.00107499,0.002,pass
+2 diffusion consistent cn,M-norm rate in dt (expect 2),2.02937,2,pass
+2 diffusion consistent cn,M-norm error at the smallest step,2.85055e-06,5e-06,pass
+2 diffusion lumped be,M-norm rate in dt (expect 1),0.992133,1,pass
+2 diffusion lumped be,M-norm error at the smallest step,0.00109471,0.002,pass
+2 diffusion lumped cn,M-norm rate in dt (expect 2),2.00025,2,pass
+2 diffusion lumped cn,M-norm error at the smallest step,2.869e-06,5e-06,pass
+3 reaction lumped,max rate in dt (expect 1),1.0024,1,pass
+3 reaction lumped,max error at the smallest step,0.00180283,0.002,pass
+3 reaction uniform,max rate in dt (expect 1),1.17679,1,pass
+3 reaction uniform,max error at the smallest step,1.22031e-05,0.002,pass
+3 reaction consistent,max rate in dt (expect 1),0.992397,1,pass
+3 reaction consistent,max error at the smallest step,0.00137622,0.002,pass
+3 reaction consistent,consistent flow differs from nodewise logistic,0.105667,0.001,pass
+4 jacobian consistent,worst directional relative error over 5 trials,2.72994e-13,1e-09,pass
+4 jacobian lumped,worst directional relative error over 5 trials,2.88548e-13,1e-09,pass
+5 h refinement,vertex rate in h (expect 2),1.76571,2,pass
+5 h refinement,difference at the finest pair,1.32304e-05,0.0001,pass
+5 dt refinement,vertex rate in dt (expect 1),0.965838,1,pass
+6 conservation consistent be,relative drift of 1'Mc,2.04179e-16,1e-12,pass
+6 conservation consistent cn,relative drift of 1'Mc,2.45015e-15,1e-12,pass
+6 conservation lumped be,relative drift of 1'Mc,0,1e-12,pass
+6 conservation lumped cn,relative drift of 1'Mc,1.83761e-15,1e-12,pass
+6 stationary,uniform state with alpha = 0 stays,0,1e-12,pass
+6 stationary,c = 0 equilibrium stays,0,1e-12,pass
+6 stationary,c = 1 equilibrium stays,0,1e-12,pass
+6 symmetry,max deviation between the star edges,0,1e-12,pass

@@ -114,6 +114,11 @@ add_executable(test_fisher_kolmogorov_fornari83
 )
 target_link_libraries(test_fisher_kolmogorov_fornari83 PRIVATE femg)
 
+add_executable(verify_fisher_kolmogorov
+  test_problem/fisher_kolmogorov/verify_fisher_kolmogorov.cpp
+)
+target_link_libraries(verify_fisher_kolmogorov PRIVATE femg)
+
 add_executable(test_fisher_kolmogorov_corti83
   test_problem/fisher_kolmogorov/test_fisher_kolmogorov_corti83.cpp
 )
