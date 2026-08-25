@@ -9,7 +9,8 @@ We repeat the experiment and measure it with the position of the c = 0.5 front.
 The finest run is a numerical reference, never an exact solution, so no quantity
 here is an error and no slope is drawn.
 
-Panel (b) shows three dimensionless differences from the finest run, all
+The report uses the profiles alone (--panel profiles); --panel both adds a
+second panel with three dimensionless differences from the finest run, all
 defined on the profiles at the common final time T:
 
     e_inf(dt) = max_x |c_dt - c_ref|
@@ -54,6 +55,9 @@ def arguments():
     parser.add_argument("profiles", type=Path)
     parser.add_argument("summary", type=Path)
     parser.add_argument("-o", "--output", type=Path, required=True)
+    parser.add_argument("--panel", choices=("both", "profiles"),
+                        default="both",
+                        help="draw both panels or the profiles alone")
     return parser.parse_args()
 
 
@@ -77,6 +81,18 @@ def right_front(profile, level=LEVEL):
     return None
 
 
+def compute_differences(profiles, fronts, steps, reference, finest):
+    return {
+        "max": [np.abs(profiles[s][:, 1] - reference[:, 1]).max()
+                for s in steps],
+        "rms": [np.sqrt(np.trapezoid((profiles[s][:, 1] - reference[:, 1]) ** 2,
+                                     profiles[s][:, 0]) / DOMAIN)
+                for s in steps],
+        "front": [abs(fronts[s] - fronts[finest])
+                  if fronts[s] is not None else None for s in steps],
+    }
+
+
 def main():
     args = arguments()
     profiles = read_profiles(args.profiles)
@@ -96,7 +112,11 @@ def main():
         "text.color": "black", "axes.labelcolor": "black",
         "xtick.color": "black", "ytick.color": "black",
     })
-    figure, axes = plt.subplots(1, 2, figsize=(7.2, 3.05))
+    if args.panel == "both":
+        figure, axes = plt.subplots(1, 2, figsize=(7.2, 3.05))
+    else:
+        figure, only = plt.subplots(1, 1, figsize=(4.4, 3.05))
+        axes = [only]
 
     # ---- (a) the six final profiles ------------------------------------
     axis = axes[0]
@@ -141,57 +161,52 @@ def main():
               clip_on=False)
 
     # ---- (b) difference from the finest run ----------------------------
-    axis = axes[1]
-    filled = [step for step in steps if fronts[step] is None]
-    # From the first step without a front to the right edge, exactly.
-    right_edge = 0.55
-    axis.axvspan(min(filled), right_edge, color="#EFE3D2", zorder=0)
+    difference = compute_differences(profiles, fronts, steps, reference,
+                                     finest)
+    if args.panel == "both":
+        axis = axes[1]
+        filled = [step for step in steps if fronts[step] is None]
+        # From the first step without a front to the right edge, exactly.
+        right_edge = 0.55
+        axis.axvspan(min(filled), right_edge, color="#EFE3D2", zorder=0)
 
-    difference = {
-        "max": [np.abs(profiles[s][:, 1] - reference[:, 1]).max()
-                for s in steps],
-        "rms": [np.sqrt(np.trapezoid((profiles[s][:, 1] - reference[:, 1]) ** 2,
-                                     profiles[s][:, 0]) / DOMAIN)
-                for s in steps],
-        "front": [abs(fronts[s] - fronts[finest])
-                  if fronts[s] is not None else None for s in steps],
-    }
-    for key in ("max", "rms", "front"):
-        points = [(s, v) for s, v in zip(steps, difference[key])
-                  if v is not None and v > 0]
-        axis.plot([s for s, _ in points], [v for _, v in points], "-o",
-                  color=MEASURE_COLOUR[key], linewidth=1.9, markersize=5,
-                  markeredgecolor="white", markeredgewidth=0.8, zorder=3)
-    axis.text(0.047, 1.30, r"$e_\infty$", fontsize=10, fontweight="bold",
-              color=MEASURE_COLOUR["max"], va="bottom")
-    axis.text(0.047, 0.135, r"$e_2$", fontsize=10, fontweight="bold",
-              color=MEASURE_COLOUR["rms"], va="bottom")
-    axis.text(0.105, 0.052, r"$e_{\mathrm{f}}$", fontsize=10,
-              fontweight="bold", color=MEASURE_COLOUR["front"], va="bottom")
-    # e_f simply stops where the profile stops crossing c = 0.5; the shaded
-    # band and its label say why, so no censored marker is drawn.
-    axis.text(0.33, 0.0135, "no  $c = 0.5$  front", fontsize=8.5,
-              fontweight="bold", color="#8A5A16", ha="center", va="bottom")
+        for key in ("max", "rms", "front"):
+            points = [(s, v) for s, v in zip(steps, difference[key])
+                      if v is not None and v > 0]
+            axis.plot([s for s, _ in points], [v for _, v in points], "-o",
+                      color=MEASURE_COLOUR[key], linewidth=1.9, markersize=5,
+                      markeredgecolor="white", markeredgewidth=0.8, zorder=3)
+        axis.text(0.047, 1.30, r"$e_\infty$", fontsize=10, fontweight="bold",
+                  color=MEASURE_COLOUR["max"], va="bottom")
+        axis.text(0.047, 0.135, r"$e_2$", fontsize=10, fontweight="bold",
+                  color=MEASURE_COLOUR["rms"], va="bottom")
+        axis.text(0.105, 0.052, r"$e_{\mathrm{f}}$", fontsize=10,
+                  fontweight="bold", color=MEASURE_COLOUR["front"], va="bottom")
+        # e_f simply stops where the profile stops crossing c = 0.5; the shaded
+        # band and its label say why, so no censored marker is drawn.
+        axis.text(0.33, 0.0135, "no  $c = 0.5$  front", fontsize=8.5,
+                  fontweight="bold", color="#8A5A16", ha="center", va="bottom")
 
-    axis.set_xscale("log")
-    axis.set_yscale("log")
-    axis.set_xlim(0.021, right_edge)
-    axis.set_ylim(0.009, 3.0)
-    axis.set_xticks(steps)
-    axis.set_xticklabels(["0.025", "0.05", "0.1", "0.2", "", "0.4"])
-    axis.tick_params(axis="x", labelsize=8.5)
-    axis.minorticks_off()
-    axis.set_yticks([0.01, 0.1, 1])
-    axis.set_yticklabels(["0.01", "0.1", "1"])
-    axis.set_ylabel("difference from the finest run", fontsize=10, labelpad=2)
-    axis.text(0.55, -0.155, r"  time step $\Delta t$", fontsize=10,
-              fontweight="bold", ha="left", va="center",
-              transform=axis.get_xaxis_transform(), clip_on=False)
+        axis.set_xscale("log")
+        axis.set_yscale("log")
+        axis.set_xlim(0.021, right_edge)
+        axis.set_ylim(0.009, 3.0)
+        axis.set_xticks(steps)
+        axis.set_xticklabels(["0.025", "0.05", "0.1", "0.2", "", "0.4"])
+        axis.tick_params(axis="x", labelsize=8.5)
+        axis.minorticks_off()
+        axis.set_yticks([0.01, 0.1, 1])
+        axis.set_yticklabels(["0.01", "0.1", "1"])
+        axis.set_ylabel("difference from the finest run", fontsize=10, labelpad=2)
+        axis.text(0.55, -0.155, r"  time step $\Delta t$", fontsize=10,
+                  fontweight="bold", ha="left", va="center",
+                  transform=axis.get_xaxis_transform(), clip_on=False)
 
-    for letter, axis in zip("ab", axes):
-        axis.text(0.0, 1.045, f"({letter})", transform=axis.transAxes,
-                  fontsize=10.5, fontweight="bold", style="italic",
-                  va="bottom")
+    if args.panel == "both":
+        for letter, axis in zip("ab", axes):
+            axis.text(0.0, 1.045, f"({letter})", transform=axis.transAxes,
+                      fontsize=10.5, fontweight="bold", style="italic",
+                      va="bottom")
 
     figure.tight_layout(w_pad=3.2)
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -137,15 +137,14 @@ x_{f} = \{0.6889, \quad 0.7268, \quad 0.8145\}
 \qquad\text{for}\qquad
 \Delta t = \{0.025,\ 0.05,\ 0.1\},
 \]
-so the solution at $\Delta t = 0.1$ is not yet insensitive to further temporal refinement. This does not directly contradict the reference, since the criterion used there to assess convergence is not reported. Our numerical result only shows that, when the front position is used as a diagnostic, the solution still changes appreciably under further temporal refinement. Panel (b) quantifies the same experiment with three dimensionless differences from the finest run ($\Delta t = 0.025)$, all evaluated on the profiles at the common time $T$.\\
-The things this experiment does not establish should be stated plainly: it is not a study of the temporal order of convergence: the run at $\Delta t = 0.025$ is a numerical reference and not an exact solution, so the dimensionless plotted quantities are differences between two numerical solutions and not errors.
+so the solution at $\Delta t = 0.1$ is not yet insensitive to further temporal refinement. This does not directly contradict the reference, since the criterion used there to assess convergence is not reported. Our numerical result only shows that, when the front position is used as a diagnostic, the solution still changes appreciably under further temporal refinement.
+% Panel (b) quantifies the same experiment with three dimensionless differences from the finest run ($\Delta t = 0.025)$, all evaluated on the profiles at the common time $T$.\\
+% The things this experiment does not establish should be stated plainly: it is not a study of the temporal order of convergence: the run at $\Delta t = 0.025$ is a numerical reference and not an exact solution, so the dimensionless plotted quantities are differences between two numerical solutions and not errors.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{images/time_step_study.pdf}
-\caption{\footnotesize Time-step sensitivity plot at $\alpha=2.0$, $d=2\cdot10^{-4}$. All the runs are compared at the common time $T=19.2$. (a) the six final profiles, with the
-$c=0.5$ level marked by the dashed line and the resulting front positions by the circles. Only three runs cross that level. For $\Delta t \geq 0.2$ the interval is full and no crossing exists. The profile at $\Delta t = 0.4$ is dashed because it basically coincides with the one at $\Delta t = 0.3$. On the plateau $|x|\leq 0.5$ all six runs agree, so the disagreement is confined to the fronts. (b)
-$e_\infty = \max_{x\in\Omega} \bigl| c_{\Delta t} - c_{ref} \bigr|, e_2 = \left( \frac{1}{|\Omega|} \int_\Omega \bigl( c_{\Delta t} - c_{ref} \bigr)^2 \,\mathrm{d}x \right)^{1/2}, e_{f} = \bigl| x_{f} - x_{f}^{ref} \bigr|$, with $\Omega=(-1,1)$ and $c_{ref}$ the profile of the run at $\Delta t = 0.025$. The front difference $e_{f}$ is defined only where a crossing exists, so its curve stops at $\Delta t = 0.1$ and the shaded region marks the steps for which the quantity does not exist at all. The two norms of $c$ remain well defined for every step and they saturate at the values they take against the uniformly filled state. The run at $\Delta t = 0.025$ is the reference and has difference identically zero.}
+\includegraphics[width=0.6\textwidth]{images/time_step_study.pdf}
+\caption{\footnotesize Time-step sensitivity plot at $\alpha=2.0$, $d=2\cdot10^{-4}$. The six final profiles, compared at the common time $T=19.2$, with the $c=0.5$ level marked by the dashed line and the resulting front positions by the circles. Only three runs cross that level. For $\Delta t \geq 0.2$ the interval is full and no crossing exists. The profile at $\Delta t = 0.4$ is dashed because it basically coincides with the one at $\Delta t = 0.3$. On the plateau $|x|\leq 0.5$ all six runs agree, so the disagreement is confined to the fronts.}
 \label{fig:timestep}
 \end{figure}
 

@@ -140,7 +140,8 @@ The corresponding files are:
 ```text
 results/time_step_profiles.csv
 results/time_step_study.csv
-results/time_step_study.pdf
+results/time_step_study.pdf        (report figure: the profiles alone)
+results/time_step_study_full.pdf   (both panels, kept as the record)
 ```
 
 ### What this study is, and what it is not
@@ -154,21 +155,23 @@ their statement is wrong.
 
 The diagnostic used here is the position `x_f` of the right front, the point
 where the profile crosses `c = 0.5`. The finest run, `dt = 0.025`, is a
-**numerical reference and not an exact solution**, so the quantities in panel
-(b) measure sensitivity to the step and not error. The formal temporal orders
+**numerical reference and not an exact solution**, so the difference
+quantities below measure sensitivity to the step and not error. The formal temporal orders
 are established elsewhere, against the exact logistic solution: `1.00` for
 Backward Euler and `2.00` for the semi-implicit Crank-Nicolson scheme.
 
 ### How to read the figure
 
-Panel (a) draws all six runs and all 201 nodal values of each; nothing is
-omitted. Colour encodes the time step, and the cool-to-warm break falls exactly
-at the step above which no front survives, which is the same cut as the shaded
-band in panel (b). The `dt = 0.4` profile is dashed because it coincides with
-`dt = 0.3` to `4e-5`. On the plateau `|x| <= 0.5` all six runs agree to
-`3.3e-4`, so the disagreement really is confined to the front.
+The report figure (`time_step_study.pdf`) draws all six runs and all 201 nodal
+values of each; nothing is omitted. Colour encodes the time step, and the
+cool-to-warm break falls exactly at the step above which no front survives.
+The `dt = 0.4` profile is dashed because it coincides with `dt = 0.3` to
+`4e-5`. On the plateau `|x| <= 0.5` all six runs agree to `3.3e-4`, so the
+disagreement really is confined to the front.
 
-Panel (b) plots three dimensionless differences from the finest run, all
+The full variant (`time_step_study_full.pdf`, panel selection `--panel both`
+of the plotting script, kept in the results and not in the report) adds a
+second panel with three dimensionless differences from the finest run, all
 evaluated on the profiles at the common final time `T = 19.2`, with
 `Omega = (-1,1)` and `c_ref` the profile at `dt = 0.025`:
 
@@ -194,8 +197,8 @@ dt        e_inf      e_2        e_f
 ```
 
 `e_f` is defined only where the profile still crosses `c = 0.5`, so its curve
-stops at `dt = 0.1`; the shaded region records that the quantity does not exist
-beyond it, and no censored marker is drawn. The two norms of `c` remain well
+stops at `dt = 0.1`; the shaded region of that panel records that the quantity
+does not exist beyond it, and no censored marker is drawn. The two norms of `c` remain well
 defined for every step and saturate against the uniformly filled state.
 
 No slopes are drawn on the figure. They were removed deliberately: on a figure
