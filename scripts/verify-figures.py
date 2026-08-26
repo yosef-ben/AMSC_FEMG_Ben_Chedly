@@ -161,6 +161,9 @@ def check_19_topology(report):
     identities += (("smallest adjacency pair",
                     " -- ".join(sorted(nodes[k] for k in pair)),
                     "ctx-lh-isthmuscingulate -- ctx-lh-lateralorbitofrontal"),)
+    top = sorted(nodes[int(k)] for k in np.flatnonzero(degree == degree.max()))
+    identities += (("maximum-degree regions", ", ".join(top),
+                    "Left-Thalamus-Proper, Right-Caudate"),)
     fibre = np.zeros_like(adjacency)
     for row in edges:
         i, j = int(row["source"]), int(row["target"])
@@ -204,6 +207,13 @@ def check_19_topology(report):
                  min(ratios), 1.912)
     report.check(name, "largest intra-lobe to block mean ratio",
                  max(ratios), 4.252)
+
+    chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
+        encoding="utf-8").split())
+    report.check_contains(name, "caption states the degree-weight mismatch",
+                          chapter,
+                          "the two caudate nuclei and the left thalamus "
+                          "reaching the maximum of $48$")
 
 
 def check_connectome_consistency(report):
