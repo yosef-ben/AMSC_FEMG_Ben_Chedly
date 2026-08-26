@@ -1367,10 +1367,9 @@ def check_27(report):
             ("damkohler direct frontal coupling",
              f"frontal lobe is much weaker, with total weight "
              f"${coupling[('frontal', 'temporal')]:.1f}$"),
-            ("frontal pole degree",
-             f"The weighted degree spans "
-             f"${min(weighted_degree.values()):.2f} \\le D_{{ii}} \\le "
-             f"{max(weighted_degree.values()):.2f}$")):
+            ("frontal pole weakness",
+             "the frontal pole being the least connected region of the "
+             "graph")):
         report.check_contains(name, f"staging prose states the {label}",
                               chapter, needle)
 

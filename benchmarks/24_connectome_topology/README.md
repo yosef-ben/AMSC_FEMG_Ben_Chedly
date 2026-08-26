@@ -8,21 +8,22 @@ independently of any simulation.
 
 ## Content
 
-`results/connectome_regions` shows the graph inside the pial surface in the
-sagittal, coronal and axial projections. The top row colours the 83 vertices by
-the seven anatomical groups of Corti et al., with the colours of the legend
-of their figure 2, sampled from the published panels, so the two figures can
-be read against each other group by group. The choice trades colour-vision
-robustness for comparability: under severity-one dichromacy simulation the
-smallest pairwise OKLab (x100) separation is 3.3, insular against limbic in
-tritanopia, against 16.5 in normal vision; the renders mitigate this with
-dark marker edges and lightness differences. The same palette is used
-wherever the seven groups appear: here, in the regional curves of benchmark
-21, in the seeding study of benchmark 25 and in the group strips of the
-adjacency panel of benchmark 19.
-The bottom row colours and sizes the 1130 connections by their connectivity
+`results/connectome_regions` has two panels. Panel (a) draws one brain per
+cortical lobe of Fornari et al., the partition of every biomarker curve of
+the report, in an anterior three-quarter view at the level of the brain,
+through a near-white pial surface, in the manner of the lobe brains of
+Fornari et al.: the vertices of the lobe in the lobe colour of the line
+figures, every other vertex in white so the partition stays visible, and
+the connections internal to the lobe in a light tint of the same colour
+with the thickness of the weight ramp below. The classification is the
+`classify` rule of `lobe_scale.py`, the one the solver uses, and the
+two-by-two order is fixed: frontal and parietal on top, temporal and
+occipital below.
+Panel (b) colours and sizes the 1130 connections by their connectivity
 weight on the rainbow ramp of the brain network figure of Fornari et al.,
-with the uniform silver spheres of that figure at the vertices. Colour and
+with the uniform silver spheres of that figure at the vertices, in the
+oblique view and without the pial surface: the abstract metric graph the
+solver computes on, every connection one edge of unit length. Colour and
 width follow the square root of the weight, a mapping stated here because
 the references declare none: the distribution is strongly skewed, a linear
 ramp paints nearly everything at the cold end, and the square root keeps the
@@ -47,6 +48,16 @@ each connection is a gradient between the colours of the two groups it joins,
 thickness grows with the weight, and the stronger connections are drawn on
 top. The group matrix keeps a perceptual ramp with its values printed in the
 cells, leaving the rainbow to the renders that reproduce reference figures.
+The seven groups keep the colours of the legend of figure 2 of Corti et al.,
+sampled from the published panels, so the connectogram can be read against
+the reference group by group. The choice trades colour-vision robustness for
+comparability: under severity-one dichromacy simulation the smallest
+pairwise OKLab (x100) separation is 3.3, insular against limbic in
+tritanopia, against 16.5 in normal vision; dark marker edges and lightness
+differences mitigate this. The same palette is used wherever the seven
+groups appear: here, in the regional curves of benchmark 21, in the seeding
+study of benchmark 25 and in the group strips of the adjacency panel of
+benchmark 19.
 
 `results/connectome_views` reproduces the brain network figure of Fornari et
 al., their figure 5, in its own composition: the two-by-two arrangement of a
@@ -71,7 +82,7 @@ mid-range distinguishable; the printed figure shows the same broad spread of
 warm edges, which a purely linear ramp of so skewed a distribution could not
 produce. The
 rainbow ramp breaks the colour conventions used everywhere else in this
-project; it is kept in these network renders, here and in the weight row of
+project; it is kept in these network renders, here and in panel (b) of
 `connectome_regions`, because matching the reference's own colouring is what
 makes ours and theirs directly comparable.
 

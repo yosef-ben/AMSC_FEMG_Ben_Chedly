@@ -2,10 +2,17 @@
 
 """Anatomical layout and connectivity of the Budapest-83 graph.
 
-Companion to the graph-discretization figure of Corti et al. and to the brain
-network figure of Fornari et al. The MRI and tractography panels of the former
-are omitted: neither dataset is available here, and the graph is taken from the
-public Budapest Reference Connectome rather than reconstructed from images.
+The regions figure has two panels. Panel (a) shows the four cortical lobes of
+the staging analysis, one brain per lobe in a level three-quarter view
+through a near-white pial surface, in the manner of the lobe brains of
+Fornari et al.: the vertices of the lobe in the lobe colour of the line
+figures, every other vertex in white so the partition stays visible, and
+the connections internal to the lobe in a light tint of the same colour. Panel (b) shows the
+resulting metric graph in the oblique view without the pial surface, the
+connections coloured by connectivity weight: the abstract object the FEM
+computes on, where every connection is one edge of unit metric length.
+
+The connectogram figure keeps the seven anatomical groups of Corti et al.
 
 The anatomical panels are rendered with VTK, the engine ParaView is built on.
 """
@@ -18,16 +25,19 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.lines import Line2D
 
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from connectome_style import (REGION_COLOUR, REGION_ORDER, load_edges,
                               load_nodes, minimal_colourbar)
+from figure_style import LOBE_COLOUR
+from lobe_scale import classify
 from render_connectome import (common_box, common_scale, lookup_table,
                                render, show_render)
 
-VIEW_ORDER = ("sagittal", "coronal", "axial")
+# Fixed 2 x 2 order of panel (a): frontal and parietal on top, temporal and
+# occipital below.
+LOBE_GRID = (("frontal", "parietal"), ("temporal", "occipital"))
 # Corti et al. draw their connectogram with the connections above 5% of the
 # strongest one; the same threshold is used here.
 CONNECTOGRAM_THRESHOLD = 0.05
@@ -130,57 +140,81 @@ def main():
     coords = np.array([node["coords"] for node in nodes])
     scale = common_scale()
 
-    # The anatomical groups are categorical, so the vertices carry an index
-    # into a lookup table built from the seven colours, not a scalar field.
-    region_index = [REGION_ORDER.index(node["region"]) for node in nodes]
-    region_table = lookup_table(
-        matplotlib.colors.ListedColormap(
-            [REGION_COLOUR[name] for name in REGION_ORDER]),
-        -0.5, len(REGION_ORDER) - 0.5)
     weight_table = lookup_table(WEIGHT_MAP, 0.0, 1.0)
     grey_table = lookup_table(plt.cm.gray, 0.0, 1.0)
     edge_level = [float(weight_norm(weight)) for weight in weights]
     edge_radii = [0.22 + 1.45 * value for value in edge_level]
 
+    # Panel (a): the lobe partition of the staging analysis, from the same
+    # classification rule the solver uses.
+    lobe_of = [classify(node["name"]) for node in nodes]
+
     with tempfile.TemporaryDirectory() as scratch:
         panels = {}
-        for view in VIEW_ORDER:
-            # Top row: vertices by anatomical group, as in Corti et al.
-            panels["region", view] = render(
-                Path(scratch) / f"region_{view}.png", view, coords,
-                region_index, region_table, node_radius=3.6, edges=edges,
-                edge_values=[0.66] * len(edges), edge_table=grey_table,
-                edge_radii=[0.16] * len(edges), scale=scale)[0]
-            # Bottom row: connections by weight, as in Fornari et al., with
-            # the uniform silver spheres of their brain-network figure.
-            panels["weight", view] = render(
-                Path(scratch) / f"weight_{view}.png", view, coords,
-                [0.84] * len(nodes), grey_table, node_radius=3.8, edges=edges,
-                edge_values=edge_level, edge_table=weight_table,
-                edge_radii=edge_radii, scale=scale)[0]
+        for lobe in LOBE_COLOUR:
+            # One three-quarter brain per lobe, in the manner of the lobe
+            # brains of Fornari et al.: the vertices of the lobe in the
+            # lobe colour of the line figures, every other vertex in white
+            # so the partition stays visible, the connections internal to
+            # the lobe in a light tint of the same colour with the
+            # thickness of the weight ramp, and a near-white surface.
+            members = [1.0 if group == lobe else 0.0 for group in lobe_of]
+            lobe_table = lookup_table(
+                matplotlib.colors.ListedColormap(
+                    ["#F4F4F4", LOBE_COLOUR[lobe]]), -0.5, 1.5)
+            internal = [position for position, (source, target, _)
+                        in enumerate(edges)
+                        if lobe_of[source] == lobe == lobe_of[target]]
+            base = np.array(matplotlib.colors.to_rgb(LOBE_COLOUR[lobe]))
+            tint = tuple(1.0 - 0.35 * (1.0 - base))
+            print(f"{lobe}: {int(sum(members))} vertices, "
+                  f"{len(internal)} internal connections")
+            panels["lobe", lobe] = render(
+                Path(scratch) / f"lobe_{lobe}.png", "threequarter", coords,
+                members, lobe_table, node_radius=2.7,
+                edges=[edges[position] for position in internal],
+                edge_values=[1.0] * len(internal),
+                edge_table=lookup_table(matplotlib.colors.ListedColormap(
+                    [tint]), 0.0, 2.0),
+                edge_radii=[0.12 + 0.50 * edge_level[position]
+                            for position in internal], scale=scale,
+                surface_opacity=0.08,
+                surface_colour=(0.96, 0.95, 0.94))[0]
+        # Panel (b): the metric graph alone, in the oblique view of the
+        # reference's brain-network figure, connections by weight with the
+        # uniform silver spheres and no pial surface.
+        panels["graph"] = render(
+            Path(scratch) / "graph_oblique.png", "oblique", coords,
+            [0.84] * len(nodes), grey_table, node_radius=3.8, edges=edges,
+            edge_values=edge_level, edge_table=weight_table,
+            edge_radii=edge_radii, scale=scale, surface_opacity=0.0)[0]
 
-        box = common_box(list(panels.values()))
-        figure, axes = plt.subplots(2, 3, figsize=(11.8, 6.6))
-        for column, view in enumerate(VIEW_ORDER):
-            show_render(axes[0, column], panels["region", view], box)
-            axes[0, column].set_title(view, fontsize=10, color="0.3", pad=3)
-            show_render(axes[1, column], panels["weight", view], box)
+        lobe_box = common_box([panels["lobe", lobe] for lobe in LOBE_COLOUR])
+        figure = plt.figure(figsize=(11.8, 5.6))
+        grid = figure.add_gridspec(2, 3, width_ratios=[1.0, 1.0, 1.9],
+                                   hspace=0.0, wspace=0.02)
+        first = None
+        for row, pair in enumerate(LOBE_GRID):
+            for column, lobe in enumerate(pair):
+                axis = figure.add_subplot(grid[row, column])
+                first = first or axis
+                show_render(axis, panels["lobe", lobe], lobe_box)
+                axis.set_title(lobe, fontsize=10.5, fontweight="bold",
+                               color=LOBE_COLOUR[lobe], pad=2)
+        oblique = figure.add_subplot(grid[:, 2])
+        show_render(oblique, panels["graph"])
 
-    handles = [Line2D([], [], marker="o", linestyle="none", markersize=7,
-                      markerfacecolor=REGION_COLOUR[name],
-                      markeredgecolor="0.25", markeredgewidth=0.4, label=name)
-               for name in REGION_ORDER]
-    figure.legend(handles=handles, loc="center", ncol=7, frameon=False,
-                  fontsize=8.5, bbox_to_anchor=(0.5, 0.505),
-                  handletextpad=0.3, columnspacing=1.1)
+    for letter, axis in (("a", first), ("b", oblique)):
+        axis.text(0.0, 1.03, f"({letter})", transform=axis.transAxes,
+                  fontsize=10.5, fontweight="bold", style="italic",
+                  va="bottom")
     mappable = plt.cm.ScalarMappable(cmap=WEIGHT_MAP, norm=weight_norm)
-    bar = minimal_colourbar(figure, mappable, axes[1, :].tolist(),
+    bar = minimal_colourbar(figure, mappable, oblique,
                             r"connectivity weight $A_{IJ}$",
                             low=f"{weights.min():.2g}",
                             high=f"{weights.max():.0f}",
-                            fraction=0.05, pad=0.03, aspect=45, shrink=0.5)
+                            fraction=0.05, pad=0.03, aspect=45, shrink=0.55)
     bar.ax.minorticks_off()
-    figure.subplots_adjust(hspace=0.16, wspace=0.02)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     figure.savefig(args.output_dir / "connectome_regions.pdf",

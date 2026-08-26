@@ -37,6 +37,9 @@ CAMERA = {
     "sagittal_right": ((1.0, 0.0, 0.0), (0.0, 0.0, 1.0)),
     "longitudinal": ((0.0, 0.0, 1.0), (1.0, 0.0, 0.0)),
     "oblique": ((0.32, 0.60, 0.73), (0.0, 0.0, 1.0)),
+    # Mostly anterior direction turned toward the left, slightly below the
+    # level of the brain: the three-quarter view of the per-lobe panels.
+    "threequarter": ((-0.68, 0.71, -0.16), (0.0, 0.0, 1.0)),
 }
 
 
@@ -180,7 +183,8 @@ def _edge_actor(coords, edges, values, table, radii):
 
 def render(output, view, coords, node_values, node_table, node_radius=3.4,
            edges=None, edge_values=None, edge_table=None, edge_radii=None,
-           size=(1100, 900), scale=None, surface_opacity=0.10):
+           size=(1100, 900), scale=None, surface_opacity=0.10,
+           surface_colour=(0.60, 0.65, 0.72)):
     """Render one anatomical view to a PNG and return its path."""
     direction, up = CAMERA[view]
     renderer = vtk.vtkRenderer()
@@ -189,7 +193,8 @@ def render(output, view, coords, node_values, node_table, node_radius=3.4,
     renderer.SetMaximumNumberOfPeels(12)
     renderer.SetOcclusionRatio(0.0)
 
-    renderer.AddActor(_surface_actor(opacity=surface_opacity))
+    renderer.AddActor(_surface_actor(opacity=surface_opacity,
+                                     colour=surface_colour))
     if edges:
         renderer.AddActor(_edge_actor(coords, edges, edge_values, edge_table,
                                       edge_radii))
