@@ -5,11 +5,13 @@
 Panel (a) is the connectome compressed over the four cortical lobes of
 Fornari et al., the partition over which every biomarker curve of the chapter
 is averaged: one line per pair of lobes with the total connectivity printed
-on it and the width growing with the square root of the value, the temporal
-lobe at the centre because it holds the entorhinal seed (the star), and a
-short grey stub at every lobe carrying its total connectivity to the 25
-remaining regions (insular, limbic, subcortical and the brainstem). The
-drawing is planar, so nothing crosses. Panel (b) plots the stored lobe
+on it and the width growing with the square root of the value, the lobes
+arranged as in a left sagittal view of the brain, frontal to the left,
+parietal above, occipital to the right and temporal below (the star marking
+the entorhinal seed), and a short grey stub at every lobe carrying its total
+connectivity to the 25 remaining regions (insular, limbic, subcortical and
+the brainstem). Only the frontal-occipital and parietal-temporal lines
+cross, at the centre, without sharing a vertex. Panel (b) plots the stored lobe
 separations of the three models against the lobe-scale Damkohler number
 computed from this compressed graph, with the line at one where the
 separation sets in. All sums come from the stored edge list and all spreads
@@ -39,26 +41,26 @@ FIEDLER = 0.772254
 REFERENCE_SPREAD_YEARS = 5.5
 BENCH = Path("benchmarks/23_fisher_kolmogorov_diffusion_scaling/results")
 POSITION = {
-    "frontal": (0.02, 0.90),
-    "parietal": (0.98, 0.90),
-    "occipital": (0.50, 0.02),
-    "temporal": (0.50, 0.58),
+    "frontal": (0.02, 0.50),
+    "parietal": (0.50, 0.98),
+    "occipital": (0.98, 0.50),
+    "temporal": (0.50, 0.02),
 }
 # Lobe-to-lobe labels: fraction along the first-to-second endpoint and shift.
 LABEL_POS = {
-    ("frontal", "parietal"): (0.50, 0.0, 0.032),
-    ("occipital", "parietal"): (0.50, 0.062, 0.0),
-    ("frontal", "occipital"): (0.50, -0.058, 0.0),
-    ("frontal", "temporal"): (0.50, 0.020, 0.040),
-    ("parietal", "temporal"): (0.50, -0.012, 0.044),
-    ("occipital", "temporal"): (0.50, -0.062, 0.0),
+    ("frontal", "parietal"): (0.50, -0.034, 0.034),
+    ("occipital", "parietal"): (0.50, 0.034, 0.034),
+    ("frontal", "occipital"): (0.24, 0.0, 0.034),
+    ("frontal", "temporal"): (0.50, -0.034, -0.034),
+    ("parietal", "temporal"): (0.70, 0.056, 0.0),
+    ("occipital", "temporal"): (0.50, 0.034, -0.034),
 }
 # Grey stubs towards the 25 remaining regions: direction and label offset.
 STUB = {
     "frontal": ((-0.11, 0.0), (0.0, -0.052)),
-    "parietal": ((0.11, 0.0), (0.0, -0.052)),
-    "occipital": ((0.0, -0.10), (0.048, 0.0)),
-    "temporal": ((0.10, -0.13), (-0.015, -0.052)),
+    "parietal": ((0.0, 0.10), (0.075, 0.0)),
+    "occipital": ((0.11, 0.0), (0.0, -0.052)),
+    "temporal": ((0.0, -0.11), (0.075, 0.0)),
 }
 
 
@@ -77,8 +79,8 @@ def read(path):
 
 def draw_graph(axis, graph):
     axis.set_aspect("equal")
-    axis.set_xlim(-0.22, 1.22)
-    axis.set_ylim(-0.2, 1.1)
+    axis.set_xlim(-0.24, 1.24)
+    axis.set_ylim(-0.24, 1.18)
     axis.axis("off")
     heaviest = max(graph.coupling.values())
 
@@ -109,30 +111,30 @@ def draw_graph(axis, graph):
         colour = figure_style.LOBE_COLOUR[lobe]
         axis.add_patch(Circle((x, y), 0.052, facecolor=colour,
                               edgecolor="white", linewidth=1.4, zorder=3))
-    axis.text(0.02, 0.975, f"frontal ({graph.counts['frontal']})",
+    axis.text(0.0, 0.60, f"frontal ({graph.counts['frontal']})",
               fontsize=9.5, fontweight="bold",
-              color=figure_style.LOBE_COLOUR["frontal"], ha="center",
+              color=figure_style.LOBE_COLOUR["frontal"], ha="right",
               va="bottom")
-    axis.text(0.98, 0.975, f"parietal ({graph.counts['parietal']})",
+    axis.text(0.435, 1.06, f"parietal ({graph.counts['parietal']})",
               fontsize=9.5, fontweight="bold",
-              color=figure_style.LOBE_COLOUR["parietal"], ha="center",
-              va="bottom")
-    axis.text(0.575, 0.02, f"occipital ({graph.counts['occipital']})",
+              color=figure_style.LOBE_COLOUR["parietal"], ha="right",
+              va="center")
+    axis.text(0.96, 0.60, f"occipital ({graph.counts['occipital']})",
               fontsize=9.5, fontweight="bold",
               color=figure_style.LOBE_COLOUR["occipital"], ha="left",
-              va="center")
-    axis.text(0.565, 0.58, f"temporal ({graph.counts['temporal']})",
+              va="bottom")
+    axis.text(0.565, 0.02, f"temporal ({graph.counts['temporal']})",
               fontsize=9.5, fontweight="bold",
               color=figure_style.LOBE_COLOUR["temporal"], ha="left",
               va="center")
     sx, sy = POSITION["temporal"]
     axis.plot([sx], [sy], marker="*", color="black", markersize=15,
               linestyle="none", zorder=6)
-    axis.text(0.435, 0.615, "entorhinal seed", fontsize=8.5,
+    axis.text(0.435, 0.02, "entorhinal seed", fontsize=8.5,
               fontweight="bold", color="black", ha="right", va="center")
-    axis.plot([-0.17], [-0.14], marker="o", markersize=7, color="0.45",
+    axis.plot([-0.21], [-0.19], marker="o", markersize=7, color="0.45",
               linestyle="none")
-    axis.text(-0.13, -0.14, f"the {graph.counts['other']} remaining regions",
+    axis.text(-0.17, -0.19, f"the {graph.counts['other']} remaining regions",
               fontsize=8.5, fontweight="bold", color="0.35", ha="left",
               va="center")
 
@@ -190,7 +192,7 @@ def main():
     graph = LobeGraph()
     figure_style.apply()
     figure = plt.figure(figsize=(10.6, 4.8))
-    grid = figure.add_gridspec(1, 2, width_ratios=[1.15, 1.0], wspace=0.10)
+    grid = figure.add_gridspec(1, 2, width_ratios=[1.15, 1.0], wspace=0.22)
     left = figure.add_subplot(grid[0, 0])
     draw_graph(left, graph)
     left.text(0.0, 1.0, "(a)", transform=left.transAxes, fontsize=10.5,
