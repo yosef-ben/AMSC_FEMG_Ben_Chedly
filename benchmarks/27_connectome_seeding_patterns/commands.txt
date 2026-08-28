@@ -25,7 +25,7 @@ python3 scripts/plot-connectome-staging.py \
   --amyloid output/fisher_kolmogorov/staging/amyloid_regional/fem_profiles.csv \
   --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
   --output-dir benchmarks/27_connectome_seeding_patterns/results \
-  --prefix seeding_patterns_regional
+  --prefix seeding_patterns_regional --only tau
 
 # The tau row alone: the regional rates restore the clinical lobe order for
 # tau, while for amyloid-beta they add an anterior gradient inside the seeded
@@ -35,7 +35,8 @@ python3 scripts/plot-connectome-staging.py \
   --amyloid output/fisher_kolmogorov/staging/amyloid_regional/fem_profiles.csv \
   --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
   --output-dir benchmarks/27_connectome_seeding_patterns/results \
-  --prefix seeding_patterns_regional_tau --only tau
+  --prefix seeding_patterns_regional_full
+python3 scripts/plot-regional-biomarker-curves.py
 
 # Control: the same tau seeding with a synthetic rate field, linear in the
 # anterior-posterior coordinate and sharing with the reference only the ratio

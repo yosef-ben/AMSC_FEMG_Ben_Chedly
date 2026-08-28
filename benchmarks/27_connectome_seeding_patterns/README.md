@@ -142,10 +142,14 @@ staging drawings, which shade the whole neocortex at the first phase and
 resolve no ordering inside it, and it is the kind of detail these
 coefficients carry: Corti et al. estimate them from amyloid-beta PET, so
 applying them to the tau seeding, where they restore the clinical lobe
-order, is a transfer across proteins. The report therefore shows both rows
-and states all of this; `results/seeding_patterns_regional_tau_expected`
-carries the tau row alone and is kept as a record for the presentation of
-the tau result on its own.
+order, is a transfer across proteins. The report shows the tau row alone,
+the amyloid study having been dropped from it with the motivation stated in
+the staging section, and `results/seeding_patterns_regional_full_expected`
+keeps both rows as the record behind these numbers. Below the render rows
+the report places `results/regional_biomarker_curves`, the same regional tau
+run read through the four lobe biomarker curves in the presentation of
+figure 7 of Fornari et al., with the network mean, the 50-percent level and
+the three stage instants marked.
 
 ## The control that removes the protein transfer
 

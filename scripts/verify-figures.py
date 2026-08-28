@@ -1772,14 +1772,18 @@ def check_27_regional(report):
                  max(uniform_mantle), 0.02)
     report.check(name, "regional amyloid mantle spreads",
                  max(regional_mantle), 0.58)
-    # The amyloid row stays in the report figure: its ordering survives and
-    # the report quotes both the narrowed margin and the new gradient.
+    # The amyloid row leaves the report with the rest of the amyloid study;
+    # the mantle checks above keep the record behind the stated motivation.
     for label, needle in (
-            ("amyloid stages", "with stages at $1.2$, $5.6$ and $13.2$ "
-                               "years"),
+            ("biomarker curves panel",
+             "shows the same run through the biomarker curves of the four "
+             "lobes"),
+            ("bridge between the two orderings",
+             "the entorhinal seed lies in the limbic group and the "
+             "fastest-converting frontal group leads"),
             ("footnote on the coefficients",
-             "The ordering of the seven regional coefficients already fixes "
-             "nineteen of the twenty-one pairwise orderings")):
+             "preserve this imposed regional hierarchy and resolve the "
+             "existing inversions")):
         report.check_contains(name,
                               f"regional staging prose states the {label}",
                               chapter, needle)
@@ -1790,7 +1794,21 @@ def check_27_regional(report):
 
     ordered_crossings = [crossings[lobe] for lobe in
                          ("temporal", "frontal", "parietal", "occipital")]
+    def stage_instants(path):
+        rows = read_csv(path)
+        times = [float(r["time"]) for r in rows]
+        means = np.array([[float(r[f"node_{k}"]) for k in range(83)]
+                          for r in rows]).mean(axis=1)
+        return [times[int(np.argmax(means >= level))]
+                for level in (0.10, 0.40, 0.80)]
+    uniform_stages = stage_instants(base / "tau_profiles.csv")
+    regional_stages = stage_instants(base / "tau_regional_profiles.csv")
     for label, needle in (
+            ("unchanged network clock",
+             "move from " + ", ".join(f"${v:.1f}$" for v in uniform_stages[:2])
+             + f" and ${uniform_stages[2]:.1f}$ to "
+             + ", ".join(f"${v:.1f}$" for v in regional_stages[:2])
+             + f" and ${regional_stages[2]:.1f}$ years"),
             ("crossings", "cross the $50\\%$ level at "
              + ", ".join(f"${v:.1f}$" for v in ordered_crossings[:-1])
              + f" and ${ordered_crossings[-1]:.1f}$ years"),
