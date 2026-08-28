@@ -59,6 +59,9 @@ def arguments():
                         help="fem_profiles.csv of the neocortical seeding")
     parser.add_argument("--prefix", default="seeding_patterns",
                         help="basename of the two figures written")
+    parser.add_argument("--curves", type=Path, default=None,
+                        help="biomarker CSV drawn as a curves row under the "
+                             "computed stages (report variant, with --only)")
     parser.add_argument("--only", choices=("tau", "amyloid"), default=None,
                         help="restrict the composite to one protein")
     parser.add_argument("--reference-dir", type=Path, default=None,
@@ -176,8 +179,53 @@ def render_stage(output, coords, concentration, table, scale):
     return Path(output)
 
 
+def draw_curves(axis, curves, stage_times):
+    """The four lobe biomarkers of the stored run, the presentation of
+    figure 7 of Fornari et al.: network mean dashed, the 50 percent level
+    and the three displayed stage instants marked. Values are columns of
+    the stored biomarker table; nothing is recomputed."""
+    import csv as csv_module
+    import figure_style
+    with open(curves, newline="") as stream:
+        rows = list(csv_module.DictReader(stream))
+    times = [float(row["time"]) for row in rows]
+    series = {name: [float(row[name]) for row in rows]
+              for name in ("temporal", "frontal", "parietal", "occipital",
+                           "global")}
+    axis.axhline(50.0, color="0.6", linewidth=1.1, linestyle=(0, (4, 3)),
+                 zorder=1)
+    for stage in stage_times:
+        axis.axvline(stage, color="0.75", linewidth=1.0,
+                     linestyle=(0, (2, 3)), zorder=1)
+    axis.plot(times, series["global"], color="0.45", linewidth=1.4,
+              linestyle="--", zorder=2)
+    axis.text(46.0, 88.0, "network mean", fontsize=9, fontweight="bold",
+              color="0.45", ha="left", va="center")
+    labels = {"temporal": (11.0, 80.0), "frontal": (23.2, 62.0),
+              "parietal": (33.5, 44.0), "occipital": (38.0, 28.0)}
+    for lobe, (x, y) in labels.items():
+        axis.plot(times, series[lobe], color=figure_style.LOBE_COLOUR[lobe],
+                  linewidth=2.0, zorder=3)
+        axis.text(x, y, lobe, fontsize=9.5, fontweight="bold",
+                  color=figure_style.LOBE_COLOUR[lobe], ha="left",
+                  va="center")
+    axis.set_xlim(0.0, 60.0)
+    axis.set_ylim(0.0, 100.0)
+    axis.set_yticks([0, 25, 50, 75, 100])
+    for spine in axis.spines.values():
+        spine.set_linewidth(1.5)
+    axis.tick_params(direction="in", width=1.5, length=5, labelsize=10)
+    for label in (*axis.get_xticklabels(), *axis.get_yticklabels()):
+        label.set_fontweight("bold")
+    axis.set_ylabel("biomarker abnormality [%]", fontsize=10,
+                    fontweight="bold", labelpad=2)
+    axis.annotate("time [years]", xy=(1.0, 0.0), xycoords="axes fraction",
+                  xytext=(2, -16), textcoords="offset points", fontsize=10,
+                  fontweight="bold", ha="right", va="top")
+
+
 def composite(reference_dir, panels, box, stage_times, output_dir,
-              prefix="seeding_patterns"):
+              prefix="seeding_patterns", curves=None):
     """Expected above obtained: the two Alzheimer strips of figure 1 of
     Weickenmeier et al. (each cut from the published page by
     extract-weickenmeier-staging.py, drawings adopted there from Jucker and
@@ -195,12 +243,16 @@ def composite(reference_dir, panels, box, stage_times, output_dir,
     for case, _, _ in CASES:
         strip_aspect = strips[case].shape[1] / strips[case].shape[0]
         heights.extend([1.0 / strip_aspect, (1.0 / 3.0) / panel_aspect])
+    if curves is not None:
+        heights.extend([0.045, 0.30])
     width = 9.6
     figure = plt.figure(figsize=(width, 1.06 * width * sum(heights)))
-    grid = figure.add_gridspec(2 * len(CASES), 3, height_ratios=heights,
+    grid = figure.add_gridspec(len(heights), 3, height_ratios=heights,
                                hspace=0.10, wspace=0.02,
-                               left=0.05, right=0.995,
-                               top=0.995, bottom=0.035)
+                               left=0.075 if curves is not None else 0.05,
+                               right=0.985 if curves is not None else 0.995,
+                               top=0.995,
+                               bottom=0.055 if curves is not None else 0.035)
 
     lookup = {position: path for position, path in panels}
     for pair, (case, label, seed) in enumerate(CASES):
@@ -226,6 +278,12 @@ def composite(reference_dir, panels, box, stage_times, output_dir,
                           ha="right", va="center", rotation=90,
                           linespacing=1.35)
 
+    if curves is not None:
+        # the second-to-last row is an empty spacer above the curves
+        axis = figure.add_subplot(grid[-1, :])
+        case = CASES[0][0]
+        draw_curves(axis, curves,
+                    [stage_times[case, target] for target in STAGES])
     figure.savefig(output_dir / f"{prefix}_expected.pdf",
                    facecolor="white")
     figure.savefig(output_dir / f"{prefix}_expected.png", dpi=300,
@@ -275,7 +333,7 @@ def main():
         args.output_dir.mkdir(parents=True, exist_ok=True)
         if args.reference_dir is not None:
             composite(args.reference_dir, panels, box, stage_times,
-                      args.output_dir, args.prefix)
+                      args.output_dir, args.prefix, curves=args.curves)
 
     for row, (case, label, seed) in enumerate(CASES):
         axes[row, 0].text(-0.02, 0.5, label, transform=axes[row, 0].transAxes,

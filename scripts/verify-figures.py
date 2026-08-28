@@ -564,7 +564,8 @@ def check_21(report):
     spearman = 1 - 6 * squared / (len(corti) * (len(corti) ** 2 - 1))
     report.check(name, "rank correlation", spearman, 1.0)
 
-    # The numbers the section quotes for the configuration and the run.
+    # The configuration of the stored corti83 run, a repository record;
+    # the report no longer quotes these numbers.
     import numpy as np
     chapter = " ".join(Path("report/chapter4_connectome.tex").read_text(
         encoding="utf-8").split())
@@ -643,21 +644,6 @@ def check_21(report):
                  mean_rate / refined_rate, 3.99)
     report.check(name, "ratio of the extreme rates", max(rates) / min(rates),
                  3.30)
-    for label, needle in (
-            ("scaling",
-             f"\\rho=\\frac{{1}}{{\\max_e w_e}}={rho:.4f}."),
-            ("nominal Damkohler number",
-             f"gives the nominal value $\\mathrm{{Da}}="
-             f"{mean_rate / (rho * 0.772254):.2f}$"),
-            ("lobe rate at this scaling",
-             f"\\rho\\,\\lambda_{{\\mathrm{{lobe}}}}="
-             f"{rho * lobe_rate:.6f}\\ \\mathrm{{yr}}^{{-1}}"),
-            ("lobe Damkohler number",
-             f"= \\frac{{\\overline{{\\alpha}}}}"
-             f"{{\\rho\\,\\lambda_{{\\mathrm{{lobe}}}}}} "
-             f"= {mean_rate / (rho * lobe_rate):.1f}.")):
-        report.check_contains(name, f"regional-rate prose states the {label}",
-                              chapter, needle)
     monotone = all(all(float(rows[k][g]) > float(rows[k - 1][g])
                        for k in range(1, len(rows)))
                    for g in expected)
@@ -1742,12 +1728,9 @@ def check_27_regional(report):
             ("synthetic control",
              "sharing with the calibrated one only that ratio, recovers "
              "the same sequence"),
-            ("PET rate is not alpha",
-             "an imaging rate of accumulation cannot be read directly as "
-             "the coefficient $\\alpha$"),
-            ("tau-PET continuation",
-             "repeating their estimation on longitudinal tau acquisitions "
-             "would provide conversion rates for tau itself")):
+            ("tau caveat",
+             "a property whose validity for tau is not established by the "
+             "imaging literature")):
         report.check_contains(name,
                               f"provenance paragraph states the {label}",
                               chapter, needle)
@@ -1778,12 +1761,9 @@ def check_27_regional(report):
             ("biomarker curves panel",
              "shows the same run through the biomarker curves of the four "
              "lobes"),
-            ("bridge between the two orderings",
-             "the entorhinal seed lies in the limbic group and the "
-             "fastest-converting frontal group leads"),
-            ("footnote on the coefficients",
-             "preserve this imposed regional hierarchy and resolve the "
-             "existing inversions")):
+            ("experiment changes only the rates",
+             "repeated with these rates and nothing else changed: the same "
+             "entorhinal seeding, the same scaling")):
         report.check_contains(name,
                               f"regional staging prose states the {label}",
                               chapter, needle)
@@ -1805,18 +1785,17 @@ def check_27_regional(report):
     regional_stages = stage_instants(base / "tau_regional_profiles.csv")
     for label, needle in (
             ("unchanged network clock",
-             "move from " + ", ".join(f"${v:.1f}$" for v in uniform_stages[:2])
-             + f" and ${uniform_stages[2]:.1f}$ to "
-             + ", ".join(f"${v:.1f}$" for v in regional_stages[:2])
-             + f" and ${regional_stages[2]:.1f}$ years"),
+             "at " + ", ".join(f"${v:.1f}$" for v in regional_stages[:2])
+             + f" and ${regional_stages[2]:.1f}$ years, nearly coinciding "
+             "with the uniform "
+             + ", ".join(f"${v:.1f}$" for v in uniform_stages[:2])
+             + f" and ${uniform_stages[2]:.1f}$"),
             ("crossings", "cross the $50\\%$ level at "
              + ", ".join(f"${v:.1f}$" for v in ordered_crossings[:-1])
              + f" and ${ordered_crossings[-1]:.1f}$ years"),
             ("rescaled extremes",
              f"running from ${min(rates) * scale:.4f}$ in the occipital "
-             f"group to ${max(rates) * scale:.4f}$ in the frontal one"),
-            ("centroid direction",
-             f"from $+{round(forward[0]):d}$ to $+{round(forward[2]):d}$ mm")):
+             f"group to ${max(rates) * scale:.4f}$ in the frontal one")):
         report.check_contains(name,
                               f"regional staging prose states the {label}",
                               chapter, needle)

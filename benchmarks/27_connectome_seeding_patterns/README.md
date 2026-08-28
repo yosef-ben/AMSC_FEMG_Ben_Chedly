@@ -145,11 +145,11 @@ applying them to the tau seeding, where they restore the clinical lobe
 order, is a transfer across proteins. The report shows the tau row alone,
 the amyloid study having been dropped from it with the motivation stated in
 the staging section, and `results/seeding_patterns_regional_full_expected`
-keeps both rows as the record behind these numbers. Below the render rows
-the report places `results/regional_biomarker_curves`, the same regional tau
-run read through the four lobe biomarker curves in the presentation of
-figure 7 of Fornari et al., with the network mean, the 50-percent level and
-the three stage instants marked.
+keeps both rows as the record behind these numbers. The report figure
+carries a third row (`--curves`): the same regional tau run read through the
+four lobe biomarker curves in the presentation of figure 7 of Fornari et
+al., with the network mean, the 50-percent level and the three stage
+instants marked, everything a column of the stored biomarker table.
 
 ## The control that removes the protein transfer
 

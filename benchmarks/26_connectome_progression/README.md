@@ -9,10 +9,11 @@ regional biology or from the network.
 
 ## The three figures
 
-`results/activation_order` enters the report: it is the control experiment
-that isolates the role of the calibrated rates, described below. The other
-two stay in this record: the staged story is told in the report by the
-seeding-pattern figure of benchmark 27, and the recruitment-order
+`results/activation_order` no longer enters the report, which now carries
+the regional-versus-uniform contrast entirely through the staging figures
+of benchmark 27; it stays in this record as the control experiment that
+isolates the role of the calibrated rates, described below. The other
+two stay in this record as well: the recruitment-order
 correlations the activation map carries, r = -0.841 with the local reaction
 rate and r = +0.065 with the graph distance, are quoted in the text of the
 deterministic-model section. Both stay here, together with the ParaView

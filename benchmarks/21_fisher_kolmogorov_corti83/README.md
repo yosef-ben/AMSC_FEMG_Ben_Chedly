@@ -111,10 +111,13 @@ freedom) as the run does and recovers the same rate to five digits,
 `0.031350`, hence `Da_lobe = 3.99`; the eight-element mesh of benchmark 26
 gives the same. The global rate does move with refinement (`rho * lambda_2`
 from `0.001799` at one element to `0.001709` at four and `0.001703` at
-eight), which is why the report uses the nominal number and the lobe number,
-not one built on the model's own `lambda_2`. The metric mean of the rate
-interpolated along the connections is `0.1229`, two percent below the vertex
-mean; the report states the vertex mean as its convention.
+eight), which is why this record quotes the nominal number and the lobe
+number, not one built on the model's own `lambda_2`. The metric mean of the
+rate interpolated along the connections is `0.1229`, two percent below the
+vertex mean. This whole protocol, the table against Corti's table 3
+included, is a repository record: the report keeps only the source of the
+seven rates and the staging experiment of benchmark 27, in which the rates
+are rescaled and everything else stays as in the uniform run.
 
 ## Results
 
