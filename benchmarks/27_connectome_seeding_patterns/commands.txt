@@ -80,7 +80,13 @@ python3 scripts/plot-connectome-staging.py \
   --tau output/fisher_kolmogorov/staging/tau_lumped/fem_profiles.csv \
   --amyloid output/fisher_kolmogorov/staging/amyloid_lumped/fem_profiles.csv \
   --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
-  --output-dir benchmarks/27_connectome_seeding_patterns/results
+  --output-dir benchmarks/27_connectome_seeding_patterns/results --only tau
+python3 scripts/plot-connectome-staging.py \
+  --tau output/fisher_kolmogorov/staging/tau_lumped/fem_profiles.csv \
+  --amyloid output/fisher_kolmogorov/staging/amyloid_lumped/fem_profiles.csv \
+  --reference-dir benchmarks/27_connectome_seeding_patterns/reference \
+  --output-dir benchmarks/27_connectome_seeding_patterns/results \
+  --prefix seeding_patterns_full
 
 cp output/fisher_kolmogorov/staging/tau_lumped/fem_profiles.csv benchmarks/27_connectome_seeding_patterns/results/tau_profiles.csv
 cp output/fisher_kolmogorov/staging/tau_lumped/fem_biomarkers.csv benchmarks/27_connectome_seeding_patterns/results/tau_biomarkers.csv

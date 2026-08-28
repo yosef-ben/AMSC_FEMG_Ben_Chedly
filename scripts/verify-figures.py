@@ -1443,17 +1443,9 @@ def check_27(report):
     seeded = [a for g in ("frontal", "temporal", "parietal", "occipital")
               for a in activation[g]]
     for label, needle in (
-            ("amyloid stages",
-             f"occur at ${stages[0]:.1f}$, ${stages[1]:.1f}$ and "
-             f"${stages[2]:.1f}$ years"),
-            ("amyloid groups",
-             f"the seeded neocortical regions cross first, at "
-             f"${sum(seeded) / len(seeded):.1f}$ years, followed "
-             f"by the insula at ${mean_activation['insular']:.1f}$ years, "
-             f"the limbic regions at ${mean_activation['limbic']:.1f}$ "
-             f"years, the remaining subcortical nuclei at "
-             f"${deep_without_brainstem:.1f}$ years and finally "
-             f"the brainstem itself at ${brainstem:.1f}$ years"),
+            ("motivation for the tau-only staging",
+             "whereas amyloid-$\\beta$ spreads extracellularly, which is "
+             "why the reference itself simulates only tau on this graph"),
             ("scope of what is recovered",
              "the model produces one step of the expected sequence: from "
              "the entorhinal seed the pathology reaches the temporal lobe "
@@ -1465,11 +1457,6 @@ def check_27(report):
              "second to be involved and the frontal lobe, which the "
              "reference places immediately after the temporal one, is here "
              "the last"),
-            ("evidential weight of the two rows",
-             "the diffuse neocortical seed already prescribes the first "
-             "stage of the expected progression, so the resulting downward "
-             "spread mainly verifies that the model propagates the "
-             "pathology away from the seeded cortex"),
             ("distinction between the clinical staging and the lobe "
              "sequence",
              "The lobe sequence is instead a result of the network model "
@@ -1579,7 +1566,7 @@ def check_27(report):
                  0.027, "years")
     report.check_contains(
         name, "staging prose states the rho=1 lobe spread", chapter,
-        f"in a control tau simulation the four lobes cross the $50\\%$ "
+        f"in a control simulation the four lobes cross the $50\\%$ "
         f"level within ${max(spread) - min(spread):.2f}$ years of each other")
 
 

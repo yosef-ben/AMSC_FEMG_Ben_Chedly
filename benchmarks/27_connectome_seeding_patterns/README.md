@@ -263,10 +263,14 @@ The verification checks the orientation of every sagittal view of the
 report.
 
 
-The report opens with `results/seeding_patterns_expected.pdf`, which places
-each computed row below the corresponding clinical staging strip of figure 1
-of Weickenmeier et al. (p. 266; the drawings are adopted there from Jucker
-and Walker). The strips in `reference/` are not redrawn: they are cut from
+The report opens with `results/seeding_patterns_expected.pdf`, the tau row
+alone (`--only tau`): the report motivates in the text why amyloid-beta is
+not studied on this graph (extracellular spreading against the axonal
+pathways the connectome encodes, the choice of Fornari et al. themselves),
+while `results/seeding_patterns_full_expected.pdf` keeps both rows as the
+record behind that motivation. The figure places the computed row below the
+corresponding clinical staging strip of figure 1 of Weickenmeier et al.
+(p. 266; the drawings are adopted there from Jucker and Walker). The strips in `reference/` are not redrawn: they are cut from
 the article PDF by `scripts/extract-weickenmeier-staging.py`, which pulls
 out the single image embedded in the page, a 300 ppi JPEG of about 370
 pixels per drawing, without re-rendering it (that resolution is the ceiling
@@ -279,8 +283,8 @@ stored `*_profiles.csv` of this benchmark. The plain
 `results/seeding_patterns.pdf` shows the computed rows alone. Sphere radius
 and blue intensity both grow with the square root of the concentration, a
 mapping stated in the caption, so that the seeded cortex at a tenth of its
-final value is visible at the first amyloid stage; a region at zero stays a
-point.
+final value is visible at the first stage of the full variant's amyloid
+row; a region at zero stays a point.
 
 ## Reproduce
 
