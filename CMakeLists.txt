@@ -33,6 +33,12 @@ target_link_libraries(femg PUBLIC
   Boost::graph
 )
 
+# Sequential performance instrumentation (ordering study)
+add_executable(test_ordering_study
+  test_problem/performance/test_ordering_study.cpp
+)
+target_link_libraries(test_ordering_study PRIVATE femg)
+
 # Parabolic examples and validation tests
 add_executable(test_heat
   test_problem/parabolic/test_heat.cpp

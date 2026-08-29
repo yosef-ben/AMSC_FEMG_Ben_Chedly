@@ -52,10 +52,14 @@ finite element model the ranking follows the seed mass, see its README),
 staged spreading of the two clinical seedings, tau and amyloid-beta, against
 the progression the literature expects.
 
-### Performance, 22
+### Performance, 22 and 28
 
-The optimised single-process baseline, measured on the problem of `21`. It is
-the starting point of the reordering and parallel work and should be read last.
+`22` is the optimised single-process baseline, measured on the problem of
+`21`. `28` is the sequential ordering study on the same problem: it explains
+the two-element anomaly of `22` (the COLAMD default of the production
+solver), measures Natural, COLAMD, AMD and reverse Cuthill-McKee against
+each other and selects the symmetric factorization on the library's own
+interiors-first ordering as the sequential reference for the parallel work.
 
 ## Where to start
 

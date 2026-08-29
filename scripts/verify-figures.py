@@ -1801,6 +1801,56 @@ def check_27_regional(report):
                               chapter, needle)
 
 
+def check_28_ordering(report):
+    """Structure and consistency of the sequential ordering study."""
+    name = "28 ordering_study"
+    base = BENCH / "28_sequential_ordering_study/results"
+    for row in read_csv(base / "validation.csv"):
+        report.check(name,
+                     f"replayed loop equals the class at "
+                     f"{row['cells_per_edge']} cells",
+                     float(row["max_diff_replayed_vs_class"]), 0.0)
+    rows = read_csv(base / "ordering_study.csv")
+    report.check(name, "rows", float(len(rows)), 42.0)
+    fills = {}
+    for row in rows:
+        cells = int(row["cells_per_edge"])
+        n = 83 + 1130 * (cells - 1)
+        report.check(name, f"dofs at {cells} cells, {row['variant']}",
+                     float(row["n_dofs"]), float(n))
+        report.check(name, f"pattern nnz at {cells} cells, {row['variant']}",
+                     float(row["k_nnz"]), float(n + 2 * 1130 * cells))
+        report.check(name, f"steps timed at {cells} cells, {row['variant']}",
+                     float(row["steps_timed"]), 100.0)
+        report.check(name, f"no failure at {cells} cells, {row['variant']}",
+                     float(row["failed"]), 0.0)
+        difference = float(row["max_diff_vs_colamd"])
+        report.check(name,
+                     f"trajectory match at {cells} cells, {row['variant']}",
+                     1.0 if difference <= 1.0e-12 else 0.0, 1.0)
+        fills[(cells, row["variant"])] = int(row["factor_nnz"])
+    for cells in (2, 4, 8, 16, 32, 64):
+        report.check(name, f"natural fill below COLAMD at {cells} cells",
+                     1.0 if fills[(cells, "lu_natural")]
+                     < fills[(cells, "lu_colamd")] else 0.0, 1.0)
+        # At 2 cells the largest fill is COLAMD's own: that is the anomaly
+        # this record explains. From 4 cells on, RCM's envelope dominates.
+        worst = "lu_colamd" if cells == 2 else "lu_rcm"
+        report.check(name, f"largest fill at {cells} cells is {worst}",
+                     1.0 if fills[(cells, worst)]
+                     == max(f for (c, _), f in fills.items() if c == cells)
+                     else 0.0, 1.0)
+        report.check(name,
+                     f"symmetry halves the natural fill at {cells} cells",
+                     1.0 if fills[(cells, "ldlt_natural")]
+                     < 0.6 * fills[(cells, "lu_natural")] else 0.0, 1.0)
+    # The two headline fills of the record, pinned exactly.
+    report.check(name, "COLAMD fill at 2 cells",
+                 float(fills[(2, "lu_colamd")]), 182208.0)
+    report.check(name, "COLAMD fill at 4 cells",
+                 float(fills[(4, "lu_colamd")]), 77828.0)
+
+
 def check_19_accuracy(report):
     """The formulation gap the convergence section quantifies."""
     name = "19 accuracy"
@@ -2044,7 +2094,7 @@ def main():
                   check_23_boundary_prose, check_23_lobe_scale, check_23_lobe_order,
                   check_24_views, check_25, check_26,
                   check_26_order, check_27, check_27_regional,
-                  check_27_single_seed,
+                  check_27_single_seed, check_28_ordering,
                   check_orientation):
         try:
             check(report)
