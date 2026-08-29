@@ -1,0 +1,4 @@
+cells_per_edge,n_dofs,ranks,threads,steps,max_diff_hybrid_vs_seq
+8,7993,2,4,100,7.77156e-16
+8,7993,4,2,100,8.88178e-16
+128,143593,2,4,100,5.10703e-15

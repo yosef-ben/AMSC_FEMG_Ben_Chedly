@@ -61,6 +61,13 @@ if(MPI_CXX_FOUND)
     test_problem/performance/test_condensation_mpi.cpp
   )
   target_link_libraries(test_condensation_mpi PRIVATE femg MPI::MPI_CXX)
+  if(OpenMP_CXX_FOUND)
+    add_executable(test_condensation_hybrid
+      test_problem/performance/test_condensation_mpi.cpp
+    )
+    target_link_libraries(test_condensation_hybrid
+      PRIVATE femg MPI::MPI_CXX OpenMP::OpenMP_CXX)
+  endif()
 endif()
 
 # Parabolic examples and validation tests

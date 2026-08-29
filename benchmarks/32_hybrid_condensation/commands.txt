@@ -1,0 +1,10 @@
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_condensation_hybrid
+
+python3 scripts/run-condensation-hybrid.py \
+  --output-dir output/fisher_kolmogorov/corti83/hybrid_study
+
+cp output/fisher_kolmogorov/corti83/hybrid_study/hybrid_validation.csv \
+   benchmarks/32_hybrid_condensation/results/hybrid_validation.csv
+cp output/fisher_kolmogorov/corti83/hybrid_study/hybrid_comparison.csv \
+   benchmarks/32_hybrid_condensation/results/hybrid_comparison.csv

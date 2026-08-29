@@ -1875,6 +1875,26 @@ def check_31_mpi(report):
                      float(row["steps"]), 200.0)
 
 
+def check_32_hybrid(report):
+    """Validation and structure of the hybrid comparison record."""
+    name = "32 hybrid"
+    base = BENCH / "32_hybrid_condensation/results"
+    for row in read_csv(base / "hybrid_validation.csv"):
+        difference = float(row["max_diff_hybrid_vs_seq"])
+        report.check(name,
+                     f"lockstep match at {row['cells_per_edge']} cells, "
+                     f"{row['ranks']}x{row['threads']}",
+                     1.0 if difference <= 1.0e-10 else 0.0, 1.0)
+    rows = read_csv(base / "hybrid_comparison.csv")
+    report.check(name, "rows", float(len(rows)), 4.0)
+    for row in rows:
+        report.check(name,
+                     f"eight workers at {row['ranks']}x{row['threads']}",
+                     float(row["ranks"]) * float(row["threads"]), 8.0)
+        report.check(name, f"dofs at {row['ranks']}x{row['threads']}",
+                     float(row["n_dofs"]), 143593.0)
+
+
 def check_star_schemes(report):
     """Scheme and step of the stored star runs, the values the chapter-3
     text and captions state: backward Euler for the three elliptic tests,
@@ -2191,6 +2211,7 @@ def main():
                   check_26_order, check_27, check_27_regional,
                   check_27_single_seed, check_28_ordering,
                   check_29_condensation, check_30_openmp, check_31_mpi,
+                  check_32_hybrid,
                   check_star_schemes,
                   check_orientation):
         try:

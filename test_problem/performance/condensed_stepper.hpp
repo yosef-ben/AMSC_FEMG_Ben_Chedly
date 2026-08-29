@@ -108,6 +108,42 @@ public:
 	};
 	OmpTimes step_omp(const std::vector<double> &extrapolated,
 		std::vector<double> &state);
+
+	// The two local phases alone, parallelized: for the hybrid runs a
+	// distributed caller condenses with threads, reduces across ranks,
+	// then back-substitutes with threads.
+	void condense_omp(const std::vector<double> &extrapolated,
+		const std::vector<double> &state) {
+		schur_.setZero();
+		condensed_rhs_.setZero();
+		const auto n_edges = static_cast<std::ptrdiff_t>(edges_.size());
+		#pragma omp parallel
+		{
+			Eigen::MatrixXd schur_local =
+				Eigen::MatrixXd::Zero(schur_.rows(), schur_.cols());
+			Eigen::VectorXd rhs_local =
+				Eigen::VectorXd::Zero(condensed_rhs_.size());
+			#pragma omp for schedule(static)
+			for (std::ptrdiff_t e = 0; e < n_edges; ++e) {
+				process_edge(edges_[static_cast<std::size_t>(e)],
+					extrapolated, state, schur_local, rhs_local);
+			}
+			#pragma omp critical
+			{
+				schur_ += schur_local;
+				condensed_rhs_ += rhs_local;
+			}
+		}
+	}
+	void back_substitute_omp(const Eigen::VectorXd &vertices,
+		std::vector<double> &state) const {
+		const auto n_edges = static_cast<std::ptrdiff_t>(edges_.size());
+		#pragma omp parallel for schedule(static)
+		for (std::ptrdiff_t e = 0; e < n_edges; ++e) {
+			back_substitute_edge(edges_[static_cast<std::size_t>(e)],
+				vertices, state);
+		}
+	}
 #endif
 
 	// The three phases of the step, exposed separately so a distributed
