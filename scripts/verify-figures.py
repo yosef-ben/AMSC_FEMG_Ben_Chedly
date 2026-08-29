@@ -1801,6 +1801,27 @@ def check_27_regional(report):
                               chapter, needle)
 
 
+def check_star_schemes(report):
+    """Scheme and step of the stored star runs, the values the chapter-3
+    text and captions state: backward Euler for the three elliptic tests,
+    Crank-Nicolson for the two parabolic evolutions."""
+    name = "02-06 star_schemes"
+    expected = {
+        "02_star_constant": ("deltat = 0.05", "theta = 1"),
+        "03_star_linear": ("deltat = 0.05", "theta = 1"),
+        "04_star_sine": ("deltat = 0.005", "theta = 1",
+                         "deltat = 0.025*h^2"),
+        "05_star_radial_decay": ("deltat = 0.05", "theta = 0.5"),
+        "06_star_localized": ("deltat = 0.05", "theta = 0.5"),
+    }
+    for benchmark, fragments in expected.items():
+        text = " ".join((BENCH / benchmark / "results/summary.txt")
+                        .read_text(encoding="utf-8").split())
+        for fragment in fragments:
+            report.check_contains(name, f"{benchmark} states {fragment}",
+                                  text, fragment)
+
+
 def check_28_ordering(report):
     """Structure and consistency of the sequential ordering study."""
     name = "28 ordering_study"
@@ -2095,6 +2116,7 @@ def main():
                   check_24_views, check_25, check_26,
                   check_26_order, check_27, check_27_regional,
                   check_27_single_seed, check_28_ordering,
+                  check_star_schemes,
                   check_orientation):
         try:
             check(report)
