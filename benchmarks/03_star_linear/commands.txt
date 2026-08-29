@@ -11,4 +11,5 @@ Combined domain-and-solution figure (stored final step, eigenmode style):
 python3 scripts/plot-star-solution.py \
   benchmarks/03_star_linear/results/solution_0020.vtp \
   --title "Solution at t = 1.00" --zlim -1.1 1.1 --ztick 0.5 \
+  --azim 45 \
   --output benchmarks/03_star_linear/results/star_linear.png

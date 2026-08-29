@@ -57,6 +57,11 @@ def main():
     parser.add_argument("--title", default=None)
     parser.add_argument("--zlim", type=float, nargs=2, default=None)
     parser.add_argument("--ztick", type=float, default=1.0)
+    parser.add_argument("--elev", type=float, default=22.0)
+    parser.add_argument("--azim", type=float, default=-55.0,
+                        help="view azimuth; the eigenmode default hides "
+                             "slopes aligned with the screen iso-heights, "
+                             "rotate when the solution needs it")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -96,7 +101,7 @@ def main():
     ax.tick_params(axis="both", labelsize=6, pad=-2)
     ax.tick_params(axis="z", labelsize=6, pad=-2)
     ax.grid(True, linewidth=0.22, alpha=0.22)
-    ax.view_init(elev=22, azim=-55)
+    ax.view_init(elev=args.elev, azim=args.azim)
     fig.tight_layout()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=300, bbox_inches="tight")
