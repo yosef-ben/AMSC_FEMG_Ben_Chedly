@@ -215,7 +215,7 @@ def write_outputs(output_dir, regions, coarse_edges, metadata):
                 }
             )
 
-    for cells_per_edge in (1, 2, 4, 8, 16, 32, 64):
+    for cells_per_edge in (1, 2, 4, 8, 16, 32, 64, 128):
         graph_path = output_dir / f"graph_fem_{cells_per_edge}.txt"
         with graph_path.open("w", encoding="ascii") as stream:
             stream.write(f"{len(regions)} {len(coarse_edges)}\n")
