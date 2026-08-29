@@ -33,6 +33,9 @@
 #include <Eigen/Dense>
 
 #include <chrono>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include <cmath>
 #include <cstddef>
@@ -90,6 +93,36 @@ public:
 	// place; extrapolated is the reaction state c_hat.
 	StepTimes step(const std::vector<double> &extrapolated,
 		std::vector<double> &state);
+
+#ifdef _OPENMP
+	// The same step with the edge loops parallelized: every thread
+	// condenses a block of edges into its own vertex accumulators, one
+	// critical section per thread merges them, the interface solve stays
+	// serial and the back-substitution is parallel again. The reduce time
+	// is reported separately from the local edge work.
+	struct OmpTimes {
+		double local = 0.0;
+		double reduce = 0.0;
+		double interface = 0.0;
+		double back = 0.0;
+	};
+	OmpTimes step_omp(const std::vector<double> &extrapolated,
+		std::vector<double> &state);
+#endif
+
+	// Condense one edge: local assembly, Thomas elimination and the 2x2
+	// Schur and right-hand-side contributions, accumulated into the given
+	// vertex system. Work vectors are indexed by the edge offset, so
+	// distinct edges never share a slice.
+	void process_edge(const EdgeData &edge,
+		const std::vector<double> &extrapolated,
+		const std::vector<double> &state,
+		Eigen::MatrixXd &schur, Eigen::VectorXd &rhs);
+
+	// Recover the interiors of one edge from the stored elimination
+	// vectors and the solved vertex values.
+	void back_substitute_edge(const EdgeData &edge,
+		const Eigen::VectorXd &vertices, std::vector<double> &state) const;
 
 private:
 	// The 2x2 cell blocks of lhs = m + (dt/2) k - (dt/2) w and
@@ -166,6 +199,32 @@ inline StepTimes Stepper::step(const std::vector<double> &extrapolated,
 	condensed_rhs_.setZero();
 
 	for (const EdgeData &edge : edges_) {
+		process_edge(edge, extrapolated, state, schur_, condensed_rhs_);
+	}
+	times.local = seconds(start);
+
+	start = tick();
+	const Eigen::VectorXd vertices =
+		Eigen::LDLT<Eigen::MatrixXd>(schur_).solve(condensed_rhs_);
+	for (std::size_t vertex = 0; vertex < n_vertices_; ++vertex) {
+		state[vertex_offset_ + vertex] =
+			vertices(static_cast<Eigen::Index>(vertex));
+	}
+	times.interface = seconds(start);
+
+	start = tick();
+	for (const EdgeData &edge : edges_) {
+		back_substitute_edge(edge, vertices, state);
+	}
+	times.back = seconds(start);
+	return times;
+}
+
+inline void Stepper::process_edge(const EdgeData &edge,
+	const std::vector<double> &extrapolated,
+	const std::vector<double> &state,
+	Eigen::MatrixXd &schur, Eigen::VectorXd &rhs) {
+	{
 		const std::size_t m = static_cast<std::size_t>(edge.cells - 1);
 		const std::size_t source_dof = vertex_offset_
 			+ static_cast<std::size_t>(edge.source);
@@ -271,45 +330,93 @@ inline StepTimes Stepper::step(const std::vector<double> &extrapolated,
 			r_s -= couple_source * y[0];
 			r_t -= couple_target * y[m - 1];
 		}
-		schur_(edge.source, edge.source) += s_ss;
-		schur_(edge.target, edge.target) += s_tt;
-		schur_(edge.source, edge.target) += s_st;
-		schur_(edge.target, edge.source) += s_st;
-		condensed_rhs_(edge.source) += r_s;
-		condensed_rhs_(edge.target) += r_t;
+		schur(edge.source, edge.source) += s_ss;
+		schur(edge.target, edge.target) += s_tt;
+		schur(edge.source, edge.target) += s_st;
+		schur(edge.target, edge.source) += s_st;
+		rhs(edge.source) += r_s;
+		rhs(edge.target) += r_t;
 	}
-	times.local = seconds(start);
+}
 
-	start = tick();
+inline void Stepper::back_substitute_edge(const EdgeData &edge,
+	const Eigen::VectorXd &vertices, std::vector<double> &state) const {
+	const std::size_t m = static_cast<std::size_t>(edge.cells - 1);
+	if (m == 0) {
+		return;
+	}
+	const double u_source =
+		vertices(static_cast<Eigen::Index>(edge.source));
+	const double u_target =
+		vertices(static_cast<Eigen::Index>(edge.target));
+	const double *y = forward_.data() + edge.offset;
+	const double *zs = source_column_.data() + edge.offset;
+	const double *zt = target_column_.data() + edge.offset;
+	double *interior = state.data() + edge.offset;
+	for (std::size_t k = 0; k < m; ++k) {
+		interior[k] = y[k] - u_source * zs[k] - u_target * zt[k];
+	}
+}
+
+#ifdef _OPENMP
+inline Stepper::OmpTimes Stepper::step_omp(
+	const std::vector<double> &extrapolated, std::vector<double> &state) {
+	OmpTimes times;
+	schur_.setZero();
+	condensed_rhs_.setZero();
+	const auto n_edges = static_cast<std::ptrdiff_t>(edges_.size());
+	double t0 = 0.0;
+	double t1 = 0.0;
+	double t2 = 0.0;
+
+	#pragma omp parallel
+	{
+		Eigen::MatrixXd schur_local =
+			Eigen::MatrixXd::Zero(schur_.rows(), schur_.cols());
+		Eigen::VectorXd rhs_local =
+			Eigen::VectorXd::Zero(condensed_rhs_.size());
+		#pragma omp barrier
+		#pragma omp master
+		t0 = omp_get_wtime();
+		#pragma omp barrier
+		#pragma omp for schedule(static)
+		for (std::ptrdiff_t e = 0; e < n_edges; ++e) {
+			process_edge(edges_[static_cast<std::size_t>(e)],
+				extrapolated, state, schur_local, rhs_local);
+		}
+		#pragma omp master
+		t1 = omp_get_wtime();
+		#pragma omp critical
+		{
+			schur_ += schur_local;
+			condensed_rhs_ += rhs_local;
+		}
+		#pragma omp barrier
+		#pragma omp master
+		t2 = omp_get_wtime();
+	}
+	times.local = t1 - t0;
+	times.reduce = t2 - t1;
+
+	double start = omp_get_wtime();
 	const Eigen::VectorXd vertices =
 		Eigen::LDLT<Eigen::MatrixXd>(schur_).solve(condensed_rhs_);
 	for (std::size_t vertex = 0; vertex < n_vertices_; ++vertex) {
 		state[vertex_offset_ + vertex] =
 			vertices(static_cast<Eigen::Index>(vertex));
 	}
-	times.interface = seconds(start);
+	times.interface = omp_get_wtime() - start;
 
-	start = tick();
-	for (const EdgeData &edge : edges_) {
-		const std::size_t m = static_cast<std::size_t>(edge.cells - 1);
-		if (m == 0) {
-			continue;
-		}
-		const double u_source =
-			vertices(static_cast<Eigen::Index>(edge.source));
-		const double u_target =
-			vertices(static_cast<Eigen::Index>(edge.target));
-		const double *y = forward_.data() + edge.offset;
-		const double *zs = source_column_.data() + edge.offset;
-		const double *zt = target_column_.data() + edge.offset;
-		double *interior = state.data() + edge.offset;
-		for (std::size_t k = 0; k < m; ++k) {
-			interior[k] = y[k] - u_source * zs[k] - u_target * zt[k];
-		}
+	start = omp_get_wtime();
+	#pragma omp parallel for schedule(static)
+	for (std::ptrdiff_t e = 0; e < n_edges; ++e) {
+		back_substitute_edge(edges_[static_cast<std::size_t>(e)],
+			vertices, state);
 	}
-	times.back = seconds(start);
+	times.back = omp_get_wtime() - start;
 	return times;
 }
+#endif
 
 } // namespace condensed
 

@@ -1827,6 +1827,32 @@ def check_29_condensation(report):
                      1.0 if difference <= 1.0e-12 else 0.0, 1.0)
 
 
+def check_30_openmp(report):
+    """Validation and structure of the OpenMP condensation record."""
+    name = "30 openmp"
+    base = BENCH / "30_openmp_condensation/results"
+    for row in read_csv(base / "omp_validation.csv"):
+        cells = int(row["cells_per_edge"])
+        report.check(name, f"dofs at {cells} cells",
+                     float(row["n_dofs"]), float(83 + 1130 * (cells - 1)))
+        difference = float(row["max_diff_omp_vs_seq"])
+        report.check(name,
+                     f"lockstep match at {cells} cells, "
+                     f"{row['threads']} threads",
+                     1.0 if difference <= 1.0e-10 else 0.0, 1.0)
+    rows = read_csv(base / "omp_scaling.csv")
+    report.check(name, "rows", float(len(rows)), 4.0)
+    for row in rows:
+        report.check(name, f"scaling dofs, {row['threads']} threads",
+                     float(row["n_dofs"]), 143593.0)
+        report.check(name, f"steps, {row['threads']} threads",
+                     float(row["steps"]), 200.0)
+        difference = float(row["max_diff_omp_vs_seq"])
+        report.check(name,
+                     f"benchmark match, {row['threads']} threads",
+                     1.0 if difference <= 1.0e-12 else 0.0, 1.0)
+
+
 def check_star_schemes(report):
     """Scheme and step of the stored star runs, the values the chapter-3
     text and captions state: backward Euler for the three elliptic tests,
@@ -2142,7 +2168,8 @@ def main():
                   check_24_views, check_25, check_26,
                   check_26_order, check_27, check_27_regional,
                   check_27_single_seed, check_28_ordering,
-                  check_29_condensation, check_star_schemes,
+                  check_29_condensation, check_30_openmp,
+                  check_star_schemes,
                   check_orientation):
         try:
             check(report)

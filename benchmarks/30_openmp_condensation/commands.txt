@@ -1,0 +1,10 @@
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_condensation_omp
+
+python3 scripts/run-condensation-omp.py \
+  --output-dir output/fisher_kolmogorov/corti83/omp_study
+
+cp output/fisher_kolmogorov/corti83/omp_study/omp_validation.csv \
+   benchmarks/30_openmp_condensation/results/omp_validation.csv
+cp output/fisher_kolmogorov/corti83/omp_study/omp_scaling.csv \
+   benchmarks/30_openmp_condensation/results/omp_scaling.csv

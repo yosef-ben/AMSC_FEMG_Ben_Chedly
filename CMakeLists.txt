@@ -44,6 +44,16 @@ add_executable(test_condensation
 )
 target_link_libraries(test_condensation PRIVATE femg)
 
+# OpenMP applies to this executable alone; the library and every other
+# target build exactly as before.
+find_package(OpenMP COMPONENTS CXX)
+if(OpenMP_CXX_FOUND)
+  add_executable(test_condensation_omp
+    test_problem/performance/test_condensation_omp.cpp
+  )
+  target_link_libraries(test_condensation_omp PRIVATE femg OpenMP::OpenMP_CXX)
+endif()
+
 # Parabolic examples and validation tests
 add_executable(test_heat
   test_problem/parabolic/test_heat.cpp
