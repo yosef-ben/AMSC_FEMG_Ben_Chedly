@@ -12,3 +12,12 @@ open benchmarks/05_star_radial_decay/results/solution.pvd
 Temporal convergence:
 benchmarks/05_star_radial_decay/results/time_convergence.csv
 benchmarks/05_star_radial_decay/results/time_convergence.pdf
+
+Combined domain-and-solution row (stored steps 0, 5 and 20, eigenmode style):
+python3 scripts/plot-star-solution.py \
+  benchmarks/05_star_radial_decay/results/solution_0000.vtp \
+  benchmarks/05_star_radial_decay/results/solution_0005.vtp \
+  benchmarks/05_star_radial_decay/results/solution_0020.vtp \
+  --title "Solution at t = 0.00" --title "Solution at t = 0.25" \
+  --title "Solution at t = 1.00" --zlim 0 1.1 --ztick 0.5 \
+  --output benchmarks/05_star_radial_decay/results/star_radial_decay.png

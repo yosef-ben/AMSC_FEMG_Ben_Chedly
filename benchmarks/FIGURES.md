@@ -18,6 +18,7 @@ disagree. Run it from the project root:
 | `02/star_constant` (report: domain and solution in one panel, eigenmode style) | `plot-star-solution.py` | `02/results/solution_0020.vtp` | `test_heat_star_constant` |
 | `03/star_linear` (report: domain and solution in one panel, eigenmode style) | `plot-star-solution.py` | `03/results/solution_0020.vtp` | `test_heat_star_linear` |
 | `04/star_sine` (report: domain and solution in one panel, eigenmode style) | `plot-star-solution.py` | `04/results/solution_0200.vtp` | `test_heat_star_sine` |
+| `05/star_radial_decay` (report: the three instants in one row, eigenmode style) | `plot-star-solution.py` | `05/results/solution_{0000,0005,0020}.vtp` | `test_heat_star_radial_decay` |
 | `18/sensitivity` | `plot-fisher-kolmogorov-1d-sensitivity.py` | `profiles.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/front_speeds` (diagnostic, not in the report) | `plot-fisher-kolmogorov-front-speed.py` | `profiles.csv`, `front_speeds.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/time_step_study` | `plot-fisher-kolmogorov-time-step-study.py` | `time_step_profiles.csv`, `time_step_study.csv` | `test_fisher_kolmogorov_1d_time_step_study` |

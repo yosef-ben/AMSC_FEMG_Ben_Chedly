@@ -51,10 +51,12 @@ def unique_vertices(points, ndigits=10):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("solution", type=Path,
-                        help="one solution_*.vtp of a stored run")
+    parser.add_argument("solution", type=Path, nargs="+",
+                        help="solution_*.vtp files of a stored run, one "
+                             "panel each, laid out in a row")
     parser.add_argument("--scalar", default="u")
-    parser.add_argument("--title", default=None)
+    parser.add_argument("--title", action="append", default=None,
+                        help="panel title; repeat once per panel")
     parser.add_argument("--zlim", type=float, nargs=2, default=None)
     parser.add_argument("--ztick", type=float, default=1.0)
     parser.add_argument("--elev", type=float, default=22.0)
@@ -65,43 +67,48 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
-    points, lines, data = read_vtp(args.solution)
-    solution = data[args.scalar]
+    if args.title and len(args.title) != len(args.solution):
+        raise SystemExit("One --title is required for each panel.")
 
-    fig = plt.figure(figsize=(4.2, 3.25))
-    ax = fig.add_subplot(1, 1, 1, projection="3d", computed_zorder=False)
-    for line in lines:
-        xs = [points[i][0] for i in line]
-        ys = [points[i][1] for i in line]
-        ax.plot(xs, ys, [0.0 for _ in line], color="royalblue",
-                linewidth=0.16, alpha=0.35, zorder=1)
-        ax.plot(xs, ys, [solution[i] for i in line], color="red",
-                linewidth=1.55, alpha=1.0, zorder=5)
-    for x, y in unique_vertices(points):
-        ax.scatter([x], [y], [0.0], s=8, facecolors="white",
-                   edgecolors="royalblue", linewidths=0.45, alpha=0.55)
+    count = len(args.solution)
+    fig = plt.figure(figsize=(4.2 * count, 3.25))
+    for panel, path in enumerate(args.solution):
+        points, lines, data = read_vtp(path)
+        solution = data[args.scalar]
+        ax = fig.add_subplot(1, count, panel + 1, projection="3d",
+                             computed_zorder=False)
+        for line in lines:
+            xs = [points[i][0] for i in line]
+            ys = [points[i][1] for i in line]
+            ax.plot(xs, ys, [0.0 for _ in line], color="royalblue",
+                    linewidth=0.16, alpha=0.35, zorder=1)
+            ax.plot(xs, ys, [solution[i] for i in line], color="red",
+                    linewidth=1.55, alpha=1.0, zorder=5)
+        for x, y in unique_vertices(points):
+            ax.scatter([x], [y], [0.0], s=8, facecolors="white",
+                       edgecolors="royalblue", linewidths=0.45, alpha=0.55)
 
-    if args.title:
-        ax.set_title(args.title, fontsize=8, pad=2)
-    xs = [p[0] for p in points]
-    ys = [p[1] for p in points]
-    x_mid = 0.5 * (min(xs) + max(xs))
-    y_mid = 0.5 * (min(ys) + max(ys))
-    radius = 0.55 * max(max(xs) - min(xs), max(ys) - min(ys))
-    ax.set_xlim(x_mid - radius, x_mid + radius)
-    ax.set_ylim(y_mid - radius, y_mid + radius)
-    if args.zlim:
-        ax.set_zlim(*args.zlim)
-    ax.set_xlabel("x", fontsize=7, labelpad=-6)
-    ax.set_ylabel("y", fontsize=7, labelpad=-6)
-    ax.set_zlabel(args.scalar, fontsize=7, labelpad=-10)
-    ax.xaxis.set_major_locator(MultipleLocator(1.0))
-    ax.yaxis.set_major_locator(MultipleLocator(1.0))
-    ax.zaxis.set_major_locator(MultipleLocator(args.ztick))
-    ax.tick_params(axis="both", labelsize=6, pad=-2)
-    ax.tick_params(axis="z", labelsize=6, pad=-2)
-    ax.grid(True, linewidth=0.22, alpha=0.22)
-    ax.view_init(elev=args.elev, azim=args.azim)
+        if args.title:
+            ax.set_title(args.title[panel], fontsize=8, pad=2)
+        xs = [p[0] for p in points]
+        ys = [p[1] for p in points]
+        x_mid = 0.5 * (min(xs) + max(xs))
+        y_mid = 0.5 * (min(ys) + max(ys))
+        radius = 0.55 * max(max(xs) - min(xs), max(ys) - min(ys))
+        ax.set_xlim(x_mid - radius, x_mid + radius)
+        ax.set_ylim(y_mid - radius, y_mid + radius)
+        if args.zlim:
+            ax.set_zlim(*args.zlim)
+        ax.set_xlabel("x", fontsize=7, labelpad=-6)
+        ax.set_ylabel("y", fontsize=7, labelpad=-6)
+        ax.set_zlabel(args.scalar, fontsize=7, labelpad=-10)
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.yaxis.set_major_locator(MultipleLocator(1.0))
+        ax.zaxis.set_major_locator(MultipleLocator(args.ztick))
+        ax.tick_params(axis="both", labelsize=6, pad=-2)
+        ax.tick_params(axis="z", labelsize=6, pad=-2)
+        ax.grid(True, linewidth=0.22, alpha=0.22)
+        ax.view_init(elev=args.elev, azim=args.azim)
     fig.tight_layout()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=300, bbox_inches="tight")
