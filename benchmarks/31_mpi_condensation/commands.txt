@@ -1,0 +1,10 @@
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_condensation_mpi
+
+python3 scripts/run-condensation-mpi.py \
+  --output-dir output/fisher_kolmogorov/corti83/mpi_study
+
+cp output/fisher_kolmogorov/corti83/mpi_study/mpi_validation.csv \
+   benchmarks/31_mpi_condensation/results/mpi_validation.csv
+cp output/fisher_kolmogorov/corti83/mpi_study/mpi_scaling.csv \
+   benchmarks/31_mpi_condensation/results/mpi_scaling.csv

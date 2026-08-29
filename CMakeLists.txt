@@ -54,6 +54,15 @@ if(OpenMP_CXX_FOUND)
   target_link_libraries(test_condensation_omp PRIVATE femg OpenMP::OpenMP_CXX)
 endif()
 
+# MPI applies to this executable alone, like OpenMP above.
+find_package(MPI COMPONENTS CXX)
+if(MPI_CXX_FOUND)
+  add_executable(test_condensation_mpi
+    test_problem/performance/test_condensation_mpi.cpp
+  )
+  target_link_libraries(test_condensation_mpi PRIVATE femg MPI::MPI_CXX)
+endif()
+
 # Parabolic examples and validation tests
 add_executable(test_heat
   test_problem/parabolic/test_heat.cpp

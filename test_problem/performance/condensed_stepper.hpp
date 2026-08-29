@@ -110,6 +110,37 @@ public:
 		std::vector<double> &state);
 #endif
 
+	// The three phases of the step, exposed separately so a distributed
+	// caller can reduce the vertex system between the condensation and
+	// the interface solve. step() is their composition.
+	void condense(const std::vector<double> &extrapolated,
+		const std::vector<double> &state) {
+		schur_.setZero();
+		condensed_rhs_.setZero();
+		for (const EdgeData &edge : edges_) {
+			process_edge(edge, extrapolated, state, schur_,
+				condensed_rhs_);
+		}
+	}
+	Eigen::MatrixXd &schur() { return schur_; }
+	Eigen::VectorXd &condensed_rhs() { return condensed_rhs_; }
+	Eigen::VectorXd solve_interface() const {
+		return Eigen::LDLT<Eigen::MatrixXd>(schur_).solve(condensed_rhs_);
+	}
+	void scatter_vertices(const Eigen::VectorXd &vertices,
+		std::vector<double> &state) const {
+		for (std::size_t vertex = 0; vertex < n_vertices_; ++vertex) {
+			state[vertex_offset_ + vertex] =
+				vertices(static_cast<Eigen::Index>(vertex));
+		}
+	}
+	void back_substitute(const Eigen::VectorXd &vertices,
+		std::vector<double> &state) const {
+		for (const EdgeData &edge : edges_) {
+			back_substitute_edge(edge, vertices, state);
+		}
+	}
+
 	// Condense one edge: local assembly, Thomas elimination and the 2x2
 	// Schur and right-hand-side contributions, accumulated into the given
 	// vertex system. Work vectors are indexed by the edge offset, so
@@ -195,27 +226,16 @@ inline StepTimes Stepper::step(const std::vector<double> &extrapolated,
 	};
 
 	auto start = tick();
-	schur_.setZero();
-	condensed_rhs_.setZero();
-
-	for (const EdgeData &edge : edges_) {
-		process_edge(edge, extrapolated, state, schur_, condensed_rhs_);
-	}
+	condense(extrapolated, state);
 	times.local = seconds(start);
 
 	start = tick();
-	const Eigen::VectorXd vertices =
-		Eigen::LDLT<Eigen::MatrixXd>(schur_).solve(condensed_rhs_);
-	for (std::size_t vertex = 0; vertex < n_vertices_; ++vertex) {
-		state[vertex_offset_ + vertex] =
-			vertices(static_cast<Eigen::Index>(vertex));
-	}
+	const Eigen::VectorXd vertices = solve_interface();
+	scatter_vertices(vertices, state);
 	times.interface = seconds(start);
 
 	start = tick();
-	for (const EdgeData &edge : edges_) {
-		back_substitute_edge(edge, vertices, state);
-	}
+	back_substitute(vertices, state);
 	times.back = seconds(start);
 	return times;
 }

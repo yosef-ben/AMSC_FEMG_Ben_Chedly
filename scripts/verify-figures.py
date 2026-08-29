@@ -1853,6 +1853,28 @@ def check_30_openmp(report):
                      1.0 if difference <= 1.0e-12 else 0.0, 1.0)
 
 
+def check_31_mpi(report):
+    """Validation and structure of the MPI condensation record."""
+    name = "31 mpi"
+    base = BENCH / "31_mpi_condensation/results"
+    for row in read_csv(base / "mpi_validation.csv"):
+        cells = int(row["cells_per_edge"])
+        report.check(name, f"dofs at {cells} cells",
+                     float(row["n_dofs"]), float(83 + 1130 * (cells - 1)))
+        difference = float(row["max_diff_mpi_vs_seq"])
+        report.check(name,
+                     f"lockstep match at {cells} cells, "
+                     f"{row['ranks']} ranks",
+                     1.0 if difference <= 1.0e-10 else 0.0, 1.0)
+    rows = read_csv(base / "mpi_scaling.csv")
+    report.check(name, "rows", float(len(rows)), 4.0)
+    for row in rows:
+        report.check(name, f"scaling dofs, {row['ranks']} ranks",
+                     float(row["n_dofs"]), 143593.0)
+        report.check(name, f"steps, {row['ranks']} ranks",
+                     float(row["steps"]), 200.0)
+
+
 def check_star_schemes(report):
     """Scheme and step of the stored star runs, the values the chapter-3
     text and captions state: backward Euler for the three elliptic tests,
@@ -2168,7 +2190,7 @@ def main():
                   check_24_views, check_25, check_26,
                   check_26_order, check_27, check_27_regional,
                   check_27_single_seed, check_28_ordering,
-                  check_29_condensation, check_30_openmp,
+                  check_29_condensation, check_30_openmp, check_31_mpi,
                   check_star_schemes,
                   check_orientation):
         try:
