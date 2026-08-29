@@ -15,6 +15,7 @@ disagree. Run it from the project root:
 
 | Figure | Drawn by | From | Produced by |
 |---|---|---|---|
+| `02/star_constant` (report: domain and solution in one panel, eigenmode style) | `plot-star-solution.py` | `02/results/solution_0020.vtp` | `test_heat_star_constant` |
 | `18/sensitivity` | `plot-fisher-kolmogorov-1d-sensitivity.py` | `profiles.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/front_speeds` (diagnostic, not in the report) | `plot-fisher-kolmogorov-front-speed.py` | `profiles.csv`, `front_speeds.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/time_step_study` | `plot-fisher-kolmogorov-time-step-study.py` | `time_step_profiles.csv`, `time_step_study.csv` | `test_fisher_kolmogorov_1d_time_step_study` |

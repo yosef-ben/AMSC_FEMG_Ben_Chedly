@@ -6,3 +6,9 @@ scripts/run-benchmark.sh 02_star_constant
 
 ParaView:
 open benchmarks/02_star_constant/results/solution.pvd
+
+Combined domain-and-solution figure (stored final step, eigenmode style):
+python3 scripts/plot-star-solution.py \
+  benchmarks/02_star_constant/results/solution_0020.vtp \
+  --title "Solution at t = 1.00" --zlim 0 5.5 \
+  --output benchmarks/02_star_constant/results/star_constant.png
