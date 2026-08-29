@@ -1,0 +1,14 @@
+# Refined connectome mesh at 128 cells per edge (the stored coarser meshes
+# regenerate byte-identical).
+python3 scripts/prepare-fornari-connectome.py
+
+cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
+cmake --build build-release --target test_condensation
+
+python3 scripts/run-condensation-study.py \
+  --output-dir output/fisher_kolmogorov/corti83/condensation_study
+
+cp output/fisher_kolmogorov/corti83/condensation_study/validation.csv \
+   benchmarks/29_static_condensation/results/validation.csv
+cp output/fisher_kolmogorov/corti83/condensation_study/condensation_study.csv \
+   benchmarks/29_static_condensation/results/condensation_study.csv

@@ -39,6 +39,11 @@ add_executable(test_ordering_study
 )
 target_link_libraries(test_ordering_study PRIVATE femg)
 
+add_executable(test_condensation
+  test_problem/performance/test_condensation.cpp
+)
+target_link_libraries(test_condensation PRIVATE femg)
+
 # Parabolic examples and validation tests
 add_executable(test_heat
   test_problem/parabolic/test_heat.cpp

@@ -1,0 +1,5 @@
+cells_per_edge,n_dofs,steps,max_diff_condensed_vs_class
+1,83,100,6.21725e-15
+2,1213,100,1.0103e-14
+4,3473,100,9.71445e-15
+8,7993,100,4.16334e-15

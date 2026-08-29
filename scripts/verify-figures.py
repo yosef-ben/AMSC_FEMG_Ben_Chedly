@@ -1801,6 +1801,32 @@ def check_27_regional(report):
                               chapter, needle)
 
 
+def check_29_condensation(report):
+    """Validation and structure of the static-condensation record."""
+    name = "29 condensation"
+    base = BENCH / "29_static_condensation/results"
+    for row in read_csv(base / "validation.csv"):
+        cells = int(row["cells_per_edge"])
+        report.check(name, f"dofs at {cells} cells",
+                     float(row["n_dofs"]), float(83 + 1130 * (cells - 1)))
+        difference = float(row["max_diff_condensed_vs_class"])
+        report.check(name,
+                     f"condensed equals the class at {cells} cells",
+                     1.0 if difference <= 1.0e-10 else 0.0, 1.0)
+    rows = read_csv(base / "condensation_study.csv")
+    report.check(name, "rows", float(len(rows)), 5.0)
+    for row in rows:
+        cells = int(row["cells_per_edge"])
+        report.check(name, f"benchmark dofs at {cells} cells",
+                     float(row["n_dofs"]), float(83 + 1130 * (cells - 1)))
+        report.check(name, f"steps at {cells} cells",
+                     float(row["steps"]), 100.0)
+        difference = float(row["max_diff_condensed_vs_full"])
+        report.check(name,
+                     f"condensed equals the full solve at {cells} cells",
+                     1.0 if difference <= 1.0e-12 else 0.0, 1.0)
+
+
 def check_star_schemes(report):
     """Scheme and step of the stored star runs, the values the chapter-3
     text and captions state: backward Euler for the three elliptic tests,
@@ -2116,7 +2142,7 @@ def main():
                   check_24_views, check_25, check_26,
                   check_26_order, check_27, check_27_regional,
                   check_27_single_seed, check_28_ordering,
-                  check_star_schemes,
+                  check_29_condensation, check_star_schemes,
                   check_orientation):
         try:
             check(report)
