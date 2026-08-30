@@ -124,10 +124,7 @@ its factors and the per-step cost split into the rebuild of the matrix, the
 factorisation and the triangular solves. Throughout the chapter the
 per-step cost of a configuration is the sum of its per-phase medians over
 the steps, the cost of a typical step, robust against the turbo and
-thermal drift of the machine; the drift moves absolute times by tens of
-percent between sessions, so the per-step entries of this chapter are not
-comparable with Table~\ref{tab:seqbaseline}, whose entries are wall times
-of whole runs from another session.
+thermal drift of the machine.
 
 The natural ordering is not an arbitrary baseline, because the assembly
 numbers the unknowns in a specific way: the interior unknowns of each
@@ -157,10 +154,16 @@ LDLT, natural   & 5261   & 0.61  & 25601   & 1.93   & 215441   & 21.04  \\
 \hline
 \end{tabular}
 \caption{\footnotesize Ordering study on the connectome meshes with 2, 8
-and 64 elements per connection: nonzeros of the computed factors and median
-per-step cost (matrix rebuild, factorisation and triangular solves) over
-100 steps of the semi-implicit scheme. RCM is applied as an explicit
-symmetric permutation of the matrix; the other variants reorder internally.}
+and 64 elements per connection: nonzeros of the computed factors and
+representative per-step cost over 100 semi-implicit time steps. The reported
+cost is obtained as the sum of the median times measured for matrix rebuild,
+factorisation and linear solve within the same benchmark run, making the
+measurement less sensitive to fluctuations. The reported timings are
+therefore intended for comparisons within this ordering study and should not
+be compared directly with the wall-clock times reported in
+Table~\ref{tab:seqbaseline}, which were obtained in a different benchmark
+session. RCM is applied as an explicit symmetric permutation of the matrix;
+the other variants reorder internally.}
 \label{tab:ordering}
 \end{table}
 
