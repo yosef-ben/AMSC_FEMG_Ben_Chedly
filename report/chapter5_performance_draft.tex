@@ -70,9 +70,11 @@ coarsest mesh, while allowing arbitrary refinement inside the connections.
 \includegraphics[width=\textwidth]{../benchmarks/22_fisher_kolmogorov_sequential_performance/results/sequential_performance.pdf}
 \caption{\footnotesize Sequential baseline. (a) assembly, time loop and
 total against the number of unknowns, with the band spanning the minimum
-and maximum of five runs. (b) cost per time step, showing that it is not a
-function of the unknown count alone: the two-element mesh costs more per
-step than the four-element one.}
+and maximum of five runs; the total is hidden by the time loop, which
+accounts for 95.9\% of it on the coarsest mesh and for more than 99\% on
+the refined ones, so the two curves overlap. (b) cost per time step,
+showing that it is not a function of the unknown count alone: the
+two-element mesh costs more per step than the four-element one.}
 \label{fig:seqbaseline}
 \end{figure}
 
