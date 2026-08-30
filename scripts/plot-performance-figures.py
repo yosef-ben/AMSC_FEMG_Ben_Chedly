@@ -159,9 +159,10 @@ def condensation_figure(output_dir):
                   xytext=(dofs[-1], condensed[-1] * 1.22),
                   arrowprops={"arrowstyle": "<->", "color": "0.35",
                               "linewidth": 1.1})
-    axis.text(dofs[-1] * 0.82, (full[-1] * condensed[-1]) ** 0.5,
+    # Right of the arrow: the left side is crossed by the rising curve.
+    axis.text(dofs[-1] * 1.12, (full[-1] * condensed[-1]) ** 0.5,
               f"{full[-1] / condensed[-1]:.1f}x", fontsize=8.5,
-              fontweight="bold", color="0.35", ha="right", va="center")
+              fontweight="bold", color="0.35", ha="left", va="center")
     axis.set_xlim(4.5e3, 1.5e6)
     axis.set_ylim(5e-4, 0.3)
     axis.set_yticks([1e-3, 1e-2, 1e-1])
