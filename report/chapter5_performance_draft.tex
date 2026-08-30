@@ -121,7 +121,13 @@ within $4\times10^{-14}$ in the maximum norm, so the comparison is between
 numerically equivalent solvers. For each variant we record the bandwidth
 and profile of the matrix handed to the solver, the number of nonzeros of
 its factors and the per-step cost split into the rebuild of the matrix, the
-factorisation and the triangular solves.
+factorisation and the triangular solves. Throughout the chapter the
+per-step cost of a configuration is the sum of its per-phase medians over
+the steps, the cost of a typical step, robust against the turbo and
+thermal drift of the machine; the drift moves absolute times by tens of
+percent between sessions, so the per-step entries of this chapter are not
+comparable with Table~\ref{tab:seqbaseline}, whose entries are wall times
+of whole runs from another session.
 
 The natural ordering is not an arbitrary baseline, because the assembly
 numbers the unknowns in a specific way: the interior unknowns of each
