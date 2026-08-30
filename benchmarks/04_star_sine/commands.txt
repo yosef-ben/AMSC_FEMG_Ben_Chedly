@@ -16,3 +16,7 @@ python3 scripts/plot-star-solution.py \
   benchmarks/04_star_sine/results/solution_0200.vtp \
   --title "Solution at t = 1.00" --zlim -1.1 1.1 --ztick 0.5 \
   --output benchmarks/04_star_sine/results/star_sine.png
+
+Spatial convergence figure (from the stored CSV):
+python3 scripts/plot-convergence.py benchmarks/04_star_sine/results/space_convergence.csv
+cp output/convergence/star_sine_space_convergence.pdf benchmarks/04_star_sine/results/space_convergence.pdf
