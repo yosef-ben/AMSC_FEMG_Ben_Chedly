@@ -20,6 +20,13 @@ disagree. Run it from the project root:
 | `04/star_sine` (report: domain and solution in one panel, eigenmode style) | `plot-star-solution.py` | `04/results/solution_0200.vtp` | `test_heat_star_sine` |
 | `04/space_convergence` (report: L2 error against h with the h^2 reference) | `plot-convergence.py` | `04/results/space_convergence.csv` | `test_heat_star_sine_convergence` |
 | `05/star_radial_decay` (report: the three instants in one row, eigenmode style) | `plot-star-solution.py` | `05/results/solution_{0000,0005,0020}.vtp` | `test_heat_star_radial_decay` |
+| `07/star_eigenmodes_00_05` (report: first six eigenmodes of the star) | `plot-eigenmodes.py` | `07/results/eigenmode_*.vtp` | `test_spectral_star` |
+| `08/graphene_eigenmodes_00_05` and `08/graphene_eigenmodes_06_09` (report: the first ten eigencouples) | `plot-eigenmodes.py` | `08/results/eigenmode_*.vtp` | `test_spectral_graphene` |
+| `09/tree_eigenmodes_00_07` and `09/tree_eigenmodes_08_15` (report: the first sixteen eigenmodes) | `plot-eigenmodes.py` | `09/results/eigenmode_*.vtp` | `test_spectral_tree` |
+| `10/graphene_eigenmode_time_snapshots` and `10/graphene_eigenmode_l2_decay` | `plot-parabolic-snapshots.py`, `plot-heat-decay.py` | `10/results/solution_*.vtp`, `10/results/decay.csv` | `test_heat_graphene_eigenmode` |
+| `11/tree_eigenmode_time_snapshots` and `11/tree_eigenmode_l2_decay` | `plot-parabolic-snapshots.py`, `plot-heat-decay.py` | `11/results/solution_*.vtp`, `11/results/decay.csv` | `test_heat_tree_eigenmode` |
+| `12/time_convergence` (report: first order for Backward Euler, second for Crank-Nicolson) | `plot-time-convergence.py` | `12/results/time_convergence.csv` | `test_heat_graphene_eigenmode_time_convergence` |
+| `13/spectral_comparison` | `plot-spectral-comparison.py` | `13/results/{star,graphene,tree_*}/spectral_comparison.csv` | `test_spectral_comparison` |
 | `18/sensitivity` | `plot-fisher-kolmogorov-1d-sensitivity.py` | `profiles.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/front_speeds` (diagnostic, not in the report) | `plot-fisher-kolmogorov-front-speed.py` | `profiles.csv`, `front_speeds.csv` | `test_fisher_kolmogorov_1d_sensitivity` |
 | `18/time_step_study` | `plot-fisher-kolmogorov-time-step-study.py` | `time_step_profiles.csv`, `time_step_study.csv` | `test_fisher_kolmogorov_1d_time_step_study` |
