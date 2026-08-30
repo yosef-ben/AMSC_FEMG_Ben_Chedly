@@ -84,10 +84,12 @@ def ordering_figure(output_dir):
 
     colamd = {int(row["n_dofs"]): float(row["factor_nnz"])
               for row in series["lu_colamd"]}
+    # The top-left corner is the only region the rising curves never
+    # reach, so the note lives there and the arrow drops onto the bump.
     axes[0].annotate("2 elements/connection:\nmore fill than the\n"
                      "next two meshes",
-                     xy=(1213, colamd[1213]), xytext=(160, 2.6e6),
-                     fontsize=8, fontweight="bold", color="0.35",
+                     xy=(1213, colamd[1213]), xytext=(70, 2.2e7),
+                     va="top", fontsize=8, fontweight="bold", color="0.35",
                      arrowprops={"arrowstyle": "->", "color": "0.35",
                                  "linewidth": 1.1})
     axes[0].set_xlim(45, 2.2e6)
