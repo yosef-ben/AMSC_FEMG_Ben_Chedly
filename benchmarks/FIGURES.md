@@ -43,6 +43,9 @@ disagree. Run it from the project root:
 | `27/seeding_patterns_regional` (report: the tau seeding with the regional rates of Corti et al., rescaled to the same mean, `--only tau`, with the lobe biomarker curves as a third row, `--curves`) and `27/seeding_patterns_regional_full` (record: both rows) | `plot-connectome-staging.py --prefix seeding_patterns_regional` | `staging/{tau,amyloid}_regional/fem_profiles.csv`, plus the reference strips | `test_fisher_kolmogorov_fornari83 ... be_lumped <seed> benchmarks/21/results/reaction_coefficients.csv` |
 | `27/amyloid_phase_crossings` (record, not in the report: the amyloid stations region by region, behind the quoted group means) | `plot-amyloid-phase-crossings.py` | `amyloid_profiles.csv`, `21/results/reaction_coefficients.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped`, `neocortex` seeding |
 | `27/lobe_crossings` (record, not in the report) | `plot-fisher-lobe-crossings.py` | `tau_profiles.csv`, `tau_biomarkers.csv`, `data/connectome/fornari83/nodes.csv` | `test_fisher_kolmogorov_fornari83`, `be_lumped` scheme |
+| `28/performance_ordering` (report: factor fill and per-step cost of the four orderings) | `plot-performance-figures.py` | `28/results/ordering_study.csv` | `run-ordering-study.py` driving `test_ordering_study` |
+| `29/performance_condensation` (report: condensed against full-system step and the phase split) | `plot-performance-figures.py` | `29/results/condensation_study.csv` | `run-condensation-study.py` driving `test_condensation` |
+| `32/performance_scaling` (report: OpenMP and MPI speedups and the four hybrid arrangements) | `plot-performance-figures.py` | `30/results/omp_scaling.csv`, `31/results/mpi_scaling.csv`, `32/results/hybrid_comparison.csv` | the runners of benchmarks 30, 31 and 32 |
 
 The records of benchmark 27 also carry two studies without a figure:
 `synthetic_rate_field.csv` with `tau_synthetic_biomarkers.csv`, the control

@@ -12,3 +12,6 @@ cp output/fisher_kolmogorov/corti83/condensation_study/validation.csv \
    benchmarks/29_static_condensation/results/validation.csv
 cp output/fisher_kolmogorov/corti83/condensation_study/condensation_study.csv \
    benchmarks/29_static_condensation/results/condensation_study.csv
+
+Condensation figure (generated together with the figures of benchmarks 28 and 32):
+python3 scripts/plot-performance-figures.py

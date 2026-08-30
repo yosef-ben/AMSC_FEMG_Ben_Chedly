@@ -7,11 +7,12 @@ the unknown count, from the sequential ordering study. Condensation: the
 condensed step against the full-system reference and the phase split of the
 condensed step, from the static-condensation study. Scaling: OpenMP and MPI
 speedup on the 128-cell connectome and the equal-worker hybrid comparison.
-Every number is read from the stored benchmark CSV records; the derived
-values quoted in the chapter text are printed for cross-checking.
+Every number is read from the stored benchmark CSV records and each figure
+is saved into the results of the benchmark that owns its data (28, 29 and
+32); the derived values quoted in the chapter text are printed for
+cross-checking.
 """
 
-import argparse
 import csv
 import sys
 from pathlib import Path
@@ -301,14 +302,10 @@ def scaling_figure(output_dir):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", type=Path, default=Path("report"))
-    args = parser.parse_args()
-    args.output_dir.mkdir(parents=True, exist_ok=True)
     figure_style.apply()
-    ordering_figure(args.output_dir)
-    condensation_figure(args.output_dir)
-    scaling_figure(args.output_dir)
+    ordering_figure(ORDERING.parent)
+    condensation_figure(CONDENSATION.parent)
+    scaling_figure(HYBRID.parent)
 
 
 if __name__ == "__main__":

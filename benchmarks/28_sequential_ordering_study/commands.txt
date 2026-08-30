@@ -12,3 +12,6 @@ cp output/fisher_kolmogorov/corti83/ordering_study/validation.csv \
    benchmarks/28_sequential_ordering_study/results/validation.csv
 cp output/fisher_kolmogorov/corti83/ordering_study/ordering_study.csv \
    benchmarks/28_sequential_ordering_study/results/ordering_study.csv
+
+Ordering figure (generated together with the figures of benchmarks 29 and 32):
+python3 scripts/plot-performance-figures.py

@@ -8,3 +8,6 @@ cp output/fisher_kolmogorov/corti83/hybrid_study/hybrid_validation.csv \
    benchmarks/32_hybrid_condensation/results/hybrid_validation.csv
 cp output/fisher_kolmogorov/corti83/hybrid_study/hybrid_comparison.csv \
    benchmarks/32_hybrid_condensation/results/hybrid_comparison.csv
+
+Scaling figure, from the records of benchmarks 30, 31 and 32:
+python3 scripts/plot-performance-figures.py
