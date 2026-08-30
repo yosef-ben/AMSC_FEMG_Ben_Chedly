@@ -18,7 +18,6 @@ find_package(Boost 1.76.0 REQUIRED COMPONENTS graph)
 # FEMG library
 add_library(femg
   FEMG/src/quantum_graph_problem.cpp
-  FEMG/src/elliptic_problem.cpp
   FEMG/src/parabolic_problem.cpp
   FEMG/src/fisher_kolmogorov_problem.cpp
   FEMG/src/spectral_problem.cpp
@@ -210,12 +209,6 @@ add_executable(test_heat_time_convergence
   test_problem/parabolic/test_heat_time_convergence.cpp
 )
 target_link_libraries(test_heat_time_convergence PRIVATE femg)
-
-# Elliptic placeholder
-add_executable(test_elliptic
-  test_problem/elliptic/test_elliptic.cpp
-)
-target_link_libraries(test_elliptic PRIVATE femg)
 
 add_executable(test_linear_solver_complexity
   test_problem/elliptic/test_linear_solver_complexity.cpp

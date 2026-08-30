@@ -7,10 +7,8 @@ __pycache__/
 # Windows alternate-data-stream leftovers from copying the tree across a mount.
 *:Zone.Identifier
 
-# Reference papers and scratch material, not project sources.
+# Reference papers, not project sources.
 QuantumGraphs/
-_codex_diag/
-_tmp_report_text/
 
 # Raw connectome downloads, ~34 MB. The reproducible download endpoints are
 # documented in data/connectome/source/README.md and the compressed original
