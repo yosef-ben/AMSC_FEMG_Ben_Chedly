@@ -1,5 +1,14 @@
 # FEMG
 
+A parallel finite element solver for parabolic equations on quantum graphs.
+
+Project for the course Advanced Methods for Scientific Computing, MSc in
+High Performance Computing Engineering, Politecnico di Milano,
+a.y. 2025/2026. Author: Yosef Ben Chedly. Supervisor: Prof. Paola F.
+Antonietti.
+
+The full project report is [`report/amsc_project.pdf`](report/amsc_project.pdf).
+
 Lightweight C++ finite element code for parabolic PDEs on metric graphs.
 The current implementation uses Boost Graph Library for graph topology and
 Eigen for sparse linear algebra.
